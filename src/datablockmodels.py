@@ -1,0 +1,218 @@
+class subject:
+    def __init__(self):
+        self.observers = []
+    def register(self, observer):
+        self.observers.append(observer)
+    def notifysubscribers(self):
+        for each in self.observers:
+            each.update()
+
+class packetmdl:
+    def packetinfo(self):
+        pass
+    
+    def setdata(self, data):
+        pass
+
+class sdbMdl(packetmdl, subject):
+    def setdata(self, data):
+        assert(data[1] == '00')
+        assert(len(data) == 128)
+        self.data = data
+        self.notifysubscribers() # notify observers
+    def packetinfo(self):
+        return 'SDB'
+    def getBit(self, byte, n):
+        if ((byte >> n) & 0x1):
+            return True
+        else:
+            return False
+    def getByteVector(self, lbound, hbound):
+        return self.data[hbound-1:lbound-2:-1]
+    def getByteString(self, lbound, hbound):
+        return ''.join(self.getByteVector(lbound, hbound))
+    def versionNr(self):
+        string = '%s.%s' % tuple(self.getByteVector(3, 4))
+        return string.lstrip('0')
+    def GMID(self):
+        return self.getByteString(6, 8)
+    def idle(self):
+        return self.getBit(int(self.data[8], 16), 0)
+    def gameCycle(self):
+        return self.getBit(int(self.data[8], 16), 1)
+    def powerUp(self):
+        return self.getBit(int(self.data[8], 16), 2)
+    def reset(self):
+        return self.getBit(int(self.data[8], 16), 3)
+    def ccceTxComplete(self):
+        return self.getBit(int(self.data[8], 16), 4)
+    def largeWin(self):
+        return self.getBit(int(self.data[9], 16), 0)
+    def collectCash(self):
+        return self.getBit(int(self.data[9], 16), 1)
+    def cancelCredit(self):
+        return self.getBit(int(self.data[9], 16), 2)
+    def progressiveWin(self):
+        return self.getBit(int(self.data[9], 16), 3)
+    def manufacturerWin0(self):
+        return self.getBit(int(self.data[9], 16), 4)
+    def manufacturerWin1(self):
+        return self.getBit(int(self.data[9], 16), 5)
+    def manufacturerWin2(self):
+        return self.getBit(int(self.data[9], 16), 6)
+    def doorOpen(self):
+        return self.getBit(int(self.data[10], 16), 0)
+    def logicCageOpen(self):
+        return self.getBit(int(self.data[10], 16), 1)
+    def displayError(self):
+        return self.getBit(int(self.data[10], 16), 2)
+    def selfAuditError(self):
+        return self.getBit(int(self.data[10], 16), 3)
+    def memoryError(self):
+        return self.getBit(int(self.data[10], 16), 4)
+    def cashInputError(self):
+        return self.getBit(int(self.data[10], 16), 5)
+    def cashOutputError(self):
+        return self.getBit(int(self.data[10], 16), 6)
+    def auditMode(self):
+        return self.getBit(int(self.data[11], 16), 0)
+    def testMode(self):
+        return self.getBit(int(self.data[11], 16), 1)
+    def powerSaveMode(self):
+        return self.getBit(int(self.data[11], 16), 2)
+    def subsEquipPaySuspended(self):
+        return self.getBit(int(self.data[11], 16), 3)
+    def mechMeterDisconnected(self):
+        return self.getBit(int(self.data[11], 16), 4)
+    def manufacturerError0(self):
+        return self.getBit(int(self.data[11], 16), 5)
+    def manufacturerError1(self):
+        return self.getBit(int(self.data[11], 16), 6)
+    def cancelCreditError(self):
+        return self.getBit(int(self.data[12], 16), 0)
+    def turnover(self):
+        x = int(self.getByteString(17, 21))/100.00
+        return '$%.2f' % x
+    def totalWins(self):
+        x = int(self.getByteString(22, 26))/100.00
+        return '$%.2f' % x
+    def cashBox(self):
+        x = int(self.getByteString(27, 31))/100.00
+        return '$%.2f' % x
+    def cancelledCredits(self):
+        x = int(self.getByteString(32, 36))/100.00
+        return '$%.2f' % x
+    def gamesPlayed(self):
+        return self.getByteString(37, 40)
+    def moneyIn(self):
+        x = int(self.getByteString(42, 46))/100.00
+        return '$%.2f' % x
+    def moneyOut(self):
+        x = int(self.getByteString(47, 51))/100.00
+        return '$%.2f' % x
+    def cashIn(self):
+        x = int(self.getByteString(52, 56))/100.00
+        return '$%.2f' % x
+    def cashOut(self):
+        x = int(self.getByteString(57, 61))/100.00
+        return '$%.2f' % x
+    def credits(self):
+        return self.getByteString(62, 66).lstrip('0')
+    def miscAccrual(self):
+        return '????'
+    def nrpowerUps(self):
+        return self.getByteString(72, 75).lstrip('0')
+    def gamesSinceReboot(self):
+        return self.getByteString(76, 79).lstrip('0')
+    def gamesSinceDoorOpen(self):
+        return self.getByteString(80, 83).lstrip('0')
+    def baseCreditValue(self):
+        x = int(self.getByteString(85, 86))/100.00
+        return '$%.2f' % x
+    def programID1(self):
+        x = [chr(int(val, 16)) for val in self.getByteVector(88, 95)]
+        return ''.join(x).strip()
+    def programID2(self):
+        x = [chr(int(val, 16)) for val in self.getByteVector(96, 103)]
+        return ''.join(x).strip()
+    def programID3(self):
+        x = [chr(int(val, 16)) for val in self.getByteVector(104, 111)]
+        return ''.join(x).strip()
+    def programID4(self):
+        x = [chr(int(val, 16)) for val in self.getByteVector(112, 119)]
+        return ''.join(x).strip()
+    def prtp(self):
+        x = int(self.getByteString(120, 121))/100.00
+        return '%.2f%%' % x
+    def linkedProgSupported(self):
+        return self.getBit(int(self.data[121], 16), 0)
+
+class mdbMdl(packetmdl, subject):
+    def setdata(self, data):
+        assert(data[1] == '22')
+        assert(len(data) == 128)
+        self.data = data
+        self.notifysubscribers()
+        
+    def packetinfo(self):
+        return 'MDB'
+    def getBit(self, byte, n):
+        if ((byte >> n) & 0x1):
+            return True
+        else:
+            return False
+    def getByteVector(self, lbound, hbound):
+        return self.data[hbound-1:lbound-2:-1]
+    def getByteString(self, lbound, hbound):
+        return ''.join(self.getByteVector(lbound, hbound))    
+    def GMID(self):
+        return self.getByteString(5, 7)
+    def versionNr(self):
+        return self.getByteString(8, 9)
+    def mdbType(self):
+        string = '%s.%s' % tuple(self.getByteVector(10, 11))
+        return string.lstrip('0')
+    def stackerDoorOpen(self):
+        return self.getBit(int(self.data[11], 16), 0)
+    def stackerCommsError(self):
+        return self.getBit(int(self.data[11], 16), 1)
+    def stackerFailure(self):
+        return self.getBit(int(self.data[11], 16), 2)
+    def stackerFull(self):
+        return self.getBit(int(self.data[11], 16), 3)
+    def stackerRemoved(self):
+        return self.getBit(int(self.data[11], 16), 4)
+    def stackerOutOfService(self):
+        return self.getBit(int(self.data[11], 16), 5)
+    def cashBoxDropDoorOpen(self):
+        return self.getBit(int(self.data[13], 16), 0)
+    def printerPaperLow(self):
+        return self.getBit(int(self.data[13], 16), 1)
+    def validTicketOut(self):
+        return self.getBit(int(self.data[13], 16), 2)
+    def printerFault(self):
+        return self.getBit(int(self.data[13], 16), 3)
+    def paperEmpty(self):
+        return self.getBit(int(self.data[13], 16), 4)
+    def validTicketIn(self):
+        return self.getBit(int(self.data[13], 16), 5)
+    def ticketInCommsError(self):
+        return self.getBit(int(self.data[14], 16), 0)
+    def ticketInRejectedByHost(self):
+        return self.getBit(int(self.data[14], 16), 1)
+    def tenRejects(self):
+        return self.getBit(int(self.data[14], 16), 2)
+    def miscTicketInError(self):
+        return self.getBit(int(self.data[14], 16), 3)
+    def ticketLowerThanBCV(self):
+        return self.getBit(int(self.data[14], 16), 4)
+    def ticketStackingDone(self):
+        return self.getBit(int(self.data[14], 16), 5)
+    def nr5DollarNotes(self):
+        return '%i' % int(self.getByteString(16, 20))
+    def nr10DollarNotes(self):
+        return '%i' % int(self.getByteString(21, 25))
+    def nr20DollarNotes(self):
+        return '%i' % int(self.getByteString(26, 30))
+    def nr50DollarNotes(self):
+        return '%i' % int(self.getByteString(31, 35))
