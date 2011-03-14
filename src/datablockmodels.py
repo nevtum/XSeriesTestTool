@@ -216,3 +216,18 @@ class mdbMdl(packetmdl, subject):
         return '%i' % int(self.getByteString(26, 30))
     def nr50DollarNotes(self):
         return '%i' % int(self.getByteString(31, 35))
+    def nr100DollarNotes(self):
+        return '%i' % int(self.getByteString(36, 40))
+    def ticketsAccepted(self):
+        return '%i' % int(self.getByteString(41, 45))
+    def ticketsRejected(self):
+        return '%i' % int(self.getByteString(46, 50))
+    def totBillsAcceptedSpare(self):
+        return '%i' % int(self.getByteString(51, 55))
+    def valBillsAccepted(self):
+        x = int(self.getByteString(56, 60))/100.00
+        return '$%.2f' % x
+    def totBillsAccepted(self):
+        return '%i' % int(self.getByteString(61, 66))
+    def dateTicketPrinted(self):
+        return self.getByteString(67, 70)

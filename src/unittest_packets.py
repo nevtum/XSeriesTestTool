@@ -208,6 +208,20 @@ class TestMDBHandle(unittest.TestCase):
         self.assertEquals('6655555544', self.mdb2.nr20DollarNotes())
         self.assertEquals('1122222233', self.mdb1.nr50DollarNotes())
         self.assertEquals('3322222211', self.mdb2.nr50DollarNotes())
-
+        self.assertEquals('4455555566', self.mdb1.nr100DollarNotes())
+        self.assertEquals('6655555544', self.mdb2.nr100DollarNotes())
+        self.assertEquals('1122222233', self.mdb1.ticketsAccepted())
+        self.assertEquals('3322222211', self.mdb2.ticketsAccepted())
+        self.assertEquals('4455555566', self.mdb1.ticketsRejected())
+        self.assertEquals('6655555544', self.mdb2.ticketsRejected())
+        self.assertEquals('1122222233', self.mdb1.totBillsAcceptedSpare())
+        self.assertEquals('3322222211', self.mdb2.totBillsAcceptedSpare())
+        self.assertEquals('$44555555.66', self.mdb1.valBillsAccepted())
+        self.assertEquals('$66555555.44', self.mdb2.valBillsAccepted())
+        self.assertEquals('112222222233', self.mdb1.totBillsAccepted())
+        self.assertEquals('332222222211', self.mdb2.totBillsAccepted())
+        self.assertEquals('25111997', self.mdb1.dateTicketPrinted())
+        self.assertEquals('14032011', self.mdb2.dateTicketPrinted())
+        
 if __name__ == '__main__':
     unittest.main()
