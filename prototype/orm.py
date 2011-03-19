@@ -5,25 +5,25 @@ Created on 19/03/2011
 '''
 import os
 import sqlite3
+import datablockmodels
 
 class SDBORM(object):
 
     def __init__(self, path):
-        if not os.path.exists(path):
+        try:
             self.connection = sqlite3.connect(path)
             self.cursor = self.connection.cursor()
             query = """CREATE TABLE Packets (packetid INTEGER,
             gmid INTEGER,
             statusbyte INTEGER)"""
             self.cursor.execute(query)
-        else:
-            self.connection = sqlite3.connect(path)
-            self.cursor = self.connection.cursor()
+        except sqlite3.OperationalError:
+            print "tables exists"
     
     def __del__(self):
         self.connection.close()
         
-    def insert(self, *packet):
+    def update(self, *packet):
         assert(len(packet) == 3)
         sql = "INSERT INTO Packets VALUES(%i, %i, %i)" % tuple(packet)
         print sql
@@ -34,3 +34,8 @@ class SDBORM(object):
         self.cursor.execute("SELECT * FROM Packets")
         self.connection.commit()
         return self.cursor.fetchall()
+    
+x = SDBORM('sdb.db')
+rows = x.fetchall()
+for each in rows:
+    print each
