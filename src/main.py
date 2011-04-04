@@ -14,6 +14,6 @@ view = sdbreporter(sdbhandle) # View
 
 packetswitch = packetswitch()
 packetswitch.registermodelinstance('00', sdbhandle)
-#packetswitch.registermodelinstance('22', mdbMdl())
+packetswitch.registermodelinstance('22', mdbMdl())
 packetswitch.setstream(e)
 packetswitch.run()

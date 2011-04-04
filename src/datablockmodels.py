@@ -23,10 +23,7 @@ class sdbMdl(packetmdl, subject):
     def packetinfo(self):
         return 'SDB'
     def getBit(self, byte, n):
-        if ((byte >> n) & 0x1):
-            return True
-        else:
-            return False
+        return byte >> n & 0x1
     def getByteVector(self, lbound, hbound):
         return self.data[hbound-1:lbound-2:-1]
     def getByteString(self, lbound, hbound):
@@ -231,3 +228,7 @@ class mdbMdl(packetmdl, subject):
         return '%i' % int(self.getByteString(61, 66))
     def dateTicketPrinted(self):
         return self.getByteString(67, 70)
+    def printerUniqueID(self):
+        return self.getByteString(74, 83) ## not done
+    def amountTicketInCents(self):
+        return self.getByteString(84, 88) ## not done
