@@ -19,57 +19,41 @@ class SDBORM(object):
         #    print "tables exists"
             
     def createnewtables(self):
-        self.cursor.execute("PRAGMA foreign_keys = ON") 
-        query = """CREATE TABLE Packets(
-        date TEXT,
-        assetnr INTEGER,
-        packetversion INTEGER,
-        idle INTEGER,
-        gamecycle INTEGER,
-        powerup INTEGER,
-        reset INTEGER,
-        cccetxcomplete INTEGER,
-        largewin INTEGER,
-        collectcash INTEGER,
-        cancelcredit INTEGER,
-        progressivewin INTEGER,
-        manufacturerwin0 INTEGER,
-        manufacturerwin1 INTEGER,
-        manufacturerwin2 INTEGER,
-        dooropen INTEGER,
-        cageopen INTEGER,
-        displayerror INTEGER)"""
-        self.cursor.execute(query)
-        query = """CREATE TABLE foo(
-        displayerror INTEGER,
-        FOREIGN KEY(hey) REFERENCES Packets(assetnr))"""
-        self.cursor.execute(query)
+        try:
+            self.cursor.execute("PRAGMA foreign_keys = ON") 
+            query = """CREATE TABLE Packets(
+            eventID INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            GMID INTEGER,
+            version TEXT)"""
+            self.cursor.execute(query)
+            
+            query = """CREATE TABLE statusbytes(
+            eventID INTEGER PRIMARY KEY AUTOINCREMENT,
+            idle INTEGER,
+            gamecycle INTEGER)"""
+            self.cursor.execute(query)
+        except:
+            pass
     
     def __del__(self):
+        #assumes connection is open, you have been warned!
         self.connection.close()
         
     def update(self, packet):
         string = "'%s'" % datetime.now()
         string += ',%s' % packet.GMID()
         string += ',%s' % packet.versionNr()
-        string += ',%s' % packet.idle()
-        string += ',%s' % packet.gameCycle()
-        string += ',%s' % packet.powerUp()
-        string += ',%s' % packet.reset()
-        string += ',%s' % packet.ccceTxComplete()
-        string += ',%s' % packet.largeWin()
-        string += ',%s' % packet.collectCash()
-        string += ',%s' % packet.cancelCredit()
-        string += ',%s' % packet.progressiveWin()
-        string += ',%s' % packet.manufacturerWin0()
-        string += ',%s' % packet.manufacturerWin1()
-        string += ',%s' % packet.manufacturerWin2()
-        string += ',%s' % packet.doorOpen()
-        string += ',%s' % packet.logicCageOpen()
-        string += ',%s' % packet.displayError()
-        sql = '''INSERT INTO Packets
+        sql = '''INSERT INTO Packets(date, GMID, version)
         VALUES(%s)''' % string
         self.cursor.execute(sql)
+        
+        string2 = '%s' % packet.idle()
+        string2 += ',%s' % packet.gameCycle()
+        sql = '''INSERT INTO statusbytes(idle, gamecycle)
+        VALUES(%s)''' % string2
+        self.cursor.execute(sql)
+        
         self.connection.commit()
         
     def fetchall(self):
