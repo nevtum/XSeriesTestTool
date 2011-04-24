@@ -8,65 +8,75 @@ from datetime import datetime
 import sqlite3
 from datablockmodels import *
 
-class SDBORM(object):
-
-    def __init__(self, path):
-        self.connection = sqlite3.connect(path)
-        self.cursor = self.connection.cursor()
-        #try:
-        self.createnewtables()
-        #except sqlite3.OperationalError:
-        #    print "tables exists"
-            
-    def createnewtables(self):
+class createsdbtablecommand:
+    def __init__(self, database):
+        self.database = database
+    def execute(self):
         try:
-            self.cursor.execute("PRAGMA foreign_keys = ON") 
-            query = """CREATE TABLE Packets(
+            self.__createtable()
+        except sqlite3.OperationalError:
+            print "error creating tables"
+    def __createtable(self):
+        cursor = self.database.cursor()
+        query = """CREATE TABLE Packets(
             eventID INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT,
             GMID INTEGER,
             version TEXT)"""
-            self.cursor.execute(query)
-            
-            query = """CREATE TABLE statusbytes(
+        cursor.execute(query)
+        query = """CREATE TABLE statusbytes(
             eventID INTEGER PRIMARY KEY AUTOINCREMENT,
             idle INTEGER,
-            gamecycle INTEGER)"""
-            self.cursor.execute(query)
-        except:
-            pass
-    
-    def __del__(self):
-        #assumes connection is open, you have been warned!
-        self.connection.close()
+            gamecycle INTEGER,
+            powerup INTEGER,
+            reset INTEGER)"""
+        cursor.execute(query)
         
-    def update(self, packet):
+class insertsdbcommand:
+    def __init__(self, sdbmdl, database):
+        self.sdbmdl = sdbmdl
+        self.database = database
+    def execute(self):
+        assert(self.sdbmdl) # assert sdbmdl still in scope
+        cursor = self.database.cursor()
         string = "'%s'" % datetime.now()
-        string += ',%s' % packet.GMID()
-        string += ',%s' % packet.versionNr()
-        sql = '''INSERT INTO Packets(date, GMID, version)
+        string += ',%s' % self.sdbmdl.GMID()
+        string += ',%s' % self.sdbmdl.versionNr()
+        sql = '''INSERT INTO Packets(date,
+        GMID,
+        version)
         VALUES(%s)''' % string
-        self.cursor.execute(sql)
-        
-        string2 = '%s' % packet.idle()
-        string2 += ',%s' % packet.gameCycle()
-        sql = '''INSERT INTO statusbytes(idle, gamecycle)
+        cursor.execute(sql)
+        string2 = '%s' % self.sdbmdl.idle()
+        string2 += ',%s' % self.sdbmdl.gameCycle()
+        string2 += ',%s' % self.sdbmdl.powerUp()
+        string2 += ',%s' % self.sdbmdl.reset()
+        sql = '''INSERT INTO statusbytes(idle
+        , gamecycle
+        , powerup
+        , reset)
         VALUES(%s)''' % string2
-        self.cursor.execute(sql)
+        cursor.execute(sql)
+
+class selectallsdbcommand:
+    def __init__(self, database):
+        self.database = database
+    def execute(self):
+        cursor = self.database.cursor()
+        query = 'SELECT * FROM Packets'
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        for each in rows:
+            print each
         
-        self.connection.commit()
-        
-    def fetchall(self):
-        self.cursor.execute("SELECT * FROM Packets")
-        self.connection.commit()
-        return self.cursor.fetchall()
-    
 f = open('sdbmockdata.txt', 'r')
 data = f.readline().split()
 sdb = sdbMdl()
 sdb.setdata(data)
-x = SDBORM('sdb.db')
-x.update(sdb)
-rows = x.fetchall()
-for each in rows:
-    print each
+database = sqlite3.connect('new.sqlite')
+command1 = createsdbtablecommand(database)
+command2 = insertsdbcommand(sdb, database)
+command3 = selectallsdbcommand(database)
+command1.execute()
+command2.execute()
+command3.execute()
