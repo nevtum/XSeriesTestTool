@@ -12,8 +12,10 @@ e = diffpacketfilter(d)
 sdbhandle = sdbMdl() # Model
 view = sdbreporter(sdbhandle) # View
 
-packetswitch = packetswitch()
+queue = CommandDispatcher()
+packetswitch = packetswitch(queue)
 packetswitch.registermodelinstance('00', sdbhandle)
 packetswitch.registermodelinstance('22', mdbMdl())
 packetswitch.setstream(e)
 packetswitch.run()
+queue.run()

@@ -1,4 +1,5 @@
 from datablockmodels import *
+from commands import MDLCommand
 
 def charfilter(fileobj, *invalids):
     for char in fileobj.read():
@@ -56,23 +57,46 @@ def diffpacketfilter(listgenerator):
             yield packet
         duplicates[packet[1]] = packet
 
-class packetswitch:
+import Queue
+from threading import Thread
+
+# make unit tests for this class
+class CommandDispatcher(Thread):
     def __init__(self):
-        self.handle = {}
+        Thread.__init__(self)
+        self.queue = Queue.Queue()
+        self.running = True
+        
+    def put(self, command):
+        self.queue.put(command)
+        
+    def run(self):
+        while self.running:
+            cmd = self.queue.get()
+            cmd.execute()
+            
+    def kill(self):
+        self.running = False
+
+class packetswitch(Thread):
+    def __init__(self, commanddispatcher):
+        self.mdlhandle = {}
+        self.cmdhandle = commanddispatcher
         
     def registermodelinstance(self, key, packetmodel):
         assert (isinstance(packetmodel, packetmdl))
-        self.handle[key] = packetmodel #insert sdbMdl, mdbMdl
+        self.mdlhandle[key] = packetmodel #insert sdbMdl, mdbMdl
         
     def setstream(self, stream):
         self.stream = stream
         
     def run(self):
         for each in self.stream:
-            self.dispatch(each)
+            cmd = self.dispatch(each)
+            self.cmdhandle.put(cmd)
     
     def dispatch(self, packet):
         assert(isinstance(packet, list))
-        handle = self.handle.get(packet[1])
+        handle = self.mdlhandle.get(packet[1])
         if handle is not None:
-            handle.setdata(packet)
+            return MDLCommand(list(packet), handle)
