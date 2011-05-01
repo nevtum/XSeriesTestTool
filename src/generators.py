@@ -65,21 +65,29 @@ class CommandDispatcher(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.queue = Queue.Queue()
-        self.running = True
+        self.running = False
         
     def put(self, command):
-        self.queue.put(command)
+        if self.running:
+            self.queue.put(command)
+        else:
+            raise ValueError
         
     def run(self):
+        self.running = True
         while self.running:
             cmd = self.queue.get()
-            cmd.execute()
+            if cmd:
+                cmd.execute()
+            else:
+                print "nothing to execute"
             
     def kill(self):
         self.running = False
 
 class packetswitch(Thread):
     def __init__(self, commanddispatcher):
+        Thread.__init__(self)
         self.mdlhandle = {}
         self.cmdhandle = commanddispatcher
         
