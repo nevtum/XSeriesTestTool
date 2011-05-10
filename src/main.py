@@ -13,9 +13,9 @@ sdbhandle = sdbMdl() # Model
 view = sdbreporter(sdbhandle) # View
 
 queue = CommandDispatcher()
-queue.run()
+queue.start()
 packetswitch = packetswitch(queue)
 packetswitch.registermodelinstance('00', sdbhandle)
 packetswitch.registermodelinstance('22', mdbMdl())
 packetswitch.setstream(e)
-packetswitch.run()
+packetswitch.start()
