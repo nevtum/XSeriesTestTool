@@ -35,24 +35,24 @@ class Test(unittest.TestCase):
     def setUp(self):
         self.CmdDisp = CommandDispatcher()
         self.CmdDisp.start()
-        time.sleep(0.2)
+        #time.sleep(0.2)
 
     def testName(self):
         rx = MockReciever()
         cmd = MockCommandSet(rx)
         self.CmdDisp.put(cmd)
-        time.sleep(0.2)
+        #time.sleep(0.2)
         self.assertEquals(True, rx.data())
         cmd = MockCommandReset(rx)
         self.CmdDisp.put(cmd)
-        time.sleep(0.2)
+        #time.sleep(0.2)
         self.assertEquals(False, rx.data())
     
     def testKill(self):
         rx = MockReciever()
         cmd = MockCommandSet(rx)
         self.CmdDisp.kill()
-        time.sleep(0.2)
+        #time.sleep(0.2)
         self.assertRaises(ValueError, self.CmdDisp.put, cmd)
 
 if __name__ == "__main__":

@@ -29,7 +29,11 @@ class createsdbtablecommand:
             idle INTEGER,
             gamecycle INTEGER,
             powerup INTEGER,
-            reset INTEGER)"""
+            reset INTEGER,
+            ccceTxComplete INTEGER,
+            largewin INTEGER,
+            collectcash INTEGER,
+            cancelcredit INTEGER)"""
         cursor.execute(query)
         
 class insertsdbcommand:
@@ -51,10 +55,18 @@ class insertsdbcommand:
         string2 += ',%s' % self.sdbmdl.gameCycle()
         string2 += ',%s' % self.sdbmdl.powerUp()
         string2 += ',%s' % self.sdbmdl.reset()
+        string2 += ',%s' % self.sdbmdl.ccceTxComplete()
+        string2 += ',%s' % self.sdbmdl.largeWin()
+        string2 += ',%s' % self.sdbmdl.collectCash()
+        string2 += ',%s' % self.sdbmdl.cancelCredit()
         sql = '''INSERT INTO statusbytes(idle
         , gamecycle
         , powerup
-        , reset)
+        , reset
+        , ccceTxComplete
+        , largewin
+        , collectcash
+        , cancelcredit)
         VALUES(%s)''' % string2
         cursor.execute(sql)
 
