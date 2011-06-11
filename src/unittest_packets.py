@@ -274,6 +274,14 @@ class TestMDBHandle(unittest.TestCase):
         self.assertEquals(False, self.mdb2.mystProgPayment())
         self.assertEquals(False, self.mdb2.stdProgPoolVal())
         self.assertEquals(False, self.mdb2.mystProgPoolVal())
-                
+        self.assertEquals(False, self.mdb1.ticketInPort1Set())
+        self.assertEquals(False, self.mdb1.timeBroadcastSet())
+        self.assertEquals(True, self.mdb2.ticketInPort1Set())
+        self.assertEquals(True, self.mdb2.timeBroadcastSet())
+        
+    def test_tito_meters(self):
+        self.assertEquals('$1010101.01', self.mdb1.amtStdProgWin())
+        self.assertEquals('$20202020.20', self.mdb2.amtStdProgWin())
+
 if __name__ == '__main__':
     unittest.main()

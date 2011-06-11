@@ -279,3 +279,10 @@ class mdbMdl(packetmdl, subject):
         return self.getBit(int(self.data[97], 16), 5)
     def mystProgPoolVal(self):
         return self.getBit(int(self.data[97], 16), 6)
+    def ticketInPort1Set(self):
+        return self.getBit(int(self.data[98], 16), 0)
+    def timeBroadcastSet(self):
+        return self.getBit(int(self.data[98], 16), 1)
+    def amtStdProgWin(self):
+        x = int(self.getByteString(100, 104))/100.00
+        return '$%.2f' % x
