@@ -126,6 +126,18 @@ class sdbMdl(packetmdl, subject):
         return self.getByteString(76, 79).lstrip('0')
     def gamesSinceDoorOpen(self):
         return self.getByteString(80, 83).lstrip('0')
+    def port1Status(self):
+        return self.getBit(int(self.data[83], 16), 0)
+    def port2Status(self):
+        return self.getBit(int(self.data[83], 16), 1)
+    def port3Status(self):
+        return self.getBit(int(self.data[83], 16), 2)
+    def port4Status(self):
+        return self.getBit(int(self.data[83], 16), 3)
+    def port5Status(self):
+        return self.getBit(int(self.data[83], 16), 4)
+    def port6Status(self):
+        return self.getBit(int(self.data[83], 16), 5)
     def baseCreditValue(self):
         x = int(self.getByteString(85, 86))/100.00
         return '$%.2f' % x
