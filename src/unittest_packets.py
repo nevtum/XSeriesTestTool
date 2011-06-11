@@ -121,6 +121,20 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals('4321', self.sdb2.gamesSinceDoorOpen())
         self.assertEquals('$52.63', self.sdb2.baseCreditValue())
         
+    def test_port_status(self):
+        self.assertEquals(True, self.sdb1.port1Status())
+        self.assertEquals(True, self.sdb1.port2Status())
+        self.assertEquals(True, self.sdb1.port3Status())
+        self.assertEquals(True, self.sdb1.port4Status())
+        self.assertEquals(True, self.sdb1.port5Status())
+        self.assertEquals(True, self.sdb1.port6Status())
+        self.assertEquals(False, self.sdb2.port1Status())
+        self.assertEquals(False, self.sdb2.port2Status())
+        self.assertEquals(False, self.sdb2.port3Status())
+        self.assertEquals(False, self.sdb2.port4Status())
+        self.assertEquals(False, self.sdb2.port5Status())
+        self.assertEquals(False, self.sdb2.port6Status())
+        
     def test_ascii_text(self):
         self.assertEquals('GM001700', self.sdb1.programID1())
         self.assertEquals('', self.sdb1.programID2())
