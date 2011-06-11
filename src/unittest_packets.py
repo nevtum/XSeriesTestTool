@@ -260,6 +260,20 @@ class TestMDBHandle(unittest.TestCase):
         self.assertEquals(True, self.mdb2.mystProgPayDone())
         self.assertEquals(True, self.mdb2.ccceTxComplete())
         self.assertEquals(True, self.mdb2.mystProgWin())
-        
+        self.assertEquals(True, self.mdb1.stdProgWinNotification())
+        self.assertEquals(True, self.mdb1.mystProgWinNotification())
+        self.assertEquals(True, self.mdb1.ccceIncDec())
+        self.assertEquals(True, self.mdb1.stdProgPayment())
+        self.assertEquals(True, self.mdb1.mystProgPayment())
+        self.assertEquals(True, self.mdb1.stdProgPoolVal())
+        self.assertEquals(True, self.mdb1.mystProgPoolVal())
+        self.assertEquals(False, self.mdb2.stdProgWinNotification())
+        self.assertEquals(False, self.mdb2.mystProgWinNotification())
+        self.assertEquals(False, self.mdb2.ccceIncDec())
+        self.assertEquals(False, self.mdb2.stdProgPayment())
+        self.assertEquals(False, self.mdb2.mystProgPayment())
+        self.assertEquals(False, self.mdb2.stdProgPoolVal())
+        self.assertEquals(False, self.mdb2.mystProgPoolVal())
+                
 if __name__ == '__main__':
     unittest.main()

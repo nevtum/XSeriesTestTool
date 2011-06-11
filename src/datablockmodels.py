@@ -265,3 +265,17 @@ class mdbMdl(packetmdl, subject):
         return self.getBit(int(self.data[95], 16), 2)
     def mystProgWin(self):
         return self.getBit(int(self.data[95], 16), 3)
+    def stdProgWinNotification(self):
+        return self.getBit(int(self.data[95], 16), 0)
+    def mystProgWinNotification(self):
+        return self.getBit(int(self.data[95], 16), 1)
+    def ccceIncDec(self):
+        return self.getBit(int(self.data[95], 16), 2)
+    def stdProgPayment(self):
+        return self.getBit(int(self.data[95], 16), 3)
+    def mystProgPayment(self):
+        return self.getBit(int(self.data[95], 16), 4)
+    def stdProgPoolVal(self):
+        return self.getBit(int(self.data[95], 16), 5)
+    def mystProgPoolVal(self):
+        return self.getBit(int(self.data[95], 16), 6)
