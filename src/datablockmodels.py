@@ -243,3 +243,25 @@ class mdbMdl(packetmdl, subject):
         return '%i' % int(self.getByteString(61, 66))
     def dateTicketPrinted(self):
         return self.getByteString(67, 70)
+    def timeTicketPrinted(self):
+        return self.getByteString(71, 73)
+    def printerID(self):
+        return self.getByteString(74, 83)
+    def ticketAmount(self):
+        return self.getByteString(84, 88)
+    def sequentialNr(self):
+        return self.getByteString(89, 93)
+    def hopperConfigured(self):
+        return self.getBit(int(self.data[93], 16), 0)
+    def BNAConfigured(self):
+        return self.getBit(int(self.data[93], 16), 1)
+    def printerConfigured(self):
+        return self.getBit(int(self.data[93], 16), 2)
+    def stdProgPayDone(self):
+        return self.getBit(int(self.data[95], 16), 0)
+    def mystProgPayDone(self):
+        return self.getBit(int(self.data[95], 16), 1)
+    def ccceTxComplete(self):
+        return self.getBit(int(self.data[95], 16), 2)
+    def mystProgWin(self):
+        return self.getBit(int(self.data[95], 16), 3)
