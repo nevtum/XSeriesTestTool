@@ -286,3 +286,15 @@ class mdbMdl(packetmdl, subject):
     def amtStdProgWin(self):
         x = int(self.getByteString(100, 104))/100.00
         return '$%.2f' % x
+    def amtMystProgWin(self):
+        x = int(self.getByteString(105, 109))/100.00
+        return '$%.2f' % x
+    def amtCCCETxIn(self):
+        x = int(self.getByteString(110, 114))/100.00
+        return '$%.2f' % x
+    def amtTicketOut(self):
+        x = int(self.getByteString(115, 119))/100.00
+        return '$%.2f' % x
+    def amtTicketIn(self):
+        x = int(self.getByteString(120, 124))/100.00
+        return '$%.2f' % x

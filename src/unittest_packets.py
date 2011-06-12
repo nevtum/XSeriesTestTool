@@ -282,6 +282,14 @@ class TestMDBHandle(unittest.TestCase):
     def test_tito_meters(self):
         self.assertEquals('$1010101.01', self.mdb1.amtStdProgWin())
         self.assertEquals('$20202020.20', self.mdb2.amtStdProgWin())
+        self.assertEquals('$44555555.66', self.mdb1.amtMystProgWin())
+        self.assertEquals('$66555555.44', self.mdb2.amtMystProgWin())
+        self.assertEquals('$561.52', self.mdb1.amtCCCETxIn())
+        self.assertEquals('$10101010.10', self.mdb2.amtCCCETxIn())
+        self.assertEquals('$22333333.44', self.mdb1.amtTicketOut())
+        self.assertEquals('$44333333.22', self.mdb2.amtTicketOut())
+        self.assertEquals('$30303030.30', self.mdb1.amtTicketIn())
+        self.assertEquals('$1960.40', self.mdb2.amtTicketIn())
 
 if __name__ == '__main__':
     unittest.main()
