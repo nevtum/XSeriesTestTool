@@ -89,3 +89,15 @@ class sdbreporter:
         self.printRTP(self.sdbmdl)
         self.printLinkProgSupport(self.sdbmdl)
         print ""
+        
+class mdbreporter:
+    def __init__(self, mdbmodel):
+        assert (isinstance(mdbmodel, mdbMdl))
+        self.mdbmdl = mdbmodel
+        self.mdbmdl.register(self)
+        
+    def update(self):
+        print "GMID:                  %s" % self.mdbmdl.GMID()
+        print "Version nr:            %s" % self.mdbmdl.versionNr()
+        print "Packet Type:           %s" % self.mdbmdl.mdbType()
+        print ""
