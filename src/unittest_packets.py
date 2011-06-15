@@ -222,8 +222,9 @@ class TestMDBHandle(unittest.TestCase):
         self.assertEquals('332222222211', self.mdb2.totBillsAccepted())
         self.assertEquals('25111997', self.mdb1.dateTicketPrinted())
         self.assertEquals('14032011', self.mdb2.dateTicketPrinted())
-        #self.assertEquals('', self.mdb1.printerUniqueID())
-        self.assertEquals('', self.mdb1.amountTicketInCents())
+        self.assertEquals('', self.mdb1.printerUniqueID())
+        self.assertEquals('3344444455', self.mdb1.amountTicketInCents())
+        self.assertEquals('5544444433', self.mdb2.amountTicketInCents())
         
 if __name__ == '__main__':
     unittest.main()
