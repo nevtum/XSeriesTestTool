@@ -12,10 +12,16 @@ e = diffpacketfilter(d)
 sdbhandle = sdbMdl() # Model
 view = sdbreporter(sdbhandle) # View
 
+mdbhandle = mdbMdl()
+view2 = mdbreporter(mdbhandle)
+
 queue = CommandDispatcher()
 queue.start()
 packetswitch = packetswitch(queue)
 packetswitch.registermodelinstance('00', sdbhandle)
-packetswitch.registermodelinstance('22', mdbMdl())
+packetswitch.registermodelinstance('22', mdbhandle)
 packetswitch.setstream(e)
 packetswitch.start()
+
+raw_input('Press any Key to exit')
+packetswitch.kill()

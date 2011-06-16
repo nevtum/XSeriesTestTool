@@ -23,7 +23,10 @@ class sdbMdl(packetmdl, subject):
     def packetinfo(self):
         return 'SDB'
     def getBit(self, byte, n):
-        return byte >> n & 0x1
+        if ((byte >> n) & 0x1):
+            return True
+        else:
+            return False
     def getByteVector(self, lbound, hbound):
         return self.data[hbound-1:lbound-2:-1]
     def getByteString(self, lbound, hbound):
@@ -123,6 +126,18 @@ class sdbMdl(packetmdl, subject):
         return self.getByteString(76, 79).lstrip('0')
     def gamesSinceDoorOpen(self):
         return self.getByteString(80, 83).lstrip('0')
+    def port1Status(self):
+        return self.getBit(int(self.data[83], 16), 0)
+    def port2Status(self):
+        return self.getBit(int(self.data[83], 16), 1)
+    def port3Status(self):
+        return self.getBit(int(self.data[83], 16), 2)
+    def port4Status(self):
+        return self.getBit(int(self.data[83], 16), 3)
+    def port5Status(self):
+        return self.getBit(int(self.data[83], 16), 4)
+    def port6Status(self):
+        return self.getBit(int(self.data[83], 16), 5)
     def baseCreditValue(self):
         x = int(self.getByteString(85, 86))/100.00
         return '$%.2f' % x
@@ -228,7 +243,58 @@ class mdbMdl(packetmdl, subject):
         return '%i' % int(self.getByteString(61, 66))
     def dateTicketPrinted(self):
         return self.getByteString(67, 70)
-    def printerUniqueID(self):
-        return self.getByteString(74, 83) ## not done
-    def amountTicketInCents(self):
-        return self.getByteString(84, 88) ## not done
+    def timeTicketPrinted(self):
+        return self.getByteString(71, 73)
+    def printerID(self):
+        return self.getByteString(74, 83)
+    def ticketAmount(self):
+        return self.getByteString(84, 88)
+    def sequentialNr(self):
+        return self.getByteString(89, 93)
+    def hopperConfigured(self):
+        return self.getBit(int(self.data[93], 16), 0)
+    def BNAConfigured(self):
+        return self.getBit(int(self.data[93], 16), 1)
+    def printerConfigured(self):
+        return self.getBit(int(self.data[93], 16), 2)
+    def stdProgPayDone(self):
+        return self.getBit(int(self.data[95], 16), 0)
+    def mystProgPayDone(self):
+        return self.getBit(int(self.data[95], 16), 1)
+    def ccceTxComplete(self):
+        return self.getBit(int(self.data[95], 16), 2)
+    def mystProgWin(self):
+        return self.getBit(int(self.data[95], 16), 3)
+    def stdProgWinNotification(self):
+        return self.getBit(int(self.data[97], 16), 0)
+    def mystProgWinNotification(self):
+        return self.getBit(int(self.data[97], 16), 1)
+    def ccceIncDec(self):
+        return self.getBit(int(self.data[97], 16), 2)
+    def stdProgPayment(self):
+        return self.getBit(int(self.data[97], 16), 3)
+    def mystProgPayment(self):
+        return self.getBit(int(self.data[97], 16), 4)
+    def stdProgPoolVal(self):
+        return self.getBit(int(self.data[97], 16), 5)
+    def mystProgPoolVal(self):
+        return self.getBit(int(self.data[97], 16), 6)
+    def ticketInPort1Set(self):
+        return self.getBit(int(self.data[98], 16), 0)
+    def timeBroadcastSet(self):
+        return self.getBit(int(self.data[98], 16), 1)
+    def amtStdProgWin(self):
+        x = int(self.getByteString(100, 104))/100.00
+        return '$%.2f' % x
+    def amtMystProgWin(self):
+        x = int(self.getByteString(105, 109))/100.00
+        return '$%.2f' % x
+    def amtCCCETxIn(self):
+        x = int(self.getByteString(110, 114))/100.00
+        return '$%.2f' % x
+    def amtTicketOut(self):
+        x = int(self.getByteString(115, 119))/100.00
+        return '$%.2f' % x
+    def amtTicketIn(self):
+        x = int(self.getByteString(120, 124))/100.00
+        return '$%.2f' % x
