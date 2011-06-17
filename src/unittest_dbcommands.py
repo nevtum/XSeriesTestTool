@@ -11,14 +11,15 @@ class Test(unittest.TestCase):
     def setUp(self):
         f = open('sdbmockdata.txt', 'r')
         self.data = f.readline().split()
+        self.cmd = insertToDBCommand(self.data)
 
-    def tearDown(self):
-        pass
-    
-    def testName(self):
-        cmd = insertToDBCommand(self.data)
+    def test_conversion(self):
+        cmd = self.cmd
         self.assertEquals(0x1234, cmd.convert(['12', '34']))
         self.assertEquals(0xabcd12, cmd.convert(['ab', 'cd', '12']))
+        
+    def test_all_items(self):
+        cmd = self.cmd
         self.assertEquals(0xff, cmd.item(0))
         self.assertEquals(0x00, cmd.item(1))
         self.assertEquals(0x0101, cmd.item(2))
@@ -51,6 +52,11 @@ class Test(unittest.TestCase):
         self.assertEquals(0x34303330304D4453, cmd.item(29))
         self.assertEquals(0x3630373030583253, cmd.item(30))
         self.assertEquals(0x9999, cmd.item(31))
+        self.assertEquals(0x01, cmd.item(32))
+        
+    def test_index_out_of_bound(self):
+        cmd = self.cmd
+        self.assertRaises(IndexError, cmd.item, 33)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
