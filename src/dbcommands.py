@@ -3,16 +3,50 @@ Created on 17/06/2011
 
 @author: nEVSTER
 '''
+import sqlite3
+
+class createsdbtablecommand:
+    def __init__(self, database):
+        self.database = database
+    def execute(self):
+        try:
+            self.__createtable()
+        except sqlite3.OperationalError:
+            print "error creating tables"
+    def __createtable(self):
+        metadata = {
+        'ID': 'INTEGER',
+        'VersionNr': 'INTEGER',
+        'GMID': 'INTEGER',
+        'Idle': 'INTEGER',
+        'GameCycle': 'INTEGER',
+        'PowerUP': 'INTEGER',
+        'Reset': 'INTEGER',
+        'CCCETxComplete': 'INTEGER', # metadata to be used for easier changes to columns
+        'LargeWin': 'INTEGER',
+        'CollectCash': 'INTEGER',
+        'CancelCredit': 'INTEGER',
+        'ProgressiveWin': 'INTEGER',
+        'ManufacturerWin0': 'INTEGER',
+        'ManufacturerWin1': 'INTEGER',
+        'ManufacturerWin2': 'INTEGER'}
+        string = ['%s %s' % kvpair for kvpair in metadata.iteritems()]
+        table_info = ', '.join(string)
+        cursor = self.database.cursor()
+        sql = """CREATE TABLE Packets(%s)""" % table_info
+        cursor.execute(sql)
 
 class insertToDBCommand(object):
-    '''
-    classdocs
-    '''
-
-
-    def __init__(self, data):
+    def __init__(self, data, database):
         self.data = data
         self.array = self.fillarray()
+        self.database = database
+        
+    def execute(self):
+        cursor = self.database.cursor()
+        values = ','.join([str(x) for x in self.array[1:16]]) # must deal with all values in array
+        sql = '''INSERT INTO Packets VALUES(%s)''' % values
+        cursor.execute(sql)
         
     def getByteVector(self, lbound, hbound):
         return self.data[lbound-1:hbound]
@@ -59,5 +93,33 @@ class insertToDBCommand(object):
     
     def item(self, n):
         return self.array[n]
+    
+class selectallsdbcommand:
+    def __init__(self, database):
+        self.database = database
+    def execute(self):
+        cursor = self.database.cursor()
+        query = 'SELECT * FROM Packets'
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        
+        # for debugging purposes
+        for each in rows:
+            values = ['0x%x' % item for item in each] 
+            print values
+            
+        return rows
+    
+f = open('sdbmockdata.txt', 'r')
+data = f.readline().split()
+database = sqlite3.connect('new.sqlite')
+command1 = createsdbtablecommand(database)
+command2 = insertToDBCommand(data, database)
+command3 = selectallsdbcommand(database)
+command1.execute()
+command2.execute()
+command3.execute()
+database.commit()
+database.close()
 
         
