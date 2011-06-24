@@ -4,6 +4,7 @@ Created on 17/06/2011
 @author: nEVSTER
 '''
 import sqlite3
+from time import strftime
 
 class createsdbtablecommand:
     def __init__(self, database):
@@ -14,7 +15,8 @@ class createsdbtablecommand:
         except sqlite3.OperationalError:
             print "error creating tables"
     def __createtable(self):
-        metadata = (('ID', 'INTEGER'),
+        metadata = (('EventID', 'INTEGER PRIMARY KEY'),
+                    ('ID', 'INTEGER'),
                     ('VersionNr', 'INTEGER'),
                     ('GMID', 'INTEGER'),
                     ('StatusByte1', 'INTEGER'),
@@ -51,6 +53,8 @@ class createsdbtablecommand:
         cursor = self.database.cursor()
         sql = """CREATE TABLE Packets(%s)""" % table_info
         cursor.execute(sql)
+        sql = """CREATE TABLE Event(ID INTEGER PRIMARY KEY, DateTime TEXT)"""
+        cursor.execute(sql)
 
 class insertToDBCommand(object):
     def __init__(self, data, database):
@@ -59,9 +63,22 @@ class insertToDBCommand(object):
         self.database = database
         
     def execute(self):
+        metadata = ['ID', 'VersionNr', 'GMID', 'StatusByte1',
+        'StatusByte2', 'StatusByte3','StatusByte4', 'StatusByte5',
+        'MultiGameNumber', 'MultiGameCombNumber', 'Turnover',
+        'TotalWins', 'CashBox', 'CancelledCredits', 'GamesPlayed',
+        'MoneyIn', 'MoneyOut', 'CashIn', 'CashOut', 'CurrentCredits',
+        'MiscAccrual', 'NrPowerUps', 'GamesSinceLastPowerUp',
+        'GamesSinceLastDoorOpen', 'PortStatusByte',
+        'BaseCreditValue', 'programID1', 'programID2',
+        'programID3', 'programID4', 'PRTP', 'SecondaryFunctions']
         cursor = self.database.cursor()
         values = ','.join([str(x) for x in self.array]) # must deal with all values in array
-        sql = '''INSERT INTO Packets VALUES(%s)''' % values
+        columns = ','.join(metadata)
+        sql = '''INSERT INTO Packets(%s) VALUES(%s)''' % (columns, values)
+        cursor.execute(sql)
+        sql = '''INSERT INTO Event(DateTime) Values(%s)''' % strftime('"%Y-%m-%d %H:%M:%S"')
+        print sql
         cursor.execute(sql)
         
     def getByteVector(self, lbound, hbound):
