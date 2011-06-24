@@ -16,38 +16,38 @@ class createsdbtablecommand:
             print "error creating tables"
     def __createtable(self):
         metadata = (('EventID', 'INTEGER PRIMARY KEY'),
-                    ('ID', 'INTEGER'),
-                    ('VersionNr', 'INTEGER'),
-                    ('GMID', 'INTEGER'),
-                    ('StatusByte1', 'INTEGER'),
-                    ('StatusByte2', 'INTEGER'),
-                    ('StatusByte3', 'INTEGER'),
-                    ('StatusByte4', 'INTEGER'),
-                    ('StatusByte5', 'INTEGER'),
-                    ('MultiGameNumber', 'INTEGER'),
-                    ('MultiGameCombNumber', 'INTEGER'),
-                    ('Turnover', 'INTEGER'),
-                    ('TotalWins', 'INTEGER'),
-                    ('CashBox', 'INTEGER'),
-                    ('CancelledCredits', 'INTEGER'),
-                    ('GamesPlayed', 'INTEGER'),
-                    ('MoneyIn', 'INTEGER'),
-                    ('MoneyOut', 'INTEGER'),
-                    ('CashIn', 'INTEGER'),
-                    ('CashOut', 'INTEGER'),
-                    ('CurrentCredits', 'INTEGER'),
-                    ('MiscAccrual', 'INTEGER'),
-                    ('NrPowerUps', 'INTEGER'),
-                    ('GamesSinceLastPowerUp', 'INTEGER'),
-                    ('GamesSinceLastDoorOpen', 'INTEGER'),
-                    ('PortStatusByte', 'INTEGER'),
-                    ('BaseCreditValue', 'INTEGER'),
-                    ('programID1', 'INTEGER'),
-                    ('programID2', 'INTEGER'),
-                    ('programID3', 'INTEGER'),
-                    ('programID4', 'INTEGER'),
-                    ('PRTP', 'INTEGER'),
-                    ('SecondaryFunctions', 'INTEGER'))
+                    ('ID', 'TEXT'), # try parsing from XML file instead
+                    ('VersionNr', 'TEXT'),
+                    ('GMID', 'TEXT'),
+                    ('StatusByte1', 'TEXT'),
+                    ('StatusByte2', 'TEXT'),
+                    ('StatusByte3', 'TEXT'),
+                    ('StatusByte4', 'TEXT'),
+                    ('StatusByte5', 'TEXT'),
+                    ('MultiGameNumber', 'TEXT'),
+                    ('MultiGameCombNumber', 'TEXT'),
+                    ('Turnover', 'TEXT'),
+                    ('TotalWins', 'TEXT'),
+                    ('CashBox', 'TEXT'),
+                    ('CancelledCredits', 'TEXT'),
+                    ('GamesPlayed', 'TEXT'),
+                    ('MoneyIn', 'TEXT'),
+                    ('MoneyOut', 'TEXT'),
+                    ('CashIn', 'TEXT'),
+                    ('CashOut', 'TEXT'),
+                    ('CurrentCredits', 'TEXT'),
+                    ('MiscAccrual', 'TEXT'),
+                    ('NrPowerUps', 'TEXT'),
+                    ('GamesSinceLastPowerUp', 'TEXT'),
+                    ('GamesSinceLastDoorOpen', 'TEXT'),
+                    ('PortStatusByte', 'TEXT'),
+                    ('BaseCreditValue', 'TEXT'),
+                    ('programID1', 'TEXT'),
+                    ('programID2', 'TEXT'),
+                    ('programID3', 'TEXT'),
+                    ('programID4', 'TEXT'),
+                    ('PRTP', 'TEXT'),
+                    ('SecondaryFunctions', 'TEXT'))
         string = ['%s %s' % kvpair for kvpair in metadata]
         table_info = ', '.join(string)
         cursor = self.database.cursor()
@@ -59,7 +59,7 @@ class createsdbtablecommand:
 class insertToDBCommand(object):
     def __init__(self, data, database):
         self.data = data
-        self.array = self.fillarray()
+        self.fillarray()
         self.database = database
         
     def execute(self):
@@ -73,12 +73,10 @@ class insertToDBCommand(object):
         'BaseCreditValue', 'programID1', 'programID2',
         'programID3', 'programID4', 'PRTP', 'SecondaryFunctions']
         cursor = self.database.cursor()
-        values = ','.join([str(x) for x in self.array]) # must deal with all values in array
         columns = ','.join(metadata)
-        sql = '''INSERT INTO Packets(%s) VALUES(%s)''' % (columns, values)
+        sql = '''INSERT INTO Packets(%s) VALUES(%s)''' % (columns, str(self.array).strip('[]'))
         cursor.execute(sql)
         sql = '''INSERT INTO Event(DateTime) Values(%s)''' % strftime('"%Y-%m-%d %H:%M:%S"')
-        print sql
         cursor.execute(sql)
         
     def getByteVector(self, lbound, hbound):
@@ -94,45 +92,23 @@ class insertToDBCommand(object):
         'GamesSinceLastDoorOpen', 'PortStatusByte',
         'BaseCreditValue', 'programID1', 'programID2',
         'programID3', 'programID4', 'PRTP', 'SecondaryFunctions']
-        extractions = [(2,2), (3,4), (6,8), (9,9), (10,10)] ## REMEBER TO COMPLETE!!
+        ranges = [(2,2), (3,4), (6,8), (9,9), (10,10), (11,11),
+                       (12,12), (13,13), (15,15), (16,16), (17,21),
+                       (22,26), (27,31), (32,36), (37,40), (42,46),
+                       (47,51), (52,56), (57,61), (62,66), (67,71),
+                       (72,75), (76,79), (80,83), (84,84), (85,86),
+                       (88,95), (96,103), (104,111), (112,119),
+                       (120,121), (122,122)]
+        
         hexdata = []
-        hexdata.append(self.convert(self.getByteVector(2, 2)))
-        hexdata.append(self.convert(self.getByteVector(3, 4)))
-        hexdata.append(self.convert(self.getByteVector(6, 8)))
-        hexdata.append(self.convert(self.getByteVector(9, 9)))
-        hexdata.append(self.convert(self.getByteVector(10, 10)))
-        hexdata.append(self.convert(self.getByteVector(11, 11)))
-        hexdata.append(self.convert(self.getByteVector(12, 12)))
-        hexdata.append(self.convert(self.getByteVector(13, 13)))
-        hexdata.append(self.convert(self.getByteVector(15, 15)))
-        hexdata.append(self.convert(self.getByteVector(16, 16)))
-        hexdata.append(self.convert(self.getByteVector(17, 21)))
-        hexdata.append(self.convert(self.getByteVector(22, 26)))
-        hexdata.append(self.convert(self.getByteVector(27, 31)))
-        hexdata.append(self.convert(self.getByteVector(32, 36)))
-        hexdata.append(self.convert(self.getByteVector(37, 40)))
-        hexdata.append(self.convert(self.getByteVector(42, 46)))
-        hexdata.append(self.convert(self.getByteVector(47, 51)))
-        hexdata.append(self.convert(self.getByteVector(52, 56)))
-        hexdata.append(self.convert(self.getByteVector(57, 61)))
-        hexdata.append(self.convert(self.getByteVector(62, 66)))
-        hexdata.append(self.convert(self.getByteVector(67, 71)))
-        hexdata.append(self.convert(self.getByteVector(72, 75)))
-        hexdata.append(self.convert(self.getByteVector(76, 79)))
-        hexdata.append(self.convert(self.getByteVector(80, 83)))
-        hexdata.append(self.convert(self.getByteVector(84, 84)))
-        hexdata.append(self.convert(self.getByteVector(85, 86)))
-        hexdata.append(self.convert(self.getByteVector(88, 95)))
-        hexdata.append(self.convert(self.getByteVector(96, 103)))
-        hexdata.append(self.convert(self.getByteVector(104, 111)))
-        hexdata.append(self.convert(self.getByteVector(112, 119)))
-        hexdata.append(self.convert(self.getByteVector(120, 121)))
-        hexdata.append(self.convert(self.getByteVector(122, 122)))
-        self.dictionary = dict(zip(metadata, hexdata))
-        return hexdata
+        for lbound, hbound in ranges:
+            hexdata.append(self.convert(self.getByteVector(lbound, hbound)))
+            
+        self.array = hexdata # needed for SQL Query
+        self.dictionary = dict(zip(metadata, hexdata)) # needed for getter
     
     def convert(self, data):
-        return int(''.join(data), 16)
+        return ''.join(data)
     
     def item(self, n):
         return self.array[n]
@@ -145,14 +121,14 @@ class selectallsdbcommand:
         self.database = database
     def execute(self):
         cursor = self.database.cursor()
-        query = 'SELECT * FROM Packets'
+        query = 'SELECT * FROM Packets P'
         cursor.execute(query)
         rows = cursor.fetchall()
         
         # for debugging purposes
         for each in rows:
-            values = ['0x%x' % item for item in each] 
-            print values
+            print each
+            pass
             
         return rows
     
