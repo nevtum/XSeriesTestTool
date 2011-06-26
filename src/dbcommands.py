@@ -6,15 +6,16 @@ Created on 17/06/2011
 import sqlite3
 from time import strftime
 
-class createsdbtablecommand:
+class createSDBTableCommand:
     def __init__(self, database):
         self.database = database
     def execute(self):
         try:
-            self.__createtable()
+            self.createtable()
+            createEventTableCommand(self.database).execute()
         except sqlite3.OperationalError:
             print "error creating tables"
-    def __createtable(self):
+    def createtable(self):
         metadata = (('EventID', 'INTEGER PRIMARY KEY'),
                     ('ID', 'TEXT'), # try parsing from XML file instead
                     ('VersionNr', 'TEXT'),
@@ -53,7 +54,13 @@ class createsdbtablecommand:
         cursor = self.database.cursor()
         sql = """CREATE TABLE Packets(%s)""" % table_info
         cursor.execute(sql)
-        sql = """CREATE TABLE Event(ID INTEGER PRIMARY KEY, DateTime TEXT)"""
+        
+class createEventTableCommand:
+    def __init__(self, database):
+        self.database = database
+    def execute(self):
+        cursor = self.database.cursor()
+        sql = """CREATE TABLE Event(ID INTEGER PRIMARY KEY, DateTime TEXT, Source TEXT)"""
         cursor.execute(sql)
 
 class insertToDBCommand(object):
@@ -76,7 +83,9 @@ class insertToDBCommand(object):
         columns = ','.join(metadata)
         sql = '''INSERT INTO Packets(%s) VALUES(%s)''' % (columns, str(self.array).strip('[]'))
         cursor.execute(sql)
-        sql = '''INSERT INTO Event(DateTime) Values(%s)''' % strftime('"%Y-%m-%d %H:%M:%S"')
+        vec = (strftime('"%Y-%m-%d %H:%M:%S"'), '"EGM"')
+        sql = '''INSERT INTO Event(DateTime, Source) Values(%s,%s)''' % vec
+        print sql
         cursor.execute(sql)
         
     def getByteVector(self, lbound, hbound):
@@ -116,12 +125,17 @@ class insertToDBCommand(object):
     def get(self, key):
         return self.dictionary[key]
     
-class selectallsdbcommand:
+class viewDBCommand:
     def __init__(self, database):
         self.database = database
     def execute(self):
         cursor = self.database.cursor()
-        query = 'SELECT * FROM Packets P'
+        query = '''SELECT
+        EV.*,
+        P.*
+        FROM Packets P
+        JOIN Event EV
+        ON EV.ID = P.EventID'''
         cursor.execute(query)
         rows = cursor.fetchall()
         
@@ -135,9 +149,9 @@ class selectallsdbcommand:
 f = open('sdbmockdata.txt', 'r')
 data = f.readline().split()
 database = sqlite3.connect('new.sqlite')
-command1 = createsdbtablecommand(database)
+command1 = createSDBTableCommand(database)
 command2 = insertToDBCommand(data, database)
-command3 = selectallsdbcommand(database)
+command3 = viewDBCommand(database)
 command1.execute()
 command2.execute()
 command3.execute()
