@@ -14,7 +14,9 @@ class TestSDBHandle(unittest.TestCase):
     def testnewfeatures(self):
         sdb = self.sdb1
         sdb.readmetadata('packets.xml')
-        self.assertEquals('123456' ,sdb.get('gmid'))
+        self.assertEquals(True ,sdb.getitem('idle'))
+        self.assertEquals(False, sdb.getitem('gamecycle'))
+        self.assertEquals('99999999', sdb.getitem('gamesplayed'))
         
     def testpacketinfo(self):
         self.assertEquals('SDB', self.sdb1.packetinfo())

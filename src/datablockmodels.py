@@ -19,16 +19,33 @@ class packetmdl:
 class sdbMdl(packetmdl, subject):
     def readmetadata(self, filename):
         self.metadata = createmetadata(filename)
+        self.statbyte = []
+        self.statbyte.append(self.metadata.statusbyte1) 
+        self.statbyte.append(self.metadata.statusbyte2)
+        self.statbyte.append(self.metadata.statusbyte3) 
+        self.statbyte.append(self.metadata.statusbyte4)
         
-    def get(self, part):
-        if self.metadata[part]['type'] == 'integer':
+    def finditem(self, part):
+        if self.metadata.__getitem__(part) is not None: # ugly ugly ugly
+            return self.metadata.__getitem__(part)
+        for statusbyte in self.statbyte:
+            if statusbyte.__getitem__(part) is not None:
+                return statusbyte.__getitem__(part)
+        
+    def getitem(self, part):
+        item = self.finditem(part)
+        if item['type'] == 'integer':
             print "part is an integer"
-        elif self.metadata[part]['type'] == 'bool':
-            print "part is a boolean"
-            return self.getBit(int(self.data[9], 16), 3)
-        elif self.metadata[part]['type'] == 'currency':
+            lbound = int(item['startbyte'])
+            hbound = int(item['endbyte'])
+            return self.getByteString(lbound, hbound)
+        elif item['type'] == 'bool':
+            byte = 9 # magicnumber yaaaaaaaaay!!
+            bit = int(item['bit'])
+            return self.getBit(int(self.data[byte], 16), bit)
+        elif item['type'] == 'currency':
             print "part is expressed in dollars"
-        elif self.metadata[part]['type'] == 'currency':
+        elif item['type'] == 'currency':
             print "part is expressed in dollars"
         else:
             raise IndexError
