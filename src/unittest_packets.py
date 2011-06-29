@@ -11,6 +11,11 @@ class TestSDBHandle(unittest.TestCase):
         self.sdb2 = sdbMdl()
         self.sdb2.setdata(data)
         
+    def testnewfeatures(self):
+        sdb = self.sdb1
+        sdb.readmetadata('packets.xml')
+        self.assertEquals('123456' ,sdb.get('gmid'))
+        
     def testpacketinfo(self):
         self.assertEquals('SDB', self.sdb1.packetinfo())
 

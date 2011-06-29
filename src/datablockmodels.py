@@ -1,3 +1,5 @@
+from xml2dict import *
+
 class subject:
     def __init__(self):
         self.observers = []
@@ -15,6 +17,22 @@ class packetmdl:
         pass
 
 class sdbMdl(packetmdl, subject):
+    def readmetadata(self, filename):
+        self.metadata = createmetadata(filename)
+        
+    def get(self, part):
+        if self.metadata[part]['type'] == 'integer':
+            print "part is an integer"
+        elif self.metadata[part]['type'] == 'bool':
+            print "part is a boolean"
+            return self.getBit(int(self.data[9], 16), 3)
+        elif self.metadata[part]['type'] == 'currency':
+            print "part is expressed in dollars"
+        elif self.metadata[part]['type'] == 'currency':
+            print "part is expressed in dollars"
+        else:
+            raise IndexError
+
     def setdata(self, data):
         assert(data[1] == '00')
         assert(len(data) == 128)
