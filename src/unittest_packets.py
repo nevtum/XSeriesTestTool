@@ -16,6 +16,8 @@ class TestSDBHandle(unittest.TestCase):
         sdb.readmetadata('packets.xml')
         self.assertEquals(True ,sdb.getitem('idle'))
         self.assertEquals(False, sdb.getitem('gamecycle'))
+        self.assertEquals(True, sdb.getitem('poweredup'))
+        self.assertEquals(False, sdb.getitem('reset'))
         self.assertEquals('99999999', sdb.getitem('gamesplayed'))
         
     def testpacketinfo(self):

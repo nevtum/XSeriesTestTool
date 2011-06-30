@@ -31,6 +31,11 @@ class sdbMdl(packetmdl, subject):
         for statusbyte in self.statbyte:
             if statusbyte.__getitem__(part) is not None:
                 return statusbyte.__getitem__(part)
+            
+    def findbyte(self, part):
+        for statusbyte in self.statbyte:
+            if statusbyte.__getitem__(part) is not None:
+                return statusbyte['byte']
         
     def getitem(self, part):
         item = self.finditem(part)
@@ -40,7 +45,7 @@ class sdbMdl(packetmdl, subject):
             hbound = int(item['endbyte'])
             return self.getByteString(lbound, hbound)
         elif item['type'] == 'bool':
-            byte = 9 # magicnumber yaaaaaaaaay!!
+            byte = int(self.findbyte(part))
             bit = int(item['bit'])
             return self.getBit(int(self.data[byte], 16), bit)
         elif item['type'] == 'currency':
