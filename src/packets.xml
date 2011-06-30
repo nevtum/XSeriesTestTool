@@ -16,6 +16,9 @@
 		<reset bit="3">
 			<type>bool</type>
 		</reset>
+		<cccetransfercomplete bit="4">
+			<type>bool</type>
+		</cccetransfercomplete>
 	</statusbyte1>
 	<statusbyte2 byte="10">
 		<type>integer</type>
@@ -184,9 +187,9 @@
 	<prtp startbyte="120" endbyte="121">
 		<type>percent</type>
 	</prtp>
-	<secondaryfunctions>
+	<secondaryfunctions byte="122">
 		<type>integer</type>
-		<stdlinkedprogressivesupport>
+		<stdlinkedprogressivesupport bit="0">
 			<type>bool</type>
 		</stdlinkedprogressivesupport>
 	</secondaryfunctions>

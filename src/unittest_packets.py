@@ -10,15 +10,7 @@ class TestSDBHandle(unittest.TestCase):
         data = f.readline().split()
         self.sdb2 = sdbMdl()
         self.sdb2.setdata(data)
-        
-    def testnewfeatures(self):
-        sdb = self.sdb1
-        sdb.readmetadata('packets.xml')
-        self.assertEquals(True ,sdb.getitem('idle'))
-        self.assertEquals(False, sdb.getitem('gamecycle'))
-        self.assertEquals(True, sdb.getitem('poweredup'))
-        self.assertEquals(False, sdb.getitem('reset'))
-        self.assertEquals('99999999', sdb.getitem('gamesplayed'))
+        self.sdb1.readmetadata('packets.xml')
         
     def testpacketinfo(self):
         self.assertEquals('SDB', self.sdb1.packetinfo())
@@ -28,15 +20,16 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals('1.02', self.sdb2.versionNr())
 
     def test_GMID(self):
-        self.assertEquals('123456', self.sdb1.GMID())
+        self.assertEquals('123456', self.sdb1.getitem('gmid'))
         self.assertEquals('563412', self.sdb2.GMID())
         
     def test_status_byte_1(self):
-        self.assertEquals(True, self.sdb1.idle())
-        self.assertEquals(False, self.sdb1.gameCycle())
-        self.assertEquals(True, self.sdb1.powerUp())
-        self.assertEquals(False, self.sdb1.reset())
-        self.assertEquals(True, self.sdb1.ccceTxComplete())
+        sdb = self.sdb1
+        self.assertEquals(True ,sdb.getitem('idle'))
+        self.assertEquals(False, sdb.getitem('gamecycle'))
+        self.assertEquals(True, sdb.getitem('poweredup'))
+        self.assertEquals(False, sdb.getitem('reset'))
+        self.assertEquals(True, sdb.getitem('cccetransfercomplete'))
         self.assertEquals(False, self.sdb2.idle())
         self.assertEquals(True, self.sdb2.gameCycle())
         self.assertEquals(False, self.sdb2.powerUp())
@@ -44,13 +37,13 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals(False, self.sdb2.ccceTxComplete())
         
     def test_status_byte_2(self):
-        self.assertEquals(True, self.sdb1.largeWin())
-        self.assertEquals(False, self.sdb1.collectCash())
-        self.assertEquals(True, self.sdb1.cancelCredit())
-        self.assertEquals(False, self.sdb1.progressiveWin())
-        self.assertEquals(True, self.sdb1.manufacturerWin0())
-        self.assertEquals(False, self.sdb1.manufacturerWin1())
-        self.assertEquals(True, self.sdb1.manufacturerWin2())
+        self.assertEquals(True, self.sdb1.getitem('largewin'))
+        self.assertEquals(False, self.sdb1.getitem('collectcash'))
+        self.assertEquals(True, self.sdb1.getitem('cancelcredit'))
+        self.assertEquals(False, self.sdb1.getitem('progressivewin'))
+        self.assertEquals(True, self.sdb1.getitem('manufacturerspecificwin1'))
+        self.assertEquals(False, self.sdb1.getitem('manufacturerspecificwin2'))
+        self.assertEquals(True, self.sdb1.getitem('manufacturerspecificwin3'))
         self.assertEquals(False, self.sdb2.largeWin())
         self.assertEquals(True, self.sdb2.collectCash())
         self.assertEquals(False, self.sdb2.cancelCredit())
@@ -60,13 +53,13 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals(False, self.sdb2.manufacturerWin2())
         
     def test_status_byte_3(self):
-        self.assertEquals(True, self.sdb1.doorOpen())
-        self.assertEquals(False, self.sdb1.logicCageOpen())
-        self.assertEquals(True, self.sdb1.displayError())
-        self.assertEquals(False, self.sdb1.selfAuditError())
-        self.assertEquals(True, self.sdb1.memoryError())
-        self.assertEquals(False, self.sdb1.cashInputError())
-        self.assertEquals(True, self.sdb1.cashOutputError())
+        self.assertEquals(True, self.sdb1.getitem('maindooropen'))
+        self.assertEquals(False, self.sdb1.getitem('securitycageopen'))
+        self.assertEquals(True, self.sdb1.getitem('displayerror'))
+        self.assertEquals(False, self.sdb1.getitem('selfauditerror'))
+        self.assertEquals(True, self.sdb1.getitem('memoryerror'))
+        self.assertEquals(False, self.sdb1.getitem('cashinputerror'))
+        self.assertEquals(True, self.sdb1.getitem('cashoutputerror'))
         self.assertEquals(False, self.sdb2.doorOpen())
         self.assertEquals(True, self.sdb2.logicCageOpen())
         self.assertEquals(False, self.sdb2.displayError())
@@ -76,13 +69,13 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals(False, self.sdb2.cashOutputError())
         
     def test_status_byte_4(self):
-        self.assertEquals(True, self.sdb1.auditMode())
-        self.assertEquals(False, self.sdb1.testMode())
-        self.assertEquals(True, self.sdb1.powerSaveMode())
-        self.assertEquals(False, self.sdb1.subsEquipPaySuspended())
-        self.assertEquals(True, self.sdb1.mechMeterDisconnected())
-        self.assertEquals(False, self.sdb1.manufacturerError0())
-        self.assertEquals(True, self.sdb1.manufacturerError1())
+        self.assertEquals(True, self.sdb1.getitem('auditmode'))
+        self.assertEquals(False, self.sdb1.getitem('testmode'))
+        self.assertEquals(True, self.sdb1.getitem('powersave'))
+        self.assertEquals(False, self.sdb1.getitem('subsidiaryequipmentplaysuspended'))
+        self.assertEquals(True, self.sdb1.getitem('mechanicalmeterdisconnected'))
+        self.assertEquals(False, self.sdb1.getitem('manufacturerspecificerror1'))
+        self.assertEquals(True, self.sdb1.getitem('manufacturerspecificerror2'))
         self.assertEquals(False, self.sdb2.auditMode())
         self.assertEquals(True, self.sdb2.testMode())
         self.assertEquals(False, self.sdb2.powerSaveMode())
@@ -92,7 +85,7 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals(False, self.sdb2.manufacturerError1())
         
     def test_status_byte_5(self):
-        self.assertEquals(True, self.sdb1.cancelCreditError())
+        self.assertEquals(True, self.sdb1.getitem('cancelcrediterror'))
         self.assertEquals(False, self.sdb2.cancelCreditError())
         
     def test_multi_game(self):
@@ -103,16 +96,16 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals('$12345678.90', self.sdb1.totalWins())
         self.assertEquals('$2025.40', self.sdb1.cashBox())
         self.assertEquals('$12345678.90', self.sdb1.cancelledCredits())
-        self.assertEquals('99999999', self.sdb1.gamesPlayed())
+        self.assertEquals('99999999', self.sdb1.getitem('gamesplayed'))
         self.assertEquals('$561.55', self.sdb1.moneyIn())
         self.assertEquals('$22222222.22', self.sdb1.moneyOut())
         self.assertEquals('$12345678.90', self.sdb1.cashIn())
         self.assertEquals('$6040.20', self.sdb1.cashOut())
-        self.assertEquals('1111111111', self.sdb1.credits())
+        self.assertEquals('1111111111', self.sdb1.getitem('credits'))
         self.assertEquals('????', self.sdb1.miscAccrual())
-        self.assertEquals('55555555', self.sdb1.nrpowerUps())
-        self.assertEquals('5684', self.sdb1.gamesSinceReboot())
-        self.assertEquals('77777777', self.sdb1.gamesSinceDoorOpen())
+        self.assertEquals('55555555', self.sdb1.getitem('totalpowerups'))
+        self.assertEquals('00005684', self.sdb1.getitem('gamesplayedsincelastpowerup'))
+        self.assertEquals('77777777', self.sdb1.getitem('gamesplayedsincelastdooropen'))
         self.assertEquals('$0.01', self.sdb1.baseCreditValue())
         self.assertEquals('$12345678.90', self.sdb2.turnover())
         self.assertEquals('$27.24', self.sdb2.totalWins())
@@ -131,12 +124,12 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals('$52.63', self.sdb2.baseCreditValue())
         
     def test_port_status(self):
-        self.assertEquals(True, self.sdb1.port1Status())
-        self.assertEquals(True, self.sdb1.port2Status())
-        self.assertEquals(True, self.sdb1.port3Status())
-        self.assertEquals(True, self.sdb1.port4Status())
-        self.assertEquals(True, self.sdb1.port5Status())
-        self.assertEquals(True, self.sdb1.port6Status())
+        self.assertEquals(True, self.sdb1.getitem('sefport1'))
+        self.assertEquals(True, self.sdb1.getitem('sefport2'))
+        self.assertEquals(True, self.sdb1.getitem('sefport3'))
+        self.assertEquals(True, self.sdb1.getitem('sefport4'))
+        self.assertEquals(True, self.sdb1.getitem('sefport5'))
+        self.assertEquals(True, self.sdb1.getitem('sefport6'))
         self.assertEquals(False, self.sdb2.port1Status())
         self.assertEquals(False, self.sdb2.port2Status())
         self.assertEquals(False, self.sdb2.port3Status())
@@ -159,7 +152,7 @@ class TestSDBHandle(unittest.TestCase):
         self.assertEquals('93.96%', self.sdb2.prtp())
         
     def test_secondary_functions(self):
-        self.assertEquals(True, self.sdb1.linkedProgSupported())
+        self.assertEquals(True, self.sdb1.getitem('stdlinkedprogressivesupport'))
         self.assertEquals(False, self.sdb2.linkedProgSupported())
         
 class TestMDBHandle(unittest.TestCase):

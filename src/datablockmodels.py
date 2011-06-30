@@ -20,10 +20,13 @@ class sdbMdl(packetmdl, subject):
     def readmetadata(self, filename):
         self.metadata = createmetadata(filename)
         self.statbyte = []
-        self.statbyte.append(self.metadata.statusbyte1) 
+        self.statbyte.append(self.metadata.statusbyte1) # ugly ugly
         self.statbyte.append(self.metadata.statusbyte2)
-        self.statbyte.append(self.metadata.statusbyte3) 
+        self.statbyte.append(self.metadata.statusbyte3)
         self.statbyte.append(self.metadata.statusbyte4)
+        self.statbyte.append(self.metadata.statusbyte5)
+        self.statbyte.append(self.metadata.portstatusbyte)
+        self.statbyte.append(self.metadata.secondaryfunctions)
         
     def finditem(self, part):
         if self.metadata.__getitem__(part) is not None: # ugly ugly ugly
@@ -47,7 +50,7 @@ class sdbMdl(packetmdl, subject):
         elif item['type'] == 'bool':
             byte = int(self.findbyte(part))
             bit = int(item['bit'])
-            return self.getBit(int(self.data[byte], 16), bit)
+            return self.getBit(int(self.data[byte-1], 16), bit)
         elif item['type'] == 'currency':
             print "part is expressed in dollars"
         elif item['type'] == 'currency':
