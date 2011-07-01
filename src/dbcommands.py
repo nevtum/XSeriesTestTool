@@ -5,10 +5,19 @@ Created on 17/06/2011
 '''
 import sqlite3
 from time import strftime
+from xml.dom import minidom
 
 class createSDBTableCommand:
     def __init__(self, database):
         self.database = database
+        xml = minidom.parse('packets.xml')
+        self.meta_elems = []
+        for ch in xml.firstChild.childNodes:
+            if ch.nodeType == 1:
+                #t = ch.firstChild.nextSibling
+                #t.firstChild.data
+                self.meta_elems.append(ch.localName)
+                
     def execute(self):
         try:
             self.createtable()
@@ -58,6 +67,7 @@ class createSDBTableCommand:
 class createEventTableCommand:
     def __init__(self, database):
         self.database = database
+        
     def execute(self):
         cursor = self.database.cursor()
         sql = """CREATE TABLE Event(ID INTEGER PRIMARY KEY, DateTime TEXT, Source TEXT)"""
@@ -148,7 +158,7 @@ class viewDBCommand:
     
 f = open('sdbmockdata.txt', 'r')
 data = f.readline().split()
-database = sqlite3.connect('new.sqlite')
+database = sqlite3.connect(':memory:')
 command1 = createSDBTableCommand(database)
 command2 = insertToDBCommand(data, database)
 command3 = viewDBCommand(database)
