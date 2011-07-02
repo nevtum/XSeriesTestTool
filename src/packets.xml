@@ -1,4 +1,10 @@
-<sdb identifier="00" version="1.02">
+<sdb>
+	<identifier byte="2">
+		<type>integer</type>
+	</identifier>
+	<version startbyte="3" endbyte="4">
+		<type>integer</type>
+	</version>
 	<gmid startbyte="6" endbyte="8">
 		<type>integer</type>
 	</gmid>
