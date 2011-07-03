@@ -17,6 +17,9 @@ class packetmdl:
         pass
 
 class sdbMdl(packetmdl, subject):
+    def __init__(self):
+        subject.__init__(self)
+        self.readmetadata('packets.xml')
         
     def readmetadata(self, filename):
         self.metadata = createmetadata(filename)
@@ -66,8 +69,6 @@ class sdbMdl(packetmdl, subject):
             hbound = int(item['endbyte'])
             x = int(self.getByteString(lbound, hbound))/100.00
             return '%.2f%%' % x
-        else:
-            raise IndexError
 
     def setdata(self, data):
         assert(data[1] == '00')

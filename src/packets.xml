@@ -142,7 +142,7 @@
 		<type>integer</type>
 	</credits>
 	<miscellaneousaccrual startbyte="67" endbyte="71">
-		<type>integer</type>
+		<type>currency</type>
 	</miscellaneousaccrual>
 	<totalpowerups startbyte="72" endbyte="75">
 		<type>integer</type>

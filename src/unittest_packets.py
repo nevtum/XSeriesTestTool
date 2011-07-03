@@ -7,11 +7,9 @@ class TestSDBHandle(unittest.TestCase):
         data = f.readline().split()
         self.sdb1 = sdbMdl()
         self.sdb1.setdata(data)
-        self.sdb1.readmetadata('packets.xml')
         data = f.readline().split()
         self.sdb2 = sdbMdl()
         self.sdb2.setdata(data)
-        self.sdb2.readmetadata('packets.xml')
         
     def testpacketinfo(self):
         self.assertEquals('SDB', self.sdb1.packetinfo())

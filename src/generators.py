@@ -84,6 +84,7 @@ class CommandDispatcher(Thread):
             
     def kill(self):
         self.running = False
+        self.join(0.1) # terminate in 0.1 second
 
 class packetswitch(Thread):
     def __init__(self, commanddispatcher):
