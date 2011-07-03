@@ -17,6 +17,7 @@ class packetmdl:
         pass
 
 class sdbMdl(packetmdl, subject):
+        
     def readmetadata(self, filename):
         self.metadata = createmetadata(filename)
         self.statbyte = []
@@ -43,7 +44,6 @@ class sdbMdl(packetmdl, subject):
     def getitem(self, part):
         item = self.finditem(part)
         if item['type'] == 'integer':
-            print "part is an integer"
             lbound = int(item['startbyte'])
             hbound = int(item['endbyte'])
             return self.getByteString(lbound, hbound)
@@ -52,9 +52,20 @@ class sdbMdl(packetmdl, subject):
             bit = int(item['bit'])
             return self.getBit(int(self.data[byte-1], 16), bit)
         elif item['type'] == 'currency':
-            print "part is expressed in dollars"
-        elif item['type'] == 'currency':
-            print "part is expressed in dollars"
+            lbound = int(item['startbyte'])
+            hbound = int(item['endbyte'])
+            x = int(self.getByteString(lbound, hbound))/100.00
+            return '$%.2f' % x
+        elif item['type'] == 'text':
+            lbound = int(item['startbyte'])
+            hbound = int(item['endbyte'])
+            x = [chr(int(val, 16)) for val in self.getByteVector(lbound, hbound)]
+            return ''.join(x).strip()
+        elif item['type'] == 'percent':
+            lbound = int(item['startbyte'])
+            hbound = int(item['endbyte'])
+            x = int(self.getByteString(lbound, hbound))/100.00
+            return '%.2f%%' % x
         else:
             raise IndexError
 
@@ -63,144 +74,20 @@ class sdbMdl(packetmdl, subject):
         assert(len(data) == 128)
         self.data = data
         self.notifysubscribers() # notify observers
+        
     def packetinfo(self):
         return 'SDB'
+    
     def getBit(self, byte, n):
         if ((byte >> n) & 0x1):
             return True
         else:
             return False
+        
     def getByteVector(self, lbound, hbound):
         return self.data[hbound-1:lbound-2:-1]
     def getByteString(self, lbound, hbound):
         return ''.join(self.getByteVector(lbound, hbound))
-    def versionNr(self):
-        string = '%s.%s' % tuple(self.getByteVector(3, 4))
-        return string.lstrip('0')
-    def GMID(self):
-        return self.getByteString(6, 8)
-    def idle(self):
-        return self.getBit(int(self.data[8], 16), 0)
-    def gameCycle(self):
-        return self.getBit(int(self.data[8], 16), 1)
-    def powerUp(self):
-        return self.getBit(int(self.data[8], 16), 2)
-    def reset(self):
-        return self.getBit(int(self.data[8], 16), 3)
-    def ccceTxComplete(self):
-        return self.getBit(int(self.data[8], 16), 4)
-    def largeWin(self):
-        return self.getBit(int(self.data[9], 16), 0)
-    def collectCash(self):
-        return self.getBit(int(self.data[9], 16), 1)
-    def cancelCredit(self):
-        return self.getBit(int(self.data[9], 16), 2)
-    def progressiveWin(self):
-        return self.getBit(int(self.data[9], 16), 3)
-    def manufacturerWin0(self):
-        return self.getBit(int(self.data[9], 16), 4)
-    def manufacturerWin1(self):
-        return self.getBit(int(self.data[9], 16), 5)
-    def manufacturerWin2(self):
-        return self.getBit(int(self.data[9], 16), 6)
-    def doorOpen(self):
-        return self.getBit(int(self.data[10], 16), 0)
-    def logicCageOpen(self):
-        return self.getBit(int(self.data[10], 16), 1)
-    def displayError(self):
-        return self.getBit(int(self.data[10], 16), 2)
-    def selfAuditError(self):
-        return self.getBit(int(self.data[10], 16), 3)
-    def memoryError(self):
-        return self.getBit(int(self.data[10], 16), 4)
-    def cashInputError(self):
-        return self.getBit(int(self.data[10], 16), 5)
-    def cashOutputError(self):
-        return self.getBit(int(self.data[10], 16), 6)
-    def auditMode(self):
-        return self.getBit(int(self.data[11], 16), 0)
-    def testMode(self):
-        return self.getBit(int(self.data[11], 16), 1)
-    def powerSaveMode(self):
-        return self.getBit(int(self.data[11], 16), 2)
-    def subsEquipPaySuspended(self):
-        return self.getBit(int(self.data[11], 16), 3)
-    def mechMeterDisconnected(self):
-        return self.getBit(int(self.data[11], 16), 4)
-    def manufacturerError0(self):
-        return self.getBit(int(self.data[11], 16), 5)
-    def manufacturerError1(self):
-        return self.getBit(int(self.data[11], 16), 6)
-    def cancelCreditError(self):
-        return self.getBit(int(self.data[12], 16), 0)
-    def turnover(self):
-        x = int(self.getByteString(17, 21))/100.00
-        return '$%.2f' % x
-    def totalWins(self):
-        x = int(self.getByteString(22, 26))/100.00
-        return '$%.2f' % x
-    def cashBox(self):
-        x = int(self.getByteString(27, 31))/100.00
-        return '$%.2f' % x
-    def cancelledCredits(self):
-        x = int(self.getByteString(32, 36))/100.00
-        return '$%.2f' % x
-    def gamesPlayed(self):
-        return self.getByteString(37, 40)
-    def moneyIn(self):
-        x = int(self.getByteString(42, 46))/100.00
-        return '$%.2f' % x
-    def moneyOut(self):
-        x = int(self.getByteString(47, 51))/100.00
-        return '$%.2f' % x
-    def cashIn(self):
-        x = int(self.getByteString(52, 56))/100.00
-        return '$%.2f' % x
-    def cashOut(self):
-        x = int(self.getByteString(57, 61))/100.00
-        return '$%.2f' % x
-    def credits(self):
-        return self.getByteString(62, 66).lstrip('0')
-    def miscAccrual(self):
-        return '????'
-    def nrpowerUps(self):
-        return self.getByteString(72, 75).lstrip('0')
-    def gamesSinceReboot(self):
-        return self.getByteString(76, 79).lstrip('0')
-    def gamesSinceDoorOpen(self):
-        return self.getByteString(80, 83).lstrip('0')
-    def port1Status(self):
-        return self.getBit(int(self.data[83], 16), 0)
-    def port2Status(self):
-        return self.getBit(int(self.data[83], 16), 1)
-    def port3Status(self):
-        return self.getBit(int(self.data[83], 16), 2)
-    def port4Status(self):
-        return self.getBit(int(self.data[83], 16), 3)
-    def port5Status(self):
-        return self.getBit(int(self.data[83], 16), 4)
-    def port6Status(self):
-        return self.getBit(int(self.data[83], 16), 5)
-    def baseCreditValue(self):
-        x = int(self.getByteString(85, 86))/100.00
-        return '$%.2f' % x
-    def programID1(self):
-        x = [chr(int(val, 16)) for val in self.getByteVector(88, 95)]
-        return ''.join(x).strip()
-    def programID2(self):
-        x = [chr(int(val, 16)) for val in self.getByteVector(96, 103)]
-        return ''.join(x).strip()
-    def programID3(self):
-        x = [chr(int(val, 16)) for val in self.getByteVector(104, 111)]
-        return ''.join(x).strip()
-    def programID4(self):
-        x = [chr(int(val, 16)) for val in self.getByteVector(112, 119)]
-        return ''.join(x).strip()
-    def prtp(self):
-        x = int(self.getByteString(120, 121))/100.00
-        return '%.2f%%' % x
-    def linkedProgSupported(self):
-        return self.getBit(int(self.data[121], 16), 0)
 
 class mdbMdl(packetmdl, subject):
     def setdata(self, data):
