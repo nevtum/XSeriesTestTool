@@ -1,7 +1,7 @@
 import re
 import xml.sax.handler
 
-
+#############################################
 from xml.dom import minidom
 
 class packetmetadata:
@@ -10,7 +10,7 @@ class packetmetadata:
         self.meta = minidom.parse(filename).firstChild
         self.meta_elems = None
         
-    def getchildnodenames(self):
+    def getalltagnames(self):
         if self.meta_elems is None:
             self.meta_elems = []
         for child in self.meta.childNodes:
@@ -19,12 +19,24 @@ class packetmetadata:
         return self.meta_elems
     
     def getranges(self, name):
-        return self.meta.getElementsByTagName(name)[0]
-        
-f = packetmetadata('packets.xml')
-print f.getchildnodenames()
-l = f.getranges('version')
-print l.toxml()
+        x = self.meta.getElementsByTagName(name)[0]
+        d = {}
+        for key in x.attributes.keys():
+            d[key.encode()] = int(x.getAttribute(key))
+        return d
+    
+    def compiledictionary(self):
+        a = {}
+        for child in self.meta.childNodes:
+            if child.nodeType == 1:
+                tagname = child.localName.encode()
+                elem = self.meta.getElementsByTagName(tagname)[0]
+                b = {}
+                for key in elem.attributes.keys():
+                    b[key.encode()] = int(elem.getAttribute(key))
+                a[tagname] = b
+        return a
+#############################################
 
 def createmetadata(filename):
     stream = open(filename).read()

@@ -116,7 +116,7 @@ class viewDBCommand:
     
 f = open('sdbmockdata.txt', 'r')
 data = f.readline().split()
-database = sqlite3.connect('z.sqlite')
+database = sqlite3.connect(':memory:')
 command1 = createSDBTableCommand(database)
 command2 = insertToDBCommand(data, database)
 command3 = viewDBCommand(database)
