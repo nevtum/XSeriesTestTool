@@ -1,6 +1,31 @@
 import re
 import xml.sax.handler
 
+
+from xml.dom import minidom
+
+class packetmetadata:
+    def __init__(self, filename):
+        assert(str(filename))
+        self.meta = minidom.parse(filename).firstChild
+        self.meta_elems = None
+        
+    def getchildnodenames(self):
+        if self.meta_elems is None:
+            self.meta_elems = []
+        for child in self.meta.childNodes:
+            if child.nodeType == 1:
+                self.meta_elems.append(child.localName.encode())
+        return self.meta_elems
+    
+    def getranges(self, name):
+        return self.meta.getElementsByTagName(name)[0]
+        
+f = packetmetadata('packets.xml')
+print f.getchildnodenames()
+l = f.getranges('version')
+print l.toxml()
+
 def createmetadata(filename):
     stream = open(filename).read()
     return xml2obj(stream)
