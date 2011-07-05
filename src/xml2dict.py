@@ -11,8 +11,9 @@ class packetmetadata:
         self.meta_elems = None
         
     def getalltagnames(self):
-        if self.meta_elems is None:
-            self.meta_elems = []
+        if self.meta_elems is not None:
+            return self.meta_elems
+        self.meta_elems = []
         for child in self.meta.childNodes:
             if child.nodeType == 1:
                 self.meta_elems.append(child.localName.encode())
