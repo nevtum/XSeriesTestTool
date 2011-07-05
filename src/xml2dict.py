@@ -24,7 +24,14 @@ class packetmetadata:
         d = {}
         for key in x.attributes.keys():
             d[key.encode()] = int(x.getAttribute(key))
-        return d
+        return self.unpack(d)
+    
+    def unpack(self, d):
+        try:
+            l, h = d['startbyte'], d['endbyte']
+        except KeyError:
+            l, h = d['byte'], d['byte']
+        return l, h
     
     def compiledictionary(self):
         a = {}

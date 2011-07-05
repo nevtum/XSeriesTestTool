@@ -56,18 +56,11 @@ class insertToDBCommand(object):
         
     def getByteVector(self, lbound, hbound):
         return self.data[lbound - 1:hbound]
-    
-    def unpack(self, d): # move this method to metadata class
-        try:
-            l, h = d['startbyte'], d['endbyte']
-        except KeyError:
-            l, h = d['byte'], d['byte']
-        return l, h
 
     def fillarray(self):
         hexdata = []
         for each in self.d.getalltagnames():
-            l, h = self.unpack(self.d.getranges(each))
+            l, h = self.d.getranges(each)
             hexdata.append(self.convert(self.getByteVector(l, h)))
         self.array = hexdata # needed for SQL Query
     
