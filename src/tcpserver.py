@@ -17,12 +17,14 @@ class receiver:
 		server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		server_socket.bind(("", 5000))
 		server_socket.listen(1)
-		while 1:
-			print 'receiver waiting...'
-			conn, address = server_socket.accept()
-			print "Connection established with: ", address
-			data = conn.recv(20)
-			print 'message: %s' % data
+		print 'receiver waiting...'
+		conn, address = server_socket.accept()
+		print "Connection established with: ", address
+		data = conn.recv(20)
+		print 'message: %s' % data
+		conn.close()
+		server_socket.close()
+		return data
 
 	def decode(self, message):
 		pass
@@ -33,4 +35,4 @@ class commscontroller:
 		self.reciever = reciever
 		
 x = receiver()
-x.receive()
+x.receive() # currently blocking
