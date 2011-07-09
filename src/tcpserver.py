@@ -5,7 +5,7 @@ class receiver:
 	# public interface
 	def receiveMsg(self): # commscontroller calls this method
 		''' return decode(receive())'''
-		self.receive()
+		return self.receive()
 	def setforwarder(self, forwarder):
 		self.forwarder = forwarder
 	# private interface specific to forwarder/receiver
@@ -17,11 +17,8 @@ class receiver:
 		server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		server_socket.bind(("", 5000))
 		server_socket.listen(1)
-		print 'receiver waiting...'
 		conn, address = server_socket.accept()
-		print "Connection established with: ", address
-		data = conn.recv(20)
-		print 'message: %s' % data
+		data = conn.recv(256)
 		conn.close()
 		server_socket.close()
 		return data
@@ -35,4 +32,5 @@ class commscontroller:
 		self.reciever = reciever
 		
 x = receiver()
-x.receive() # currently blocking
+msg = x.receiveMsg() # currently blocking
+print 'received: %s' % msg
