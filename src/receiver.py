@@ -1,23 +1,31 @@
 import time
 import socket
+from threading import Thread
 
-class receiver:
+class receiver(Thread):
 	# public interface
+	def __init__(self):
+		Thread.__init__(self)
+		self.msg = None
 	def receiveMsg(self): # commscontroller calls this method
-		return self.decode(self.receive())
+		return self.decode(self.msg) # add locking mechanism
+	def run(self):
+		while self.isAlive():
+			self.receive()
+		print 'finished listening'
 	# private interface specific to forwarder/receiver
 	def receive(self):
 		server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		server_socket.bind(("", 5000))
 		server_socket.listen(1)
 		conn, address = server_socket.accept()
-		data = conn.recv(256)
+		self.msg = conn.recv(256)
 		conn.close()
 		server_socket.close()
-		return data
+		print self.msg
 	def decode(self, msg):
 		return msg
 		
 x = receiver()
-msg = x.receiveMsg() # currently blocking
-print 'received: %s' % msg
+x.start() # currently blocking
+x.join(60)
