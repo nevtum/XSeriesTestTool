@@ -13,6 +13,8 @@ class receiver(Thread):
 		while self.isAlive():
 			self.receive()
 		print 'finished listening'
+	def kill(self):
+		raise RuntimeError
 	# private interface specific to forwarder/receiver
 	def receive(self):
 		server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,10 +24,5 @@ class receiver(Thread):
 		self.msg = conn.recv(256)
 		conn.close()
 		server_socket.close()
-		print self.msg
 	def decode(self, msg):
 		return msg
-		
-x = receiver()
-x.start() # currently blocking
-x.join(60)

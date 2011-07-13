@@ -12,6 +12,3 @@ class forwarder:
         client_socket.close()
     def encode(self, msg):
         return msg
-    
-f = forwarder()
-f.transmitMsg(u'FF00020100563412')
