@@ -7,8 +7,10 @@ import time
 
 class TestRepeater(unittest.TestCase):
     def setUp(self):
-        self.repeat = repeater()
-        self.source = peer()
+        self.repeat = repeater(12345)
+        self.repeat.setforwarder('localhost', 33333)
+        self.source = peer(33333)
+        self.source.setforwarder('localhost', 12345)
         self.source.start()
         self.repeat.start()
 

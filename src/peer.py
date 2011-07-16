@@ -3,21 +3,23 @@ from receiver import receiver
 from threading import Thread
 
 class repeater(Thread):
-    def __init__(self):
-    	Thread.__init__(self)
-        self.receiver = receiver('', 12345)
-        self.forwarder = forwarder('localhost', 33333)
-    def run(self):
-    	while self.isAlive():
-    		repeatmsg = self.receiver.receiveMsg()
-    		self.forwarder.transmitMsg(repeatmsg)
+	def __init__(self, portnr):
+		Thread.__init__(self)
+		self.receiver = receiver('', portnr)
+	def setforwarder(self, location, portnr):
+		self.forwarder = forwarder(location, portnr)
+	def run(self):
+		while self.isAlive():
+			repeatmsg = self.receiver.receiveMsg()
+			self.forwarder.transmitMsg(repeatmsg)
 	
 class peer(Thread):
-	def __init__(self):
+	def __init__(self, portnr):
 		Thread.__init__(self)
-		self.receiver = receiver('', 33333)
-		self.forwarder = forwarder('localhost', 12345)
+		self.receiver = receiver('', portnr)
 		self.msg = None
+	def setforwarder(self, location, portnr):
+		self.forwarder = forwarder(location, portnr)
 	def run(self):
 		while self.isAlive():
 			self.msg = self.receiver.receiveMsg()
