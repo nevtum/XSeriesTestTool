@@ -4,6 +4,12 @@ import socket
 ####
 import asyncore
 
+class receivehandler(asyncore.dispatcher_with_send):
+	def handle_read(self):
+		data = self.recv(256)
+		if data:
+			print 'received packet: %s' % data
+
 class asyncreceiver(asyncore.dispatcher):
 	def __init__(self, hostname, portnr):
 		asyncore.dispatcher.__init__(self)
@@ -17,16 +23,9 @@ class asyncreceiver(asyncore.dispatcher):
 		self.bind((self.hostname, self.portnr))
 		self.listen(1)
 	def handle_accept(self):
-		self.accept()
-		print 'accepted connection from client...'
-	def handle_read(self):
-		self.msg = self.recv(256)
-		print 'received: %s' % self.msg
-	def handle_close(self):
-		self.close()
-		self.startservice()
-	def receiveMsg(self):
-		return self.msg
+		sock, addr = self.accept()
+		print 'accepted connection from client...', addr
+		handler = receivehandler(sock)
 
 class asyncforwarder(asyncore.dispatcher):
 	def __init__(self, hostname, portnr):
@@ -41,9 +40,8 @@ class asyncforwarder(asyncore.dispatcher):
 
 f = asyncforwarder('localhost', 2020)
 r = asyncreceiver('', 2020)
-f.transmitMsg('hey there maddie!')
+f.transmitMsg('hey now brown cow!')
 asyncore.loop()
-f.transmitMsg('hey there maddie!')
 
 ####
 
