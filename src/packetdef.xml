@@ -1,0 +1,33 @@
+<packet name="sdb" length="128">
+	<item name="identifier" type="integer">
+		<byte>2</byte>
+	</item>
+	<item name="version" type="integer">
+		<startbyte>3</startbyte>
+		<endbyte>4</endbyte>
+	</item>
+	<item name="gmid" type="integer">
+		<startbyte>6</startbyte>
+		<endbyte>8</endbyte>
+	</item>
+	<item name="idle" type="boolean">
+		<byte>9</byte>
+		<bit>0</bit>
+	</item>
+	<item name="gamecycle" type="boolean" byte="9" bit="1">
+		<byte>9</byte>
+		<bit>1</bit>
+	</item>
+	<item name="poweredup" type="boolean">
+		<byte>9</byte>
+		<bit>2</bit>
+	</item>
+	<item name="reset" type="boolean">
+		<byte>9</byte>
+		<bit>3</bit>
+	</item>
+	<item name="cccetransfercomplete" type="boolean">
+		<byte>9</byte>
+		<bit>4</bit>
+	</item>
+</packet>
