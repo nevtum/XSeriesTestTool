@@ -1,5 +1,14 @@
 import re
 import xml.sax.handler
+#############################################
+
+from xml.etree import cElementTree
+
+tree = cElementTree.ElementTree()
+tree.parse("packetdef.xml")
+p = tree.findall(".//item")
+for items in p:
+    print items
 
 #############################################
 from xml.dom import minidom
