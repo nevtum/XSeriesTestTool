@@ -1,36 +1,5 @@
 import re
 import xml.sax.handler
-#############################################
-
-from xml.etree import cElementTree
-
-class metadata:
-    def __init__(self, filename):
-        self.tree = cElementTree.ElementTree()
-        self.tree.parse(filename)
-        self.p = None
-    def getallmetaitems(self):
-        if self.p == None:
-            self.p = self.tree.findall(".//item")
-        return self.p
-
-md = metadata("packetdef.xml")
-p = md.getallmetaitems()
-for item in p:
-    type = item.attrib['type']
-    if type == 'integer-reverse':
-        print "processing '%s' as reverse order integer" % item.attrib['name']
-        x = item.find('byte')
-        if x is not None:
-            print "... @ byte %s" % x.text
-        else:
-            start, end = item.find('startbyte').text, item.find('endbyte').text
-            print "... @ bytes %s - %s" % (start, end)
-    if type == 'boolean':
-        name = item.attrib['name']
-        print "processing '%s' as boolean" % name
-        byte, bit = item.find('byte').text, item.find('bit').text
-        print "... @ byte: %s, bit: %s" % (byte, bit)
 
 #############################################
 from xml.dom import minidom
