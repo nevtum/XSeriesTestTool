@@ -21,31 +21,23 @@ class codecMetaObject:
     
     # returns xml element object
     def getitem(self, key):
+        assert(isinstance(type, str))
         return self.dict.get(key)
         
+    def getPacketName(self):
+        return self.tree.getroot().attrib['name']
+    
+    def getPacketLength(self):
+        return int(self.tree.getroot().attrib['length'])
+    
     def getallmetaitems(self):
         if self.p == None:
             self.p = self.tree.findall(".//item")
         return self.p
-
-md = codecMetaObject("packetdef.xml")
-p = md.getallmetaitems()
-for item in p:
-    type = item.attrib['type']
-    if type == 'integer-reverse':
-        print "processing '%s' as reverse order integer" % item.attrib['name']
-        x = item.find('byte')
-        if x is not None:
-            print "... @ byte %s" % x.text
-        else:
-            start, end = item.find('startbyte').text, item.find('endbyte').text
-            print "... @ bytes %s - %s" % (start, end)
-    if type == 'boolean':
-        name = item.attrib['name']
-        print "processing '%s' as boolean" % name
-        byte, bit = item.find('byte').text, item.find('bit').text
-        print "... @ byte: %s, bit: %s" % (byte, bit)
-
-elem = md.getitem('cancelcrediterror')
-print elem.find('byte').text
-print elem.find('bit').text
+    
+    def getMetaItemsByType(self, type):
+        assert(isinstance(type, str))
+        result = self.tree.findall(".//item[@type='%s']" % type)
+        if result == []:
+            raise IndexError('No items found!')
+        return result

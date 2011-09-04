@@ -86,8 +86,6 @@
 		<byte>11</byte>
 		<bit>6</bit>
 	</item>
-	
-	
 	<item name="auditmode" type="boolean">
 		<byte>12</byte>
 		<bit>0</bit>
@@ -123,4 +121,49 @@
 	<item name="multigamenumber" type="integer-reverse">
 		<byte>15</byte>
 	</item>
+	<item name="multigamecombinationnumber" type="integer-reverse">
+		<byte>16</byte>
+	</item>
+	<item name="turnover" type="currency-reverse">
+		<startbyte>17</startbyte>
+		<endbyte>21</endbyte>
+	</item>
+	<item name="totalwins" type="currency-reverse">
+		<startbyte>22</startbyte>
+		<endbyte>26</endbyte>
+	</item>
+	<item name="cashbox" type="currency-reverse">
+		<startbyte>27</startbyte>
+		<endbyte>31</endbyte>
+	</item>
+	<item name="cancelcredits" type="currency-reverse">
+		<startbyte>32</startbyte>
+		<endbyte>36</endbyte>
+	</item>
+	<item name="gamesplayed" type="integer-reverse">
+		<startbyte>37</startbyte>
+		<endbyte>40</endbyte>
+	</item>
+	<item name="moneyin" type="currency-reverse">
+		<startbyte>42</startbyte>
+		<endbyte>46</endbyte>
+	</item>
+	<item name="moneyout" type="currency-reverse">
+		<startbyte>47</startbyte>
+		<endbyte>51</endbyte>
+	</item>
+	<item name="cashin" type="currency-reverse">
+		<startbyte>52</startbyte>
+		<endbyte>56</endbyte>
+	</item>
+	<item name="cashout" type="currency-reverse">
+		<startbyte>57</startbyte>
+		<endbyte>61</endbyte>
+	</item>
+	<cashin startbyte="52" endbyte="56">
+		<type>currency</type>
+	</cashin>
+	<cashout startbyte="57" endbyte="61">
+		<type>currency</type>
+	</cashout>
 </packet>
