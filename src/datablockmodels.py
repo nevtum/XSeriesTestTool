@@ -1,4 +1,4 @@
-from xml2dict import *
+from config.xml2dict import *
 
 class subject:
     def __init__(self):
@@ -19,7 +19,7 @@ class packetmdl:
 class sdbMdl(packetmdl, subject):
     def __init__(self):
         subject.__init__(self)
-        self.readmetadata('packets.xml')
+        self.readmetadata('../packets.xml')
         
     def readmetadata(self, filename):
         self.metadata = createmetadata(filename)

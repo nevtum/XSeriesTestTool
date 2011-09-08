@@ -5,7 +5,7 @@ Created on 17/06/2011
 '''
 import sqlite3
 from time import strftime
-from xml2dict import packetmetadata
+from config.xml2dict import packetmetadata
 
 class createEventTableCommand:
     def __init__(self, database):

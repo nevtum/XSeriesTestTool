@@ -4,7 +4,7 @@ Created on 31/08/2011
 @author: ntummon
 '''
 import unittest
-from metaclasses import codecMetaObject
+from config.metaclasses import codecMetaObject
 from cStringIO import StringIO
 
 class Test(unittest.TestCase):
