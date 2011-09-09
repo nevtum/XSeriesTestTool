@@ -18,6 +18,10 @@ class codecMetaObject:
         elems = self.tree.findall(".//item")
         for each in elems:
             self.dict[each.attrib['name']] = each
+            
+    def nextItem(self):
+        for elem in self.tree.findall(".//item"):
+            yield elem
     
     # returns xml element object
     def getitem(self, key):
