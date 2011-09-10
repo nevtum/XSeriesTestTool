@@ -160,10 +160,76 @@
 		<startbyte>57</startbyte>
 		<endbyte>61</endbyte>
 	</item>
-	<cashin startbyte="52" endbyte="56">
-		<type>currency</type>
-	</cashin>
-	<cashout startbyte="57" endbyte="61">
-		<type>currency</type>
-	</cashout>
+	<item name="credits" type="currency-reverse">
+		<startbyte>62</startbyte>
+		<endbyte>66</endbyte>
+	</item>
+	<item name="miscellaneousaccrual" type="currency-reverse">
+		<startbyte>67</startbyte>
+		<endbyte>71</endbyte>
+	</item>
+	<item name="totalpowerups" type="integer-reverse">
+		<startbyte>72</startbyte>
+		<endbyte>75</endbyte>
+	</item>
+	<item name="gamesplayedsincelastpowerup" type="integer-reverse">
+		<startbyte>76</startbyte>
+		<endbyte>79</endbyte>
+	</item>
+	<item name="gamesplayedsincelastdooropen" type="integer-reverse">
+		<startbyte>80</startbyte>
+		<endbyte>83</endbyte>
+	</item>
+	<item name="sefport1" type="boolean">
+		<byte>84</byte>
+		<bit>0</bit>
+	</item>
+	<item name="sefport2" type="boolean">
+		<byte>84</byte>
+		<bit>1</bit>
+	</item>
+	<item name="sefport3" type="boolean">
+		<byte>84</byte>
+		<bit>2</bit>
+	</item>
+	<item name="sefport4" type="boolean">
+		<byte>84</byte>
+		<bit>3</bit>
+	</item>
+	<item name="sefport5" type="boolean">
+		<byte>84</byte>
+		<bit>4</bit>
+	</item>
+	<item name="sefport6" type="boolean">
+		<byte>84</byte>
+		<bit>5</bit>
+	</item>
+	<item name="basecreditvalue" type="integer-reverse">
+		<startbyte>85</startbyte>
+		<endbyte>86</endbyte>
+	</item>
+	<item name="programid1" type="ascii-reverse">
+		<startbyte>88</startbyte>
+		<endbyte>95</endbyte>
+	</item>
+	<item name="programid2" type="ascii-reverse">
+		<startbyte>96</startbyte>
+		<endbyte>103</endbyte>
+	</item>
+	<item name="programid3" type="ascii-reverse">
+		<startbyte>104</startbyte>
+		<endbyte>111</endbyte>
+	</item>
+	<item name="programid4" type="ascii-reverse">
+		<startbyte>112</startbyte>
+		<endbyte>119</endbyte>
+	</item>
+	<item name="prtp" type="integer-reverse">
+		<startbyte>120</startbyte>
+		<endbyte>121</endbyte>
+	</item>
+	<item name="stdlinkedprogressivesupport" type="boolean">
+		<byte>122</byte>
+		<bit>0</bit>
+	</item>
 </packet>

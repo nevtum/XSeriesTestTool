@@ -26,37 +26,26 @@ class Test(unittest.TestCase):
             </item>
         </packet>''')
         
-    def testsampleitems(self):
+    def testiterator(self):
         cmo = codecMetaObject(self.file)
-        elems = cmo.getallmetaitems()
-        self.assertEquals(3, len(elems))
-        self.assertEquals('version', elems[0].attrib['name'])
-        self.assertEquals('integer-reverse', elems[0].attrib['type'])
-        self.assertEquals('gmid', elems[1].attrib['name'])
-        self.assertEquals('integer-reverse', elems[1].attrib['type'])
-        self.assertEquals('gamecycle', elems[2].attrib['name'])
-        self.assertEquals('boolean', elems[2].attrib['type'])
-        
-    def testpacketinfo(self):
-        cmo = codecMetaObject(self.file)
-        self.assertEquals('sdb', cmo.getPacketName())
-        self.assertEquals(128, cmo.getPacketLength())
-        
-    def testmethods(self):
-        cmo = codecMetaObject(self.file)
-        intelems = cmo.getMetaItemsByType('integer-reverse')
-        self.assertEquals(2, len(intelems))
-        self.assertEquals('version', intelems[0].attrib['name'])
-        self.assertEquals('gmid', intelems[1].attrib['name'])
-        boolelems = cmo.getMetaItemsByType('boolean')
-        self.assertEquals(1, len(boolelems))
-        self.assertEquals('gamecycle', boolelems[0].attrib['name'])
-        
-    def testInvalidParams(self):
-        cmo = codecMetaObject(self.file)
-        self.assertRaises(IndexError, cmo.getMetaItemsByType, 'blurb')
-        self.assertRaises(IndexError, cmo.getMetaItemsByType, '')
-        self.assertRaises(AssertionError, cmo.getMetaItemsByType, [])
+        generator = cmo.allItems()
+        item = generator.next()
+        self.assertEquals('version', item.extract('name'))
+        self.assertEquals('integer-reverse', item.extract('type'))
+        result = {'startbyte': '3', 'endbyte': '4'}
+        self.assertEquals(result, item.extractParams())
+        item = generator.next()
+        self.assertEquals('gmid', item.extract('name'))
+        self.assertEquals('integer-reverse', item.extract('type'))
+        result = {'startbyte': '6', 'endbyte': '8'}
+        self.assertEquals(result, item.extractParams())
+        item = generator.next()
+        self.assertEquals('gamecycle', item.extract('name'))
+        self.assertEquals('boolean', item.extract('type'))
+        result = {'byte': '9', 'bit': '1'}
+        self.assertEquals(result, item.extractParams())
+        self.assertEquals(None, item.extract('unicode'))
+        self.assertRaises(StopIteration, generator.next)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
