@@ -1,8 +1,5 @@
 import unittest
-import socket
-from forwarder import forwarder
-from receiver import receiver
-from peer import *
+from comms.peer import *
 import time
 
 class TestRepeater(unittest.TestCase):
