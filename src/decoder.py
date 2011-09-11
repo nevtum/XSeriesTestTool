@@ -1,6 +1,28 @@
 from config.metaclasses import codecMetaObject
 
-class decoder(object):
+class reverseIntegerDecoder:
+    def __init__(self, packet, params):
+        self.packet = packet
+        self.params = params
+        
+    def getstartendbyte(self, params):
+        startbyte = params.get('startbyte')
+        endbyte = params.get('endbyte')
+        if not startbyte:
+            startbyte = endbyte = params.get('byte')
+        return startbyte, endbyte
+        
+    def returnValue(self):
+        l, h = self.getstartendbyte(self.params)
+        return self.getByteString(l, h)
+    
+    def getByteVector(self, lbound, hbound):
+        return self.packet[int(hbound)-1:int(lbound)-2:-1]
+            
+    def getByteString(self, lbound, hbound):
+        return ''.join(self.getByteVector(lbound, hbound))
+
+class packetConverter(object):
     def __init__(self):
         self.packet = []
 
@@ -37,19 +59,28 @@ class decoder(object):
         #delegate to type class
         #use polymorphism
         if type == 'integer-reverse':
-            l, h = self.getstartendbyte(params)
-            return self.getByteString(l, h)
+            return reverseIntegerDecoder(self.packet, params).returnValue()
         elif type == 'currency-reverse':
-            l, h = self.getstartendbyte(params)
-            x = int(self.getByteString(l, h))/100.00
-            return '%.2f' % x
+            return self.reverseCurrencyDecoder(params)
         elif type == 'boolean':
-            byte = int(params.get('byte'))
-            bit = int(params.get('bit'))
-            return self.getBit(int(self.packet[byte-1], 16), bit)
+            return self.booleanDecoder(params)
         else:
             return 'unknown'
-
+        
+    def reverseIntegerDecoder(self, params):
+        l, h = self.getstartendbyte(params)
+        return self.getByteString(l, h)
+    
+    def reverseCurrencyDecoder(self, params):
+        l, h = self.getstartendbyte(params)
+        x = int(self.getByteString(l, h))/100.00
+        return '%.2f' % x
+    
+    def booleanDecoder(self, params):
+        byte = int(params.get('byte'))
+        bit = int(params.get('bit'))
+        return self.getBit(int(self.packet[byte-1], 16), bit)
+        
     def getBit(self, byte, n):
         return ((byte >> n) & 0x1)
 
@@ -68,7 +99,7 @@ b = charpacket(a, size = 2) # number of characters to extract from stream
 c = datablockdispatcher(b) # extract only standard XSeries Packets
 d = datablockfilter(c, '00') # select packets that match packet IDs
    
-XDecoder = decoder()
+converter = packetConverter()
 for packet in d:
-    XDecoder.setpacket(packet)
-    XDecoder.createXMLPacket()
+    converter.setpacket(packet)
+    converter.createXMLPacket()
