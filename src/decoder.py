@@ -21,7 +21,44 @@ class reverseIntegerDecoder:
             
     def getByteString(self, lbound, hbound):
         return ''.join(self.getByteVector(lbound, hbound))
+    
+class booleanDecoder:
+    def __init__(self, packet, params):
+        self.packet = packet
+        self.params = params
+        
+    def returnValue(self):
+        byte = int(self.params.get('byte'))
+        bit = int(self.params.get('bit'))
+        return self.getBit(int(self.packet[byte-1], 16), bit)
+    
+    def getBit(self, byte, n):
+        return ((byte >> n) & 0x1)
+    
+class reverseCurrencyDecoder:
+    def __init__(self, packet, params):
+        self.packet = packet
+        self.params = params
+        
+    def getstartendbyte(self, params):
+        startbyte = params.get('startbyte')
+        endbyte = params.get('endbyte')
+        if not startbyte:
+            startbyte = endbyte = params.get('byte')
+        return startbyte, endbyte
+        
+    def returnValue(self):
+        l, h = self.getstartendbyte(self.params)
+        x = int(self.getByteString(l, h))/100.00
+        return '%.2f' % x
 
+    def getByteVector(self, lbound, hbound):
+        return self.packet[int(hbound)-1:int(lbound)-2:-1]
+            
+    def getByteString(self, lbound, hbound):
+        return ''.join(self.getByteVector(lbound, hbound))
+        
+        
 class packetConverter(object):
     def __init__(self):
         self.packet = []
@@ -31,13 +68,14 @@ class packetConverter(object):
 
     def setpacket(self, packet):
         self.packet = packet
+        id = self.readpacketheader()
+        self.meta = self.getMeta(id)
         
     def readpacketheader(self):
         pass
         
     def createXMLPacket(self):
-        # if sdb packet
-        metaobj = self.getMeta('sdb') # need more parameters
+        metaobj = self.meta
         assert(len(self.packet) == metaobj.getPacketLength())
         print "<packet name=\"%s\">" % metaobj.getPacketName()
         for item in metaobj.allItems():
@@ -47,49 +85,16 @@ class packetConverter(object):
             value = self.decode(type, params)
             print "\t<%s>%s</%s>" % (name, value, name)
         print "</packet>"
-        
-    def getstartendbyte(self, params):
-        startbyte = params.get('startbyte')
-        endbyte = params.get('endbyte')
-        if not startbyte:
-            startbyte = endbyte = params.get('byte')
-        return startbyte, endbyte
 
     def decode(self, type, params):
-        #delegate to type class
-        #use polymorphism
         if type == 'integer-reverse':
             return reverseIntegerDecoder(self.packet, params).returnValue()
         elif type == 'currency-reverse':
-            return self.reverseCurrencyDecoder(params)
+            return reverseCurrencyDecoder(self.packet, params).returnValue()
         elif type == 'boolean':
-            return self.booleanDecoder(params)
+            return booleanDecoder(self.packet, params).returnValue()
         else:
             return 'unknown'
-        
-    def reverseIntegerDecoder(self, params):
-        l, h = self.getstartendbyte(params)
-        return self.getByteString(l, h)
-    
-    def reverseCurrencyDecoder(self, params):
-        l, h = self.getstartendbyte(params)
-        x = int(self.getByteString(l, h))/100.00
-        return '%.2f' % x
-    
-    def booleanDecoder(self, params):
-        byte = int(params.get('byte'))
-        bit = int(params.get('bit'))
-        return self.getBit(int(self.packet[byte-1], 16), bit)
-        
-    def getBit(self, byte, n):
-        return ((byte >> n) & 0x1)
-
-    def getByteVector(self, lbound, hbound):
-        return self.packet[int(hbound)-1:int(lbound)-2:-1]
-            
-    def getByteString(self, lbound, hbound):
-        return ''.join(self.getByteVector(lbound, hbound))
-
 
 from generators import *
 
