@@ -57,6 +57,26 @@ class reverseCurrencyDecoder:
             
     def getByteString(self, lbound, hbound):
         return ''.join(self.getByteVector(lbound, hbound))
+    
+class reverseAsciiDecoder:
+    def __init__(self, packet, params):
+        self.packet = packet
+        self.params = params
+        
+    def getstartendbyte(self, params):
+        startbyte = params.get('startbyte')
+        endbyte = params.get('endbyte')
+        if not startbyte:
+            startbyte = endbyte = params.get('byte')
+        return startbyte, endbyte
+        
+    def returnValue(self):
+        l, h = self.getstartendbyte(self.params)
+        x = [chr(int(val, 16)) for val in self.getByteVector(l, h)]
+        return ''.join(x).strip()
+            
+    def getByteVector(self, lbound, hbound):
+        return self.packet[int(hbound)-1:int(lbound)-2:-1]
         
         
 class packetConverter(object):
@@ -93,6 +113,8 @@ class packetConverter(object):
             return reverseCurrencyDecoder(self.packet, params).returnValue()
         elif type == 'boolean':
             return booleanDecoder(self.packet, params).returnValue()
+        elif type == 'ascii-reverse':
+            return reverseAsciiDecoder(self.packet, params).returnValue()
         else:
             return 'unknown'
 
