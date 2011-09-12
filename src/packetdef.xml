@@ -2,7 +2,7 @@
 	<item name="identifier" type="integer-reverse">
 		<byte>2</byte>
 	</item>
-	<item name="version" type="integer-reverse">
+	<item name="version" type="currency-reverse">
 		<startbyte>3</startbyte>
 		<endbyte>4</endbyte>
 	</item>
@@ -224,7 +224,7 @@
 		<startbyte>112</startbyte>
 		<endbyte>119</endbyte>
 	</item>
-	<item name="prtp" type="integer-reverse">
+	<item name="prtp" type="currency-reverse">
 		<startbyte>120</startbyte>
 		<endbyte>121</endbyte>
 	</item>

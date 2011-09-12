@@ -73,11 +73,13 @@ class reverseAsciiDecoder:
     def returnValue(self):
         l, h = self.getstartendbyte(self.params)
         x = [chr(int(val, 16)) for val in self.getByteVector(l, h)]
-        return ''.join(x).strip()
+        chars = ''.join(x).strip()
+        if chars == '':
+            return 'None'
+        return chars
             
     def getByteVector(self, lbound, hbound):
         return self.packet[int(hbound)-1:int(lbound)-2:-1]
-        
         
 class packetConverter(object):
     def __init__(self):
