@@ -1,6 +1,6 @@
 from config.metaclasses import codecMetaObject
 
-class AbstractXDecoder:
+class AbstractItemDecoder:
     def returnValue(self):
         raise RuntimeError('Abstract method, must be overloaded!')
     
@@ -14,13 +14,14 @@ class AbstractXDecoder:
         return ((byte >> n) & 0x1)
     
     def getstartendbyte(self, params):
+        assert(isinstance(params, dict))
         startbyte = params.get('startbyte')
         endbyte = params.get('endbyte')
         if not startbyte:
             startbyte = endbyte = params.get('byte')
         return startbyte, endbyte
 
-class reverseIntegerDecoder(AbstractXDecoder):
+class reverseIntegerDecoder(AbstractItemDecoder):
     def __init__(self, packet, params):
         self.packet = packet
         self.params = params
@@ -29,7 +30,7 @@ class reverseIntegerDecoder(AbstractXDecoder):
         l, h = self.getstartendbyte(self.params)
         return self.getByteString(self.packet, l, h)
     
-class booleanDecoder(AbstractXDecoder):
+class booleanDecoder(AbstractItemDecoder):
     def __init__(self, packet, params):
         self.packet = packet
         self.params = params
@@ -39,7 +40,7 @@ class booleanDecoder(AbstractXDecoder):
         bit = int(self.params.get('bit'))
         return self.getBit(int(self.packet[byte-1], 16), bit)
     
-class reverseCurrencyDecoder(AbstractXDecoder):
+class reverseCurrencyDecoder(AbstractItemDecoder):
     def __init__(self, packet, params):
         self.packet = packet
         self.params = params
@@ -49,7 +50,7 @@ class reverseCurrencyDecoder(AbstractXDecoder):
         x = int(self.getByteString(self.packet, l, h))/100.00
         return '%.2f' % x
     
-class reverseAsciiDecoder(AbstractXDecoder):
+class reverseAsciiDecoder(AbstractItemDecoder):
     def __init__(self, packet, params):
         self.packet = packet
         self.params = params
@@ -61,8 +62,28 @@ class reverseAsciiDecoder(AbstractXDecoder):
         if chars == '':
             return 'None'
         return chars
+    
+class nullDecoder(AbstractItemDecoder):
+    def __init__(self, packet, params):
+        pass
+    
+    def returnValue(self):
+        return 'unknown decoding type'
 
 class IDecoder:
+    def __init__(self):
+        self.decoderfactory = dict()
+        self.decoderfactory['integer-reverse'] = reverseIntegerDecoder
+        self.decoderfactory['currency-reverse'] = reverseCurrencyDecoder
+        self.decoderfactory['boolean'] = booleanDecoder
+        self.decoderfactory['ascii-reverse'] = reverseAsciiDecoder
+    
+    def getConcreteDecoder(self, type):
+        dec = self.decoderfactory.get(type)
+        if dec is None:
+            return nullDecoder
+        return dec
+    
     def createXMLPacket(self, packet):
         metaobj = self.getMeta(packet)
         assert(len(packet) == metaobj.getPacketLength())
@@ -81,14 +102,7 @@ class IDecoder:
     def decode(self, packet, type, params):
         raise RuntimeError('Abstract method, must be overloaded!')
 
-class XProtocolConverter(IDecoder):
-    def __init__(self):
-        self.decoderfactory = {}
-        self.decoderfactory['integer-reverse'] = reverseIntegerDecoder
-        self.decoderfactory['currency-reverse'] = reverseCurrencyDecoder
-        self.decoderfactory['boolean'] = booleanDecoder
-        self.decoderfactory['ascii-reverse'] = reverseAsciiDecoder
-
+class XProtocolDecoder(IDecoder):
     def getMeta(self, packet):
         assert(packet)
         id = packet[1]
@@ -98,7 +112,7 @@ class XProtocolConverter(IDecoder):
             return None
 
     def decode(self, packet, type, params):
-        dec = self.decoderfactory.get(type)(packet, params)
+        dec = self.getConcreteDecoder(type)(packet, params)
         return dec.returnValue()
 
 from generators import *
@@ -109,6 +123,6 @@ b = charpacket(a, size = 2) # number of characters to extract from stream
 c = datablockdispatcher(b) # extract only standard XSeries Packets
 d = datablockfilter(c, '00') # select packets that match packet IDs
    
-converter = XProtocolConverter()
+xdec = XProtocolDecoder()
 for packet in d:
-    converter.createXMLPacket(packet)
+    xdec.createXMLPacket(packet)
