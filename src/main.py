@@ -2,17 +2,17 @@ from datablockmodels import *
 from datablockviews import *
 from generators import *
 
-file = open('SDB.MDB.Raw.Data.txt', 'r')
+file = open('unittests/SDB.MDB.Raw.Data.txt', 'r')
 a = charfilter(file, '.', ' ', '\n', '\r', '\t') # filter out given characters
 b = charpacket(a, size = 2) # number of characters to extract from stream
 c = datablockdispatcher(b) # extract only standard XSeries Packets
 d = datablockfilter(c, '00', '22') # select packets that match packet IDs
 e = diffpacketfilter(d) # only filter packets that have changed state
 
-sdbhandle = sdbMdl() # Model
+sdbhandle = sdbMdl('packets.xml') # Model
 view = sdbreporter(sdbhandle) # View
 
-mdbhandle = mdbMdl() # Model
+mdbhandle = mdbMdl('packets.xml') # Model
 view2 = mdbreporter(mdbhandle) # View
 
 queue = CommandDispatcher()

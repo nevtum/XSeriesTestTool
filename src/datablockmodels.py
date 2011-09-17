@@ -17,9 +17,9 @@ class packetmdl:
         pass
 
 class sdbMdl(packetmdl, subject):
-    def __init__(self):
+    def __init__(self, configfilename):
         subject.__init__(self)
-        self.readmetadata('../packets.xml')
+        self.readmetadata(configfilename)
         
     def readmetadata(self, filename):
         self.metadata = createmetadata(filename)

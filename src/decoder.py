@@ -107,7 +107,7 @@ class XProtocolDecoder(IDecoder):
         assert(packet)
         id = packet[1]
         if id == '00':
-            return codecMetaObject('packetdef.xml')
+            return codecMetaObject('settings/packetdef.xml')
         else:
             return None
 
@@ -117,7 +117,7 @@ class XProtocolDecoder(IDecoder):
 
 from generators import *
 
-file = open('SDB.MDB.Raw.Data.txt', 'r')
+file = open('unittests/SDB.MDB.Raw.Data.txt', 'r')
 a = charfilter(file, '.', ' ', '\n', '\r', '\t') # filter out given characters
 b = charpacket(a, size = 2) # number of characters to extract from stream
 c = datablockdispatcher(b) # extract only standard XSeries Packets

@@ -20,16 +20,15 @@ class itemElemWrapper:
         return self.elem.attrib.get(key)
 
 class codecMetaObject:
-    def __init__(self, filepath):
-        self.tree = cElementTree.ElementTree()
-        self.tree.parse(filepath)
+    def __init__(self, root):
+        self.root = root
         
     def getPacketName(self):
-        return self.tree.getroot().attrib['name']
+        return self.root.attrib['name']
     
     def getPacketLength(self):
-        return int(self.tree.getroot().attrib['length'])
+        return int(self.root.attrib['length'])
         
     def allItems(self):
-        for elem in self.tree.findall(".//item"):
+        for elem in self.root.findall(".//item"):
             yield itemElemWrapper(elem)

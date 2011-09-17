@@ -5,10 +5,10 @@ class TestSDBHandle(unittest.TestCase):
     def setUp(self):
         f = open('sdbmockdata.txt', 'r')
         data = f.readline().split()
-        self.sdb1 = sdbMdl()
+        self.sdb1 = sdbMdl('../packets.xml')
         self.sdb1.setdata(data)
         data = f.readline().split()
-        self.sdb2 = sdbMdl()
+        self.sdb2 = sdbMdl('../packets.xml')
         self.sdb2.setdata(data)
         
     def testpacketinfo(self):
