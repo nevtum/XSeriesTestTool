@@ -1,4 +1,5 @@
 from config.metaclasses import codecMetaObject
+from xml.etree import cElementTree
 
 class AbstractItemDecoder:
     def returnValue(self):
@@ -86,6 +87,7 @@ class IDecoder:
     
     def createXMLPacket(self, packet):
         metaobj = self.getMeta(packet)
+        print metaobj.root
         assert(len(packet) == metaobj.getPacketLength())
         print "<packet name=\"%s\">" % metaobj.getPacketName()
         for item in metaobj.allItems():
@@ -107,7 +109,10 @@ class XProtocolDecoder(IDecoder):
         assert(packet)
         id = packet[1]
         if id == '00':
-            return codecMetaObject('settings/packetdef.xml')
+            tree = cElementTree.ElementTree()
+            tree.parse('settings/packetdef.xml')
+            elem = tree.find('.//packet')
+            return codecMetaObject(elem)
         else:
             return None
 

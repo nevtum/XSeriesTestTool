@@ -6,12 +6,13 @@ Created on 31/08/2011
 import unittest
 from config.metaclasses import codecMetaObject
 from cStringIO import StringIO
+from xml.etree import cElementTree
 
 class Test(unittest.TestCase):
     
     def setUp(self):
-        self.file = StringIO('''
-        <packet name="sdb" length="128">
+        file = StringIO('''
+        <packet name="sdb" length="128" pattern='00'>
             <item name="version" type="integer-reverse">
                 <startbyte>3</startbyte>
                 <endbyte>4</endbyte>
@@ -25,9 +26,17 @@ class Test(unittest.TestCase):
                 <bit>1</bit>
             </item>
         </packet>''')
-        
+        self.root = cElementTree.ElementTree()
+        self.root.parse(file)
+    
+    def testEssentialMethods(self):
+        cmo = codecMetaObject(self.root.getroot())
+        self.assertEquals(128, cmo.getPacketLength())
+        self.assertEquals('sdb', cmo.getPacketName())
+        self.assertEquals('00', cmo.getPacketPattern())
+    
     def testiterator(self):
-        cmo = codecMetaObject(self.file)
+        cmo = codecMetaObject(self.root.getroot())
         generator = cmo.allItems()
         item = generator.next()
         self.assertEquals('version', item.extract('name'))

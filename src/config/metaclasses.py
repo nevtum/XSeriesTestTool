@@ -21,6 +21,7 @@ class itemElemWrapper:
 
 class codecMetaObject:
     def __init__(self, root):
+        assert(cElementTree.iselement(root))
         self.root = root
         
     def getPacketName(self):
@@ -28,6 +29,9 @@ class codecMetaObject:
     
     def getPacketLength(self):
         return int(self.root.attrib['length'])
+    
+    def getPacketPattern(self):
+        return self.root.attrib['pattern']
         
     def allItems(self):
         for elem in self.root.findall(".//item"):
