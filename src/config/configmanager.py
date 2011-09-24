@@ -15,7 +15,7 @@ class metaRepository:
         self.createRepository()
         
     def allMetaObjects(self):
-        for root, dirs, files in os.walk('.'):
+        for root, dirs, files in os.walk(self.filepath):
             for file in files:
                 pathname = os.path.join(root, file)
                 if 'xml' in pathname:

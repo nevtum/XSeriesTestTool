@@ -235,5 +235,9 @@
 		</item>
 	</packet>
 	<packet name="mdb" length="128" pattern="22">
+		<item name="testingtesting" type="integer-reverse">
+			<startbyte>2</startbyte>
+			<endbyte>6</endbyte>
+		</item>
 	</packet>
 </config>

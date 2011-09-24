@@ -1,4 +1,5 @@
 from config.metaclasses import codecMetaObject
+from config.configmanager import metaRepository
 from xml.etree import cElementTree
 
 class AbstractItemDecoder:
@@ -73,11 +74,13 @@ class nullDecoder(AbstractItemDecoder):
 
 class IDecoder:
     def __init__(self):
-        self.decoderfactory = dict()
-        self.decoderfactory['integer-reverse'] = reverseIntegerDecoder
-        self.decoderfactory['currency-reverse'] = reverseCurrencyDecoder
-        self.decoderfactory['boolean'] = booleanDecoder
-        self.decoderfactory['ascii-reverse'] = reverseAsciiDecoder
+        self.repo = metaRepository('settings/')
+        self.decoderfactory = {}
+        
+    def registerTypeDecoder(self, key, constructor):
+        assert(isinstance(key, str))
+        assert(issubclass(constructor, AbstractItemDecoder))
+        self.decoderfactory[key] = constructor
     
     def getConcreteDecoder(self, type):
         dec = self.decoderfactory.get(type)
@@ -87,7 +90,6 @@ class IDecoder:
     
     def createXMLPacket(self, packet):
         metaobj = self.getMeta(packet)
-        print metaobj.root
         assert(len(packet) == metaobj.getPacketLength())
         print "<packet name=\"%s\">" % metaobj.getPacketName()
         for item in metaobj.allItems():
@@ -102,23 +104,14 @@ class IDecoder:
         raise RuntimeError('Abstract method, must be overloaded!')
     
     def decode(self, packet, type, params):
-        raise RuntimeError('Abstract method, must be overloaded!')
+        dec = self.getConcreteDecoder(type)(packet, params)
+        return dec.returnValue()
 
 class XProtocolDecoder(IDecoder):
     def getMeta(self, packet):
         assert(packet)
         id = packet[1]
-        if id == '00':
-            tree = cElementTree.ElementTree()
-            tree.parse('settings/packetdef.xml')
-            elem = tree.find('.//packet')
-            return codecMetaObject(elem)
-        else:
-            return None
-
-    def decode(self, packet, type, params):
-        dec = self.getConcreteDecoder(type)(packet, params)
-        return dec.returnValue()
+        return self.repo.getMetaObject(id)
 
 from generators import *
 
@@ -126,8 +119,13 @@ file = open('unittests/SDB.MDB.Raw.Data.txt', 'r')
 a = charfilter(file, '.', ' ', '\n', '\r', '\t') # filter out given characters
 b = charpacket(a, size = 2) # number of characters to extract from stream
 c = datablockdispatcher(b) # extract only standard XSeries Packets
-d = datablockfilter(c, '00') # select packets that match packet IDs
+d = datablockfilter(c, '00', '22') # select packets that match packet IDs
    
 xdec = XProtocolDecoder()
+xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
+xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
+xdec.registerTypeDecoder('boolean', booleanDecoder)
+xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
+
 for packet in d:
     xdec.createXMLPacket(packet)
