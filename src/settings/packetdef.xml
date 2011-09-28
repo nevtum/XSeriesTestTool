@@ -235,9 +235,163 @@
 		</item>
 	</packet>
 	<packet name="mdb" length="128" pattern="22">
-		<item name="testingtesting" type="integer-reverse">
-			<startbyte>2</startbyte>
-			<endbyte>6</endbyte>
+		<item name="identifier" type="integer-reverse">
+			<byte>2</byte>
+		</item>
+		<item name="manufacturerid" type="integer-reverse">
+			<byte>3</byte>
+		</item>
+		<item name="gmid" type="integer-reverse">
+			<startbyte>5</startbyte>
+			<endbyte>7</endbyte>
+		</item>
+		<item name="datablockversion" type="integer-reverse">
+			<startbyte>8</startbyte>
+			<endbyte>9</endbyte>
+		</item>
+		<item name="version" type="currency-reverse">
+			<startbyte>10</startbyte>
+			<endbyte>11</endbyte>
+		</item>
+		<item name="bnadooropen" type="boolean">
+			<byte>12</byte>
+			<bit>0</bit>
+		</item>
+		<item name="bnacommserror" type="boolean">
+			<byte>12</byte>
+			<bit>1</bit>
+		</item>
+		<item name="bnafailure" type="boolean">
+			<byte>12</byte>
+			<bit>2</bit>
+		</item>
+		<item name="bnafull" type="boolean">
+			<byte>12</byte>
+			<bit>3</bit>
+		</item>
+		<item name="bnastackerremoved" type="boolean">
+			<byte>12</byte>
+			<bit>4</bit>
+		</item>
+		<item name="bnaoutofservice" type="boolean">
+			<byte>12</byte>
+			<bit>5</bit>
+		</item>
+		<item name="cashboxdropdooropen" type="boolean">
+			<byte>14</byte>
+			<bit>0</bit>
+		</item>
+		<item name="printerpaperlow" type="boolean">
+			<byte>14</byte>
+			<bit>1</bit>
+		</item>
+		<item name="validticketout" type="boolean">
+			<byte>14</byte>
+			<bit>2</bit>
+		</item>
+		<item name="printerfault" type="boolean">
+			<byte>14</byte>
+			<bit>3</bit>
+		</item>
+		<item name="printerfault" type="boolean">
+			<byte>14</byte>
+			<bit>3</bit>
+		</item>
+		<item name="printerpaperout" type="boolean">
+			<byte>14</byte>
+			<bit>4</bit>
+		</item>
+		<item name="validticketout" type="boolean">
+			<byte>14</byte>
+			<bit>5</bit>
+		</item>
+		<item name="ticketincommserror" type="boolean">
+			<byte>15</byte>
+			<bit>0</bit>
+		</item>
+		<item name="ticketinrejected" type="boolean">
+			<byte>15</byte>
+			<bit>1</bit>
+		</item>
+		<item name="tenrejects" type="boolean">
+			<byte>15</byte>
+			<bit>2</bit>
+		</item>
+		<item name="miscticketerror" type="boolean">
+			<byte>15</byte>
+			<bit>3</bit>
+		</item>
+		<item name="ticketlessthanbcv" type="boolean">
+			<byte>15</byte>
+			<bit>4</bit>
+		</item>
+		<item name="stackingcomplete" type="boolean">
+			<byte>15</byte>
+			<bit>5</bit>
+		</item>
+		<item name="nr5dollarbills" type="integer-reverse">
+			<startbyte>16</startbyte>
+			<endbyte>20</endbyte>
+		</item>
+		<item name="nr10dollarbills" type="integer-reverse">
+			<startbyte>21</startbyte>
+			<endbyte>25</endbyte>
+		</item>
+		<item name="nr20dollarbills" type="integer-reverse">
+			<startbyte>26</startbyte>
+			<endbyte>30</endbyte>
+		</item>
+		<item name="nr50dollarbills" type="integer-reverse">
+			<startbyte>31</startbyte>
+			<endbyte>35</endbyte>
+		</item>
+		<item name="nr100dollarbills" type="integer-reverse">
+			<startbyte>36</startbyte>
+			<endbyte>40</endbyte>
+		</item>
+		<item name="nrticketsaccepted" type="integer-reverse">
+			<startbyte>41</startbyte>
+			<endbyte>45</endbyte>
+		</item>
+		<item name="nrticketsrejected" type="integer-reverse">
+			<startbyte>46</startbyte>
+			<endbyte>50</endbyte>
+		</item>
+		<item name="nrsparebills" type="integer-reverse">
+			<startbyte>51</startbyte>
+			<endbyte>55</endbyte>
+		</item>
+		<item name="totalbillsvalue" type="currency-reverse">
+			<startbyte>56</startbyte>
+			<endbyte>60</endbyte>
+		</item>
+		<item name="nrtotalbills" type="integer-reverse">
+			<startbyte>61</startbyte>
+			<endbyte>66</endbyte>
+		</item>
+		<item name="dateticketprinted" type="integer-reverse">
+			<startbyte>67</startbyte>
+			<endbyte>70</endbyte>
+		</item>
+		<item name="timeticketprinted" type="integer-reverse">
+			<startbyte>71</startbyte>
+			<endbyte>73</endbyte>
+		</item>
+		<item name="timeticketprinted" type="integer-reverse">
+			<startbyte>71</startbyte>
+			<endbyte>73</endbyte>
+		</item>
+		<item name="ticketid" type="integer-reverse">
+			<startbyte>74</startbyte>
+			<endbyte>83</endbyte>
+		</item>
+		<item name="ticketvalue" type="currency-reverse">
+			<startbyte>84</startbyte>
+			<endbyte>88</endbyte>
+		</item>
+		<item name="ticketsequencenr" type="integer-reverse">
+			<startbyte>89</startbyte>
+			<endbyte>93</endbyte>
 		</item>
 	</packet>
 </config>
