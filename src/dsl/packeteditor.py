@@ -14,6 +14,16 @@ class PacketEditor(object):
         packet[position] = hex(iVal)
         
     def putAscii(self, packet, string, startpos, endpos):
-        x = [hex(ord(i)) for i in list(string)]
-        for index in xrange(startpos, endpos+1):
-            packet[startpos+index] = x[index]
+        assert(0 <= startpos <= len(packet))
+        assert(0 <= endpos+1 <= len(packet))
+        delta = endpos-startpos
+        g = self.crop(string, abs(delta)+1)
+        for index in range(len(g)):
+            if delta >= 0:
+                packet[startpos+index] = g[index]
+            else:
+                packet[startpos-index] = g[index]
+            
+    def crop(self, string, window):
+        minsize = min(len(string), window)
+        return [hex(ord(string[i])) for i in range(minsize)]
