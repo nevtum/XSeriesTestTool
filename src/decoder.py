@@ -89,7 +89,7 @@ class IDecoder:
         return dec
     
     def createXMLPacket(self, packet):
-        metaobj = self.getMeta(packet)
+        metaobj = self.getStartOfMessage(packet)
         assert(len(packet) == metaobj.getPacketLength())
         print "<packet name=\"%s\">" % metaobj.getPacketName()
         for item in metaobj.allItems():
@@ -99,8 +99,11 @@ class IDecoder:
             value = self.decode(packet, type, params)
             print "\t<%s>%s</%s>" % (name, value, name)
         print "</packet>"
+	# put code here to store packet into a database
+	# put code here to store packet into a database
+	# put code here to store packet into a database
     
-    def getMeta(self, packet):
+    def getStartOfMessage(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
     
     def decode(self, packet, type, params):
@@ -108,7 +111,7 @@ class IDecoder:
         return dec.returnValue()
 
 class XProtocolDecoder(IDecoder):
-    def getMeta(self, packet):
+    def getStartOfMessage(self, packet):
         assert(packet)
         id = packet[1]
         return self.repo.getMetaObject(id)
