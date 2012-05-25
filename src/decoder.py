@@ -1,6 +1,7 @@
 from config.metaclasses import codecMetaObject
 from config.configmanager import metaRepository
 from xml.etree import cElementTree
+import sqlite3
 
 class AbstractItemDecoder:
     def returnValue(self):
@@ -76,6 +77,7 @@ class IDecoder:
     def __init__(self):
         self.repo = metaRepository('settings/')
         self.decoderfactory = {}
+        self.logger = DataLogger('test.db')
         
     def registerTypeDecoder(self, key, constructor):
         assert(isinstance(key, str))
@@ -99,9 +101,8 @@ class IDecoder:
             value = self.decode(packet, type, params)
             print "\t<%s>%s</%s>" % (name, value, name)
         print "</packet>"
-	# put code here to store packet into a database
-	# put code here to store packet into a database
-	# put code here to store packet into a database
+        
+        self.logger.logData("incoming", metaobj.getPacketName(), "".join(packet))
     
     def getStartOfMessage(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
@@ -116,13 +117,34 @@ class XProtocolDecoder(IDecoder):
         id = packet[1]
         return self.repo.getMetaObject(id)
 
+class DataLogger:
+    def __init__(self, filename):
+        self.con = sqlite3.connect(filename)
+        cursor = self.con.cursor()
+        sql = """CREATE TABLE IF NOT EXISTS packetlog(
+        timestamp DATETIME,
+        direction TEXT NOT NULL,
+        packetid TEXT NOT NULL,
+        hex TEXT NOT NULL)"""
+        cursor.execute(sql)
+        self.con.commit()
+        
+    def logData(self, direction, packetid, data):
+        if(direction not in ('incoming', 'outgoing')):
+            raise ValueError()
+        cursor = self.con.cursor()
+        params = (direction, packetid, data)
+        sql = "INSERT INTO packetlog VALUES(datetime(),'%s','%s','%s')" % params
+        cursor.execute(sql)
+        self.con.commit()
+
 from generators import *
 
 file = open('unittests/SDB.MDB.Raw.Data.txt', 'r')
 a = charfilter(file, '.', ' ', '\n', '\r', '\t') # filter out given characters
 b = charpacket(a, size = 2) # number of characters to extract from stream
 c = datablockdispatcher(b) # extract only standard XSeries Packets
-d = datablockfilter(c, '22') # select packets that match packet IDs
+d = datablockfilter(c, '00', '22') # select packets that match packet IDs
    
 xdec = XProtocolDecoder()
 xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
