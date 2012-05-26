@@ -133,6 +133,5 @@ xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
 xdec.registerTypeDecoder('boolean', booleanDecoder)
 xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
 
-
 for packet in d:
     xdec.createXMLPacket(packet)
