@@ -3,12 +3,11 @@ from config.configmanager import metaRepository
 from xml.etree import cElementTree
 import sqlite3
 
-class AbstractItemDecoder:
-    def __init__(self, packet, params):
-        self.packet = packet
+class AbstractTypeDecoder:
+    def __init__(self, params):
         self.params = params
         
-    def returnValue(self):
+    def returnValue(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
     
     def getByteVector(self, packet, lbound, hbound):
@@ -27,80 +26,74 @@ class AbstractItemDecoder:
         if not startbyte:
             startbyte = endbyte = params.get('byte')
         return startbyte, endbyte
-    
-    def returnValue(self):
-        raise RuntimeError('Abstract method, must be overloaded!')
 
-class reverseIntegerDecoder(AbstractItemDecoder):
-    def returnValue(self):
+class reverseIntegerDecoder(AbstractTypeDecoder):
+    def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
-        return self.getByteString(self.packet, l, h)
+        return self.getByteString(packet, l, h)
     
-class booleanDecoder(AbstractItemDecoder):
-    def returnValue(self):
+class booleanDecoder(AbstractTypeDecoder):
+    def returnValue(self, packet):
         byte = int(self.params.get('byte'))
         bit = int(self.params.get('bit'))
-        return self.getBit(int(self.packet[byte-1], 16), bit)
+        return self.getBit(int(packet[byte-1], 16), bit)
     
-class reverseCurrencyDecoder(AbstractItemDecoder):
-    def returnValue(self):
+class reverseCurrencyDecoder(AbstractTypeDecoder):
+    def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
-        x = int(self.getByteString(self.packet, l, h))/100.00
+        x = int(self.getByteString(packet, l, h))/100.00
         return '%.2f' % x
     
-class reverseAsciiDecoder(AbstractItemDecoder):
-    def returnValue(self):
+class reverseAsciiDecoder(AbstractTypeDecoder):
+    def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
-        x = [chr(int(val, 16)) for val in self.getByteVector(self.packet, l, h)]
+        x = [chr(int(val, 16)) for val in self.getByteVector(packet, l, h)]
         chars = ''.join(x).strip()
         if chars == '':
             return 'None'
         return chars
     
-class nullDecoder(AbstractItemDecoder):
-    def returnValue(self):
+class nullDecoder(AbstractTypeDecoder):
+    def returnValue(self, packet):
         return 'unknown decoding type'
 
 class IDecoder:
-    def __init__(self):
-        self.repo = metaRepository('settings/')
+    def __init__(self, repo):
+        self.repo = repo
         self.decoderfactory = {}
         self.logger = DataLogger('test.db')
         
     def registerTypeDecoder(self, key, constructor):
         assert(isinstance(key, str))
-        assert(issubclass(constructor, AbstractItemDecoder))
+        assert(issubclass(constructor, AbstractTypeDecoder))
         self.decoderfactory[key] = constructor
     
-    def getConcreteDecoder(self, type):
-        dec = self.decoderfactory.get(type)
+    def getTypeDecoder(self, item):
+        type = item.extract('type')
+        params = item.extractParams()
+        dec = self.decoderfactory.get(type)(params)
         if dec is None:
             return nullDecoder
         return dec
     
     def createXMLPacket(self, packet):
-        metaobj = self.getStartOfMessage(packet)
-        assert(len(packet) == metaobj.getPacketLength())
-        print "<packet name=\"%s\">" % metaobj.getPacketName()
-        for item in metaobj.allItems():
-            name = item.extract('name')
-            type = item.extract('type')
-            params = item.extractParams()
-            value = self.decode(packet, type, params)
-            print "\t<%s>%s</%s>" % (name, value, name)
+        meta = self.getMetaData(packet)
+        assert(len(packet) == meta.getPacketLength())
+        print "<packet name=\"%s\">" % meta.getPacketName()
+        for item in meta.allItems():
+            dec = self.getTypeDecoder(item)
+            value = dec.returnValue(packet)
+            tag = item.extract('name')
+            print "\t<%s>%s</%s>" % (tag, value, tag)
         print "</packet>"
         
-        self.logger.logData("incoming", metaobj.getPacketName(), "".join(packet))
+        self.logger.logData("incoming", meta.getPacketName(), "".join(packet))
     
-    def getStartOfMessage(self, packet):
+    def getMetaData(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
-    
-    def decode(self, packet, type, params):
-        dec = self.getConcreteDecoder(type)(packet, params)
-        return dec.returnValue()
 
 class XProtocolDecoder(IDecoder):
-    def getStartOfMessage(self, packet):
+    def getMetaData(self, packet):
         assert(packet)
         id = packet[1]
         return self.repo.getMetaObject(id)
@@ -128,13 +121,15 @@ class DataLogger:
 
 from generators import *
 
+xmetadata = metaRepository('settings/')
+
 file = open('unittests/SDB.MDB.Raw.Data.txt', 'r')
 a = charfilter(file, '.', ' ', '\n', '\r', '\t') # filter out given characters
 b = charpacket(a, size = 2) # number of characters to extract from stream
 c = datablockdispatcher(b) # extract only standard XSeries Packets
 d = datablockfilter(c, '00', '22') # select packets that match packet IDs
    
-xdec = XProtocolDecoder()
+xdec = XProtocolDecoder(xmetadata)
 xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
 xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
 xdec.registerTypeDecoder('boolean', booleanDecoder)

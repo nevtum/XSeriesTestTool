@@ -15,9 +15,18 @@ class metaRepository:
     def __init__(self, filepath):
         self.filepath = filepath
         self.collection = {}
-        self.createRepository()
+        self.__createRepository()
         
-    def allMetaObjects(self):
+    def __createRepository(self):
+        dupes = set()
+        for cmo in self.__allMetaObjects():
+            t = cmo.getPacketName(), cmo.getPacketLength(), cmo.getPacketPattern()
+            if t in dupes:
+                raise IndexError('Duplicate metadata!!')
+            dupes.add(t)
+            self.collection[cmo.getPacketPattern()] = cmo
+            
+    def __allMetaObjects(self):
         for root, dirs, files in os.walk(self.filepath):
             for file in files:
                 pathname = os.path.join(root, file)
@@ -26,15 +35,6 @@ class metaRepository:
                     tree.parse(pathname)
                     for each in tree.findall('.//packet'):
                         yield codecMetaObject(each)
-                        
-    def createRepository(self):
-        dupes = set()
-        for cmo in self.allMetaObjects():
-            t = cmo.getPacketName(), cmo.getPacketLength(), cmo.getPacketPattern()
-            if t in dupes:
-                raise IndexError('Duplicate metadata!!')
-            dupes.add(t)
-            self.collection[cmo.getPacketPattern()] = cmo
                         
     def getMetaObject(self, key):
         return self.collection.get(key)
