@@ -7,7 +7,10 @@ Created on Sep 17, 2011
 import os
 from xml.etree import cElementTree
 from config.metaclasses import codecMetaObject
-    
+
+# This repository is a dictionary of all meta objects.
+# All knowledge of every type of packet can be found
+# in the meta repository
 class metaRepository:
     def __init__(self, filepath):
         self.filepath = filepath

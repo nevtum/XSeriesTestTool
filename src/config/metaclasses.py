@@ -6,6 +6,8 @@ Created on 31/08/2011
 
 from xml.etree import cElementTree
 
+# This class contains the information of
+# how all the elements inside a packet.
 class itemElemWrapper:
     def __init__(self, elem):
         self.elem = elem
@@ -19,6 +21,8 @@ class itemElemWrapper:
     def extract(self, key):
         return self.elem.attrib.get(key)
 
+# This object describes all the essential information
+# required about the type of packet being received
 class codecMetaObject:
     def __init__(self, root):
         assert(cElementTree.iselement(root))
