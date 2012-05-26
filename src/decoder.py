@@ -4,6 +4,10 @@ from xml.etree import cElementTree
 import sqlite3
 
 class AbstractItemDecoder:
+    def __init__(self, packet, params):
+        self.packet = packet
+        self.params = params
+        
     def returnValue(self):
         raise RuntimeError('Abstract method, must be overloaded!')
     
@@ -23,41 +27,28 @@ class AbstractItemDecoder:
         if not startbyte:
             startbyte = endbyte = params.get('byte')
         return startbyte, endbyte
+    
+    def returnValue(self):
+        raise RuntimeError('Abstract method, must be overloaded!')
 
 class reverseIntegerDecoder(AbstractItemDecoder):
-    def __init__(self, packet, params):
-        self.packet = packet
-        self.params = params
-        
     def returnValue(self):
         l, h = self.getstartendbyte(self.params)
         return self.getByteString(self.packet, l, h)
     
 class booleanDecoder(AbstractItemDecoder):
-    def __init__(self, packet, params):
-        self.packet = packet
-        self.params = params
-        
     def returnValue(self):
         byte = int(self.params.get('byte'))
         bit = int(self.params.get('bit'))
         return self.getBit(int(self.packet[byte-1], 16), bit)
     
 class reverseCurrencyDecoder(AbstractItemDecoder):
-    def __init__(self, packet, params):
-        self.packet = packet
-        self.params = params
-        
     def returnValue(self):
         l, h = self.getstartendbyte(self.params)
         x = int(self.getByteString(self.packet, l, h))/100.00
         return '%.2f' % x
     
 class reverseAsciiDecoder(AbstractItemDecoder):
-    def __init__(self, packet, params):
-        self.packet = packet
-        self.params = params
-        
     def returnValue(self):
         l, h = self.getstartendbyte(self.params)
         x = [chr(int(val, 16)) for val in self.getByteVector(self.packet, l, h)]
@@ -67,9 +58,6 @@ class reverseAsciiDecoder(AbstractItemDecoder):
         return chars
     
 class nullDecoder(AbstractItemDecoder):
-    def __init__(self, packet, params):
-        pass
-    
     def returnValue(self):
         return 'unknown decoding type'
 
