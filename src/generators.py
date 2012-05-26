@@ -1,5 +1,3 @@
-from datablockmodels import *
-from commands import *
 
 def charfilter(fileobj, *invalids):
     for char in fileobj.read():

@@ -1,6 +1,4 @@
-from config.metaclasses import codecMetaObject
 from config.configmanager import metaRepository
-from xml.etree import cElementTree
 import sqlite3
 
 class AbstractTypeDecoder:
