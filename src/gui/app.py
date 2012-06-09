@@ -79,21 +79,28 @@ class Ui_MainWindow(object):
         self.db.setDatabaseName("test.sqlite")
         self.db.open()
         self.model = QtSql.QSqlQueryModel()
+	self.updateMaxRows()
+	self.updateAutoRefreshRate()
 	self.updateViewContents()
+
+	# set up connection to selection of record
+	self.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
+	self.spinBox.valueChanged.connect(self.updateMaxRows)
 
     def updateAutoRefreshRate(self):
 	# add function to timer refresh frequency to query database
 	pass
 
+    def updateMaxRows(self):
+	self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT %s" % self.spinBox.value()
+
     def updateViewContents(self):
-	query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT %s" % self.spinBox.value()
-        self.model.setQuery(query)    
+        self.model.setQuery(self.query)    
         self.tableView.setModel(self.model)
 	self.tableView.resizeColumnsToContents()
 	self.tableView.selectRow(0)
 	
     def decodeSelectedPacket(self):
-    	# this method will be a qt-slot
     	index = self.tableView.currentIndex()
 	record = self.model.record(index.row())
 	print record.value("hex").toString()
