@@ -80,13 +80,14 @@ class IDecoder:
         packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
         meta = self.getMetaData(packet)
         assert(len(packet) == meta.getPacketLength())
-        print "<packet name=\"%s\">" % meta.getPacketName()
+        x = "<packet name=\"%s\">\n" % meta.getPacketName()
         for item in meta.allItems():
             dec = self.getTypeDecoder(item)
             value = dec.returnValue(packet)
             tag = item.extract('name')
-            print "\t<%s>%s</%s>" % (tag, value, tag)
-        print "</packet>"
+            x += "\t<%s>%s</%s>\n" % (tag, value, tag)
+        x += "</packet>"
+        return x
         
         self.logger.logData("incoming", meta.getPacketName(), "".join(packet))
     

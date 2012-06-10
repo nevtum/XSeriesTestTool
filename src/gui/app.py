@@ -1,82 +1,22 @@
-# -*- coding: utf-8 -*-
+'''
+Created on 11/06/2012
 
-# Form implementation generated from reading ui file 'analyzer.ui'
-#
-# Created: Sun Jun  3 17:15:41 2012
-#      by: PyQt4 UI code generator 4.8.5
-#
-# WARNING! All changes made in this file will be lost!
-
-from PyQt4 import QtCore, QtGui, QtSql
+@author: neville
+'''
+import sys
 from decoder import *
-from config.configmanager import metaRepository
-
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
-
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(800, 564)
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
-        self.centralwidget = QtGui.QWidget(MainWindow)
-        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.tableView = QtGui.QTableView(self.centralwidget)
-        self.tableView.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        self.tableView.setAlternatingRowColors(True)
-        self.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.tableView.setGridStyle(QtCore.Qt.DashLine)
-        self.tableView.setSortingEnabled(False)
-        self.tableView.setObjectName(_fromUtf8("tableView"))
-        self.verticalLayout.addWidget(self.tableView)
-        self.gridLayout = QtGui.QGridLayout()
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.label = QtGui.QLabel(self.centralwidget)
-        self.label.setText(QtGui.QApplication.translate("MainWindow", "Max rows:", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setObjectName(_fromUtf8("label"))
-        self.gridLayout.addWidget(self.label, 0, 1, 1, 1)
-        self.spinBox = QtGui.QSpinBox(self.centralwidget)
-        self.spinBox.setMinimum(20)
-        self.spinBox.setMaximum(1000)
-        self.spinBox.setProperty("value", 100)
-        self.spinBox.setObjectName(_fromUtf8("spinBox"))
-        self.gridLayout.addWidget(self.spinBox, 0, 2, 1, 1)
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem, 1, 0, 1, 1)
-        self.label_2 = QtGui.QLabel(self.centralwidget)
-        self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Update rate [Hz]: ", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_2.setObjectName(_fromUtf8("label_2"))
-        self.gridLayout.addWidget(self.label_2, 1, 1, 1, 1)
-        self.spinBox_2 = QtGui.QSpinBox(self.centralwidget)
-        self.spinBox_2.setMinimum(1)
-        self.spinBox_2.setMaximum(5)
-        self.spinBox_2.setProperty("value", 1)
-        self.spinBox_2.setObjectName(_fromUtf8("spinBox_2"))
-        self.gridLayout.addWidget(self.spinBox_2, 1, 2, 1, 1)
-        self.btnClear = QtGui.QPushButton(self.centralwidget)
-        self.btnClear.setText(QtGui.QApplication.translate("MainWindow", "Clear Records", None, QtGui.QApplication.UnicodeUTF8))
-        self.btnClear.setObjectName(_fromUtf8("btnClear"))
-        self.gridLayout.addWidget(self.btnClear, 2, 2, 1, 1)
-        self.verticalLayout.addLayout(self.gridLayout)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 26))
-        self.menubar.setObjectName(_fromUtf8("menubar"))
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtGui.QStatusBar(MainWindow)
-        self.statusbar.setObjectName(_fromUtf8("statusbar"))
-        MainWindow.setStatusBar(self.statusbar)
-
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        self.setupDB()
+from PyQt4 import QtCore, QtGui, QtSql
+from analyzer import Ui_MainWindow
+from packetview import Ui_packetViewer
+ 
+class XPacketDB:
+    def __init__(self):
+        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+        self.db.setDatabaseName("test.sqlite")
+        self.db.open()
+        self.model = QtSql.QSqlQueryModel()
         self.setupDecoder()
-    
+        
     def setupDecoder(self):
         xmetadata = metaRepository('../settings/')
         self.xdec = XProtocolDecoder(xmetadata)
@@ -84,49 +24,62 @@ class Ui_MainWindow(object):
         self.xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
         self.xdec.registerTypeDecoder('boolean', booleanDecoder)
         self.xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
+        
+    def getModel(self):
+        return self.model
+    
+    def getData(self, rowindex):
+        assert(isinstance(rowindex, int))
+        record = self.model.record(rowindex)
+        packet = str(record.value("hex").toString())
+        return self.xdec.createXMLPacket(packet)
+    
+    def __del__(self):
+        self.db.close()
+ 
+class MyApp(QtGui.QMainWindow):
+    def __init__(self, parent=None):
+        QtGui.QMainWindow.__init__(self, parent)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.setupDB()
     
     def setupDB(self):
-        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName("test.sqlite")
-        self.db.open()
-        self.model = QtSql.QSqlQueryModel()
-        self.updateMaxRows()
-        self.updateAutoRefreshRate()
+        self.db = XPacketDB()
+        self.ui.tableView.setModel(self.db.getModel())
+        self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 100"
         self.updateViewContents()
+        self.ui.lineEdit.setText(self.db.getModel().query().executedQuery())
+        self.ui.tableView.resizeColumnsToContents()
+        
         # set up connection to selection of record
-        self.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
-        self.spinBox.valueChanged.connect(self.updateMaxRows)
-
-    def updateAutoRefreshRate(self):
-        # add function to timer refresh frequency to query database
-        pass
-
-    def updateMaxRows(self):
-        self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT %s" % self.spinBox.value()
-
+        # some bugs here regarding current row is not selected
+        self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
+        self.ui.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
+        self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
+        
+    def on_btnAnalyze_clicked(self):
+        # just testing functionality. far from finished
+        x = QtGui.QDialog(self)
+        Ui_packetViewer().setupUi(x)
+        x.show()
+        
+        
+    def on_btnRefresh_clicked(self):
+        # updates query from user specified SQL statement
+        self.query = self.ui.lineEdit.text()
+        self.updateViewContents()
+    
     def updateViewContents(self):
-        self.model.setQuery(self.query)    
-        self.tableView.setModel(self.model)
-        self.tableView.resizeColumnsToContents()
-        self.tableView.selectRow(0)
-	
+        self.db.getModel().setQuery(self.query)
+        self.ui.tableView.selectRow(0)
+        
     def decodeSelectedPacket(self):
-    	index = self.tableView.currentIndex()
-        record = self.model.record(index.row())
-        packet = record.value("hex").toString()
-        packet = str(packet)
-        self.xdec.createXMLPacket(packet)
-
-
-    def retranslateUi(self, MainWindow):
-        pass
-
-
+        index = self.ui.tableView.currentIndex().row()
+        print self.db.getData(index)
+        
 if __name__ == "__main__":
-    import sys
     app = QtGui.QApplication(sys.argv)
-    MainWindow = QtGui.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    myapp = MyApp()
+    myapp.show()
     sys.exit(app.exec_())

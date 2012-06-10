@@ -23,4 +23,4 @@ xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
 
 
 for packet in x:
-    xdec.createXMLPacket(packet)
+    print xdec.createXMLPacket(packet)
