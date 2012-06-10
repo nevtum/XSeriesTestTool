@@ -74,7 +74,10 @@ class IDecoder:
             return nullDecoder
         return dec
     
-    def createXMLPacket(self, packet):
+    def createXMLPacket(self, seq):
+        # split up sequence in equal sized chunks of 2 characters (nibbles)
+        assert(isinstance(seq, str))
+        packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
         meta = self.getMetaData(packet)
         assert(len(packet) == meta.getPacketLength())
         print "<packet name=\"%s\">" % meta.getPacketName()
@@ -116,22 +119,3 @@ class DataLogger:
         sql = "INSERT INTO packetlog VALUES(datetime(),'%s','%s','%s')" % params
         cursor.execute(sql)
         self.con.commit()
-
-from generators import *
-
-xmetadata = metaRepository('settings/')
-
-file = open('unittests/SDB.MDB.Raw.Data.txt', 'r')
-a = charfilter(file, '.', ' ', '\n', '\r', '\t') # filter out given characters
-b = charpacket(a, size = 2) # number of characters to extract from stream
-c = datablockdispatcher(b) # extract only standard XSeries Packets
-d = datablockfilter(c, '00', '22') # select packets that match packet IDs
-   
-xdec = XProtocolDecoder(xmetadata)
-xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
-xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
-xdec.registerTypeDecoder('boolean', booleanDecoder)
-xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
-
-for packet in d:
-    xdec.createXMLPacket(packet)

@@ -8,6 +8,8 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui, QtSql
+from decoder import *
+from config.configmanager import metaRepository
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -73,37 +75,47 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         self.setupDB()
-        
+        self.setupDecoder()
+    
+    def setupDecoder(self):
+        xmetadata = metaRepository('../settings/')
+        self.xdec = XProtocolDecoder(xmetadata)
+        self.xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
+        self.xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
+        self.xdec.registerTypeDecoder('boolean', booleanDecoder)
+        self.xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
+    
     def setupDB(self):
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName("test.sqlite")
         self.db.open()
         self.model = QtSql.QSqlQueryModel()
-	self.updateMaxRows()
-	self.updateAutoRefreshRate()
-	self.updateViewContents()
-
-	# set up connection to selection of record
-	self.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
-	self.spinBox.valueChanged.connect(self.updateMaxRows)
+        self.updateMaxRows()
+        self.updateAutoRefreshRate()
+        self.updateViewContents()
+        # set up connection to selection of record
+        self.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
+        self.spinBox.valueChanged.connect(self.updateMaxRows)
 
     def updateAutoRefreshRate(self):
-	# add function to timer refresh frequency to query database
-	pass
+        # add function to timer refresh frequency to query database
+        pass
 
     def updateMaxRows(self):
-	self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT %s" % self.spinBox.value()
+        self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT %s" % self.spinBox.value()
 
     def updateViewContents(self):
         self.model.setQuery(self.query)    
         self.tableView.setModel(self.model)
-	self.tableView.resizeColumnsToContents()
-	self.tableView.selectRow(0)
+        self.tableView.resizeColumnsToContents()
+        self.tableView.selectRow(0)
 	
     def decodeSelectedPacket(self):
     	index = self.tableView.currentIndex()
-	record = self.model.record(index.row())
-	print record.value("hex").toString()
+        record = self.model.record(index.row())
+        packet = record.value("hex").toString()
+        packet = str(packet)
+        self.xdec.createXMLPacket(packet)
 
 
     def retranslateUi(self, MainWindow):
@@ -118,4 +130,3 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
-

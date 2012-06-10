@@ -25,6 +25,8 @@ class metaRepository:
                 raise IndexError('Duplicate metadata!!')
             dupes.add(t)
             self.collection[cmo.getPacketPattern()] = cmo
+        if (len(self.collection) == 0):
+            raise ValueError('No metadata found!!')
             
     def __allMetaObjects(self):
         for root, dirs, files in os.walk(self.filepath):
@@ -37,4 +39,7 @@ class metaRepository:
                         yield codecMetaObject(each)
                         
     def getMetaObject(self, key):
-        return self.collection.get(key)
+        obj = self.collection.get(key)
+        if(obj is None):
+            raise ValueError('No Meta Object found!!')
+        return obj
