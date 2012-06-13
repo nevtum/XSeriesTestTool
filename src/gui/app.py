@@ -42,9 +42,17 @@ class DecoderDialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self.ui = Ui_packetViewer()
         self.ui.setupUi(self)
+        self.setupConnections()
         
     def setText(self, message):
         self.ui.textEdit.setText(message)
+        
+    def setupConnections(self):
+        self.ui.btnCopy.clicked.connect(self.on_btnCopy_clicked)
+        
+    def on_btnCopy_clicked(self):
+        self.ui.textEdit.selectAll()
+        self.ui.textEdit.copy()
  
 class MyApp(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -53,6 +61,7 @@ class MyApp(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.setupDB()
         self.setupChildDialogs()
+        self.setupConnections()
         
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -65,6 +74,7 @@ class MyApp(QtGui.QMainWindow):
         self.ui.lineEdit.setText(self.db.getModel().query().executedQuery())
         self.ui.tableView.resizeColumnsToContents()
         
+    def setupConnections(self):
         # set up connection to selection of record
         # some bugs here regarding current row is not selected
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
