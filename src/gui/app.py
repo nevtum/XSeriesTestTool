@@ -5,7 +5,7 @@ Created on 11/06/2012
 '''
 import sys
 from decoder import *
-from PyQt4 import QtCore, QtGui, QtSql
+from PyQt4 import QtGui, QtSql
 from analyzer import Ui_MainWindow
 from packetview import Ui_packetViewer
  
@@ -36,6 +36,15 @@ class XPacketDB:
     
     def __del__(self):
         self.db.close()
+        
+class DecoderDialog(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.ui = Ui_packetViewer()
+        self.ui.setupUi(self)
+        
+    def setText(self, message):
+        self.ui.textEdit.setText(message)
  
 class MyApp(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -43,6 +52,10 @@ class MyApp(QtGui.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setupDB()
+        self.setupChildDialogs()
+        
+    def setupChildDialogs(self):
+        self.decDialog = DecoderDialog(self)
     
     def setupDB(self):
         self.db = XPacketDB()
@@ -59,11 +72,7 @@ class MyApp(QtGui.QMainWindow):
         self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
         
     def on_btnAnalyze_clicked(self):
-        # just testing functionality. far from finished
-        x = QtGui.QDialog(self)
-        Ui_packetViewer().setupUi(x)
-        x.show()
-        
+        self.decDialog.show()
         
     def on_btnRefresh_clicked(self):
         # updates query from user specified SQL statement
@@ -76,7 +85,7 @@ class MyApp(QtGui.QMainWindow):
         
     def decodeSelectedPacket(self):
         index = self.ui.tableView.currentIndex().row()
-        print self.db.getData(index)
+        self.decDialog.setText(self.db.getData(index))
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
