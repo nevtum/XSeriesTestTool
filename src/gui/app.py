@@ -7,6 +7,7 @@ import sys
 from decoder import *
 from PyQt4 import QtGui, QtSql
 from analyzer import Ui_MainWindow
+from maxrowsdialog import Ui_Dialog
 from packetview import Ui_packetViewer
  
 class XPacketDB:
@@ -36,7 +37,17 @@ class XPacketDB:
     
     def __del__(self):
         self.db.close()
-        
+
+class MaxRowsDialog(QtGui.QDialog):
+    def __init__(self, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
+        self.setupConnections()
+    
+    def setupConnections(self):
+        pass
+           
 class DecoderDialog(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
@@ -65,6 +76,7 @@ class MyApp(QtGui.QMainWindow):
         
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
+        self.maxRowsDialog = MaxRowsDialog(self)
     
     def setupDB(self):
         self.db = XPacketDB()
@@ -80,7 +92,11 @@ class MyApp(QtGui.QMainWindow):
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
         self.ui.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
         self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
+        self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
         
+    def on_MaxRowsAction_triggered(self):
+        self.maxRowsDialog.exec_()
+    
     def on_btnAnalyze_clicked(self):
         self.decDialog.show()
         
