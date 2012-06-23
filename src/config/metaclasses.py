@@ -40,3 +40,13 @@ class codecMetaObject:
     def allItems(self):
         for elem in self.root.findall(".//item"):
             yield itemElemWrapper(elem)
+
+class NullMetaObject:
+    def getPacketName(self):
+        return "Unknown"
+    
+    def getPacketLength(self):
+        return 0
+        
+    def allItems(self):
+        return []

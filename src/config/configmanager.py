@@ -6,7 +6,7 @@ Created on Sep 17, 2011
 
 import os
 from xml.etree import cElementTree
-from config.metaclasses import codecMetaObject
+from config.metaclasses import *
 
 # This repository is a dictionary of all meta objects.
 # All knowledge of every type of packet can be found
@@ -41,5 +41,5 @@ class metaRepository:
     def getMetaObject(self, key):
         obj = self.collection.get(key)
         if(obj is None):
-            raise ValueError('No Meta Object found!!')
+            return NullMetaObject()
         return obj

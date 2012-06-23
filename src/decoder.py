@@ -59,7 +59,6 @@ class IDecoder:
     def __init__(self, repo):
         self.repo = repo
         self.decoderfactory = {}
-        self.logger = DataLogger('test.db')
         
     def registerTypeDecoder(self, key, constructor):
         assert(isinstance(key, str))
@@ -79,7 +78,8 @@ class IDecoder:
         assert(isinstance(seq, str))
         packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
         meta = self.getMetaData(packet)
-        assert(len(packet) == meta.getPacketLength())
+        if meta.getPacketLength() != 0:
+            assert(len(packet) == meta.getPacketLength())
         x = "<packet name=\"%s\">\n" % meta.getPacketName()
         for item in meta.allItems():
             dec = self.getTypeDecoder(item)
