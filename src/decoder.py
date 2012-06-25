@@ -97,8 +97,10 @@ class IDecoder:
 class XProtocolDecoder(IDecoder):
     def getMetaData(self, packet):
         assert(packet)
-        id = packet[1]
-        return self.repo.getMetaObject(id)
+        if(len(packet) >= 2):
+            if(packet[0] == 'FF'):
+                return self.repo.getMetaObject(packet[1])
+        return self.repo.getMetaObject(None)
 
 class DataLogger:
     def __init__(self, filename):
