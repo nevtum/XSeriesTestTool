@@ -65,7 +65,7 @@ class IDecoder:
         assert(issubclass(constructor, AbstractTypeDecoder))
         self.decoderfactory[key] = constructor
     
-    def getTypeDecoder(self, item):
+    def __getTypeDecoder(self, item):
         type = item.extract('type')
         params = item.extractParams()
         dec = self.decoderfactory.get(type)(params)
@@ -76,30 +76,32 @@ class IDecoder:
     def createXMLPacket(self, seq):
         # split up sequence in equal sized chunks of 2 characters (nibbles)
         assert(isinstance(seq, str))
+        meta = self.getMetaData(seq)
+        if meta.getPacketLength() == 0:
+            return "Empty packet"
+        if(len(packet) == meta.getPacketLength()):
+            return "invalid packet"
         packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
-        meta = self.getMetaData(packet)
-        if meta.getPacketLength() != 0:
-            assert(len(packet) == meta.getPacketLength())
+        
         x = "<packet name=\"%s\">\n" % meta.getPacketName()
         for item in meta.allItems():
-            dec = self.getTypeDecoder(item)
+            dec = self.__getTypeDecoder(item)
             value = dec.returnValue(packet)
             tag = item.extract('name')
             x += "\t<%s>%s</%s>\n" % (tag, value, tag)
         x += "</packet>"
         return x
-        
-        self.logger.logData("incoming", meta.getPacketName(), "".join(packet))
     
     def getMetaData(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
 
 class XProtocolDecoder(IDecoder):
-    def getMetaData(self, packet):
-        assert(packet)
-        if(len(packet) >= 2):
-            if(packet[0] == 'FF'):
-                return self.repo.getMetaObject(packet[1])
+    def getMetaData(self, seq):
+        if(seq):
+            packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
+            if(len(packet) >= 2):
+                if(packet[0] == 'FF'):
+                    return self.repo.getMetaObject(packet[1])
         return self.repo.getMetaObject(None)
 
 class DataLogger:
