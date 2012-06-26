@@ -6,20 +6,20 @@ Created on 11/06/2012
 import sys
 from decoder import *
 from PyQt4 import QtGui, QtSql
-from analyzer import Ui_MainWindow
-from maxrowsdialog import Ui_Dialog
-from packetview import Ui_packetViewer
+from gui.analyzer import Ui_MainWindow
+from gui.maxrowsdialog import Ui_Dialog
+from gui.packetview import Ui_packetViewer
  
 class XPacketDB:
     def __init__(self):
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName("test.sqlite")
+        self.db.setDatabaseName("gui/test.sqlite")
         self.db.open()
         self.model = QtSql.QSqlQueryModel()
         self.setupDecoder()
         
     def setupDecoder(self):
-        xmetadata = metaRepository('../settings/')
+        xmetadata = metaRepository('settings/')
         self.xdec = XProtocolDecoder(xmetadata)
         self.xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
         self.xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)

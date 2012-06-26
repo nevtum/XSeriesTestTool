@@ -74,14 +74,14 @@ class IDecoder:
         return dec
     
     def createXMLPacket(self, seq):
-        # split up sequence in equal sized chunks of 2 characters (nibbles)
         assert(isinstance(seq, str))
         meta = self.getMetaData(seq)
+        # split up sequence in equal sized chunks of 2 characters (nibbles)
+        packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
         if meta.getPacketLength() == 0:
             return "Empty packet"
-        if(len(packet) == meta.getPacketLength()):
+        if(len(packet) != meta.getPacketLength()):
             return "invalid packet"
-        packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
         
         x = "<packet name=\"%s\">\n" % meta.getPacketName()
         for item in meta.allItems():
