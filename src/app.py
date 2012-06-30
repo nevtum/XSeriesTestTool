@@ -25,9 +25,14 @@ class XPacketDB:
         self.xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
         self.xdec.registerTypeDecoder('boolean', booleanDecoder)
         self.xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
-        
+    
     def getModel(self):
         return self.model
+    
+    def clearDatabase(self):
+        query = "DELETE FROM packetlog"
+        q = QtSql.QSqlQuery(self.db)
+        q.exec_(query)
     
     def getData(self, rowindex):
         assert(isinstance(rowindex, int))
@@ -74,6 +79,7 @@ class MyApp(QtGui.QMainWindow):
         self.setupDB()
         self.setupChildDialogs()
         self.setupConnections()
+        self.recording = False
         
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -93,10 +99,32 @@ class MyApp(QtGui.QMainWindow):
         self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
         self.ui.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
         self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
+        self.ui.btnClear.clicked.connect(self.on_btnClear_clicked)
+        self.ui.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
-        
+    
+    def on_btnRecordPause_clicked(self):
+        if self.recording:
+            self.startSerialCapture()
+            self.ui.btnRecordPause.setText("Record")
+            self.recording = False
+        else:
+            self.stopSerialCapture()
+            self.ui.btnRecordPause.setText("Pause")
+            self.recording = True
+    
+    def startSerialCapture(self):
+        pass
+    
+    def stopSerialCapture(self):
+        pass
+    
     def on_MaxRowsAction_triggered(self):
         self.maxRowsDialog.exec_()
+        
+    def on_btnClear_clicked(self):
+        self.db.clearDatabase()
+        self.updateViewContents()
     
     def on_btnAnalyze_clicked(self):
         self.decDialog.show()
