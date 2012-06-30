@@ -24,7 +24,7 @@ class metaRepository:
             if t in dupes:
                 raise IndexError('Duplicate metadata!!')
             dupes.add(t)
-            self.collection[cmo.getPacketPattern()] = cmo
+            self.collection[int(cmo.getPacketPattern(), 16)] = cmo
         if (len(self.collection) == 0):
             raise ValueError('No metadata found!!')
             

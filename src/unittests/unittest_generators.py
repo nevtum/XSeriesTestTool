@@ -28,14 +28,14 @@ class Test(unittest.TestCase):
         self.assertRaises(StopIteration, a.next)
         
     def testcharpacket(self):
-        a = iter('12345678')
+        a = iter(b'12345678')
         b = charpacket(a, size = 2)
-        self.assertEquals('12', b.next())
-        self.assertEquals('34', b.next())
+        self.assertEquals(0x12, b.next())
+        self.assertEquals(0x34, b.next())
         c = charpacket(a, size = 3)
-        self.assertEquals('567', c.next())
+        self.assertEquals(0x567, c.next())
         d = charpacket(a)
-        self.assertEquals('8', a.next())
+        self.assertEquals(0x8, d.next())
         self.assertRaises(StopIteration, d.next)
         
     def testdiffpacketfilter(self):

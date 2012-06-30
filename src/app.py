@@ -33,7 +33,8 @@ class XPacketDB:
         assert(isinstance(rowindex, int))
         record = self.model.record(rowindex)
         packet = str(record.value("hex").toString())
-        return self.xdec.createXMLPacket(packet)
+        seq = [x for x in bytearray.fromhex(packet)]
+        return self.xdec.createXMLPacket(seq)
     
     def __del__(self):
         self.db.close()

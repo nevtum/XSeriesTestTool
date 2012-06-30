@@ -5,7 +5,7 @@ from decoder import *
 
 class comms:
     def __init__(self, port, baud):
-        self.ser = serial.Serial(port, baud, timeout = 0)
+        self.ser = serial.Serial(port, baud, timeout = 0.2)
         
     def Rx(self):
         data = self.ser.read(1000)
@@ -26,7 +26,7 @@ xdec.registerTypeDecoder('boolean', booleanDecoder)
 xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
 
 logger = DataLogger('test.db')
-com = comms(r"\\.\COM7", 38400)
+com = comms(r"\\.\COM7", 9600)
 
 while True:
     sleep(0.1)

@@ -12,7 +12,8 @@ class AbstractTypeDecoder:
         return packet[int(hbound)-1:int(lbound)-2:-1]
             
     def getByteString(self, packet, lbound, hbound):
-        return ''.join(self.getByteVector(packet, lbound, hbound))
+        arr = ['%02X' % x for x in self.getByteVector(packet, lbound, hbound)]
+        return ''.join(arr)
     
     def getBit(self, byte, n):
         return ((byte >> n) & 0x1)
@@ -23,6 +24,8 @@ class AbstractTypeDecoder:
         endbyte = params.get('endbyte')
         if not startbyte:
             startbyte = endbyte = params.get('byte')
+        assert(startbyte)
+        assert(endbyte)
         return startbyte, endbyte
 
 class reverseIntegerDecoder(AbstractTypeDecoder):
@@ -34,7 +37,7 @@ class booleanDecoder(AbstractTypeDecoder):
     def returnValue(self, packet):
         byte = int(self.params.get('byte'))
         bit = int(self.params.get('bit'))
-        return self.getBit(int(packet[byte-1], 16), bit)
+        return self.getBit(packet[byte-1], bit)
     
 class reverseCurrencyDecoder(AbstractTypeDecoder):
     def returnValue(self, packet):
@@ -45,7 +48,7 @@ class reverseCurrencyDecoder(AbstractTypeDecoder):
 class reverseAsciiDecoder(AbstractTypeDecoder):
     def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
-        x = [chr(int(val, 16)) for val in self.getByteVector(packet, l, h)]
+        x = [chr(val) for val in self.getByteVector(packet, l, h)]
         chars = ''.join(x).strip()
         if chars == '':
             return 'None'
@@ -74,19 +77,17 @@ class IDecoder:
         return dec
     
     def createXMLPacket(self, seq):
-        assert(isinstance(seq, str))
+        assert(isinstance(seq, list))
         meta = self.getMetaData(seq)
-        # split up sequence in equal sized chunks of 2 characters (nibbles)
-        packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
         if meta.getPacketLength() == 0:
             return "Empty packet"
-        if(len(packet) != meta.getPacketLength()):
+        if(len(seq) != meta.getPacketLength()):
             return "invalid packet"
         
         x = "<packet name=\"%s\">\n" % meta.getPacketName()
         for item in meta.allItems():
             dec = self.__getTypeDecoder(item)
-            value = dec.returnValue(packet)
+            value = dec.returnValue(seq)
             tag = item.extract('name')
             x += "\t<%s>%s</%s>\n" % (tag, value, tag)
         x += "</packet>"
@@ -98,10 +99,9 @@ class IDecoder:
 class XProtocolDecoder(IDecoder):
     def getMetaData(self, seq):
         if(seq):
-            packet = [seq[i:i+2] for i in range(0, len(seq), 2)]
-            if(len(packet) >= 2):
-                if(packet[0] == 'FF'):
-                    return self.repo.getMetaObject(packet[1])
+            if(len(seq) >= 2):
+                if(seq[0] == 0xFF):
+                    return self.repo.getMetaObject(seq[1])
         return self.repo.getMetaObject(None)
 
 class DataLogger:
