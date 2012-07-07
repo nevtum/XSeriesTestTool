@@ -116,7 +116,9 @@ class DataLogger:
         cursor.execute(sql)
         self.con.commit()
         
-    def logData(self, direction, packetid, data):
+    def logData(self, direction, packetid, seq):
+    	assert(isinstance(seq, list))
+	data = ''.join(["%02X" % byte for byte in seq])
         if(direction not in ('incoming', 'outgoing')):
             raise ValueError()
         cursor = self.con.cursor()
