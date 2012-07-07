@@ -394,4 +394,22 @@
 			<endbyte>93</endbyte>
 		</item>
 	</packet>
+	<packet name="pdb1" length="128" pattern="10">
+		<item name="identifier" type="integer-reverse">
+			<byte>2</byte>
+		</item>
+		<item name="version" type="integer-reverse">
+			<startbyte>3</startbyte>
+			<endbyte>4</endbyte>
+		</item>
+	</packet>
+	<packet name="pdb2" length="128" pattern="11">
+		<item name="identifier" type="integer-reverse">
+			<byte>2</byte>
+		</item>
+		<item name="version" type="integer-reverse">
+			<startbyte>3</startbyte>
+			<endbyte>4</endbyte>
+		</item>
+	</packet>
 </config>
