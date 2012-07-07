@@ -1,16 +1,18 @@
 import serial
-from time import sleep
 from config.configmanager import metaRepository
 from decoder import *
 
 class comms:
     def __init__(self, port, baud):
-        self.ser = serial.Serial(port, baud, timeout = 0.2)
+        self.ser = serial.Serial(port, baud, timeout = None)
         
     def Rx(self):
-        data = self.ser.read(1000)
+        data = self.ser.read(1)
+        remainder = self.ser.inWaiting()
+        data2 = self.ser.read(remainder)
+        BUFFER = bytearray(data + data2)
         if len(data) > 0:
-            return ''.join(["%02X" % ord(x) for x in data])
+            return [x for x in BUFFER]
     
     def Tx(self):
         pass
@@ -29,10 +31,10 @@ logger = DataLogger('test.db')
 com = comms(r"\\.\COM7", 9600)
 
 while True:
-    sleep(0.1)
     packet = com.Rx()
     meta = xdec.getMetaData(packet)
     if packet is not None:
-        print meta.getPacketName(), packet
+        #print meta.getPacketName(), ''.join(["%02X" % x for x in packet])
+        print xdec.createXMLPacket(packet)
         logger.logData('incoming', meta.getPacketName(), packet)
 
