@@ -5,6 +5,7 @@ Created on 11/06/2012
 '''
 import sys
 from decoder import *
+from serial_app import *
 from PyQt4 import QtGui, QtSql
 from gui.analyzer import Ui_MainWindow
 from gui.maxrowsdialog import Ui_Dialog
@@ -13,7 +14,7 @@ from gui.packetview import Ui_packetViewer
 class XPacketDB:
     def __init__(self):
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName("gui/test.sqlite")
+        self.db.setDatabaseName("test.db")
         self.db.open()
         self.model = QtSql.QSqlQueryModel()
         self.setupDecoder()
@@ -80,6 +81,7 @@ class MyApp(QtGui.QMainWindow):
         self.setupChildDialogs()
         self.setupConnections()
         self.recording = False
+        self.commThread = CommsThread()
         
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -104,20 +106,14 @@ class MyApp(QtGui.QMainWindow):
         self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
     
     def on_btnRecordPause_clicked(self):
-        if self.recording:
-            self.startSerialCapture()
-            self.ui.btnRecordPause.setText("Record")
-            self.recording = False
-        else:
-            self.stopSerialCapture()
+        if not self.recording:
             self.ui.btnRecordPause.setText("Pause")
             self.recording = True
-    
-    def startSerialCapture(self):
-        pass
-    
-    def stopSerialCapture(self):
-        pass
+            self.commThread.start()
+        else:
+            self.ui.btnRecordPause.setText("Record")
+            self.recording = False
+            self.commThread.quit()
     
     def on_MaxRowsAction_triggered(self):
         self.maxRowsDialog.exec_()
