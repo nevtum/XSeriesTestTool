@@ -8,21 +8,21 @@ class CommsThread(QThread):
         QThread.__init__(self, parent)
         self.meta = metaRepository('settings/')
         self.xdec = XProtocolDecoder(self.meta)
-        self.logger = DataLogger('test.db')
         self.stopped = False
 
     def run(self):
-        com = comms(r"\\.\COM7", 9600)
+        com = comms(r"\\.\COM17", 9600)
+        logger = DataLogger('test.db')
         self.stopped = False
         while True:
-            print "recieving..."
+            print "Awaiting packet..."
             if self.stopped:
                 break
             packet = com.Rx()
             packetinfo = self.xdec.getMetaData(packet)
             if packet is not None:
                 print packetinfo.getPacketName(), ''.join(["%02X" % x for x in packet])
-                #self.logger.logData('incoming', packetinfo.getPacketName(), packet) #not currently working
+                logger.logData('incoming', packetinfo.getPacketName(), packet) #not currently working
         com.close()
 
     def quit(self):
