@@ -1,7 +1,8 @@
 import serial
 from config.configmanager import metaRepository
 from decoder import *
-from PyQt4.QtCore import QThread
+from PyQt4.QtCore import QThread, SIGNAL
+
 
 class CommsThread(QThread):
     def __init__(self, parent = None):
@@ -14,15 +15,18 @@ class CommsThread(QThread):
         com = comms(r"\\.\COM17", 9600)
         logger = DataLogger('test.db')
         self.stopped = False
+        print "Serial thread started!"
         while True:
-            print "Awaiting packet..."
+            #print "Awaiting packet..."
             if self.stopped:
+                print "Serial thread stopped!"
                 break
             packet = com.Rx()
             packetinfo = self.xdec.getMetaData(packet)
             if packet is not None:
-                print packetinfo.getPacketName(), ''.join(["%02X" % x for x in packet])
+                #print packetinfo.getPacketName(), ''.join(["%02X" % x for x in packet])
                 logger.logData('incoming', packetinfo.getPacketName(), packet) #not currently working
+                self.emit(SIGNAL("receivedpacket"))
         com.close()
 
     def quit(self):

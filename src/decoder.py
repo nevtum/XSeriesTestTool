@@ -1,5 +1,6 @@
 from config.configmanager import metaRepository
 import sqlite3
+from datetime import datetime
 
 class AbstractTypeDecoder:
     def __init__(self, params):
@@ -118,11 +119,11 @@ class DataLogger:
         
     def logData(self, direction, packetid, seq):
     	assert(isinstance(seq, list))
-	data = ''.join(["%02X" % byte for byte in seq])
+        data = ''.join(["%02X" % byte for byte in seq])
         if(direction not in ('incoming', 'outgoing')):
             raise ValueError()
         cursor = self.con.cursor()
-        params = (direction, packetid, data)
-        sql = "INSERT INTO packetlog VALUES(datetime(),'%s','%s','%s')" % params
+        params = (str(datetime.now()), direction, packetid, data)
+        sql = "INSERT INTO packetlog VALUES('%s','%s','%s','%s')" % params
         cursor.execute(sql)
         self.con.commit()

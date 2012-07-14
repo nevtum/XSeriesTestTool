@@ -6,7 +6,7 @@ Created on 11/06/2012
 import sys
 from decoder import *
 from serial_app import *
-from PyQt4 import QtGui, QtSql
+from PyQt4 import QtCore, QtGui, QtSql
 from gui.analyzer import Ui_MainWindow
 from gui.maxrowsdialog import Ui_Dialog
 from gui.packetview import Ui_packetViewer
@@ -90,7 +90,7 @@ class MyApp(QtGui.QMainWindow):
     def setupDB(self):
         self.db = XPacketDB()
         self.ui.tableView.setModel(self.db.getModel())
-        self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 100"
+        self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25"
         self.updateViewContents()
         self.ui.lineEdit.setText(self.db.getModel().query().executedQuery())
         self.ui.tableView.resizeColumnsToContents()
@@ -104,6 +104,13 @@ class MyApp(QtGui.QMainWindow):
         self.ui.btnClear.clicked.connect(self.on_btnClear_clicked)
         self.ui.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
+        self.ui.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
+
+    def on_autoRefreshCheckBoxToggled(self):
+        if self.ui.checkBox.isChecked():
+            self.connect(self.commThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
+        else:
+            self.disconnect(self.commThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
     
     def on_btnRecordPause_clicked(self):
         if not self.recording:
@@ -129,6 +136,7 @@ class MyApp(QtGui.QMainWindow):
         # updates query from user specified SQL statement
         self.query = self.ui.lineEdit.text()
         self.updateViewContents()
+        self.ui.tableView.resizeColumnsToContents()
     
     def updateViewContents(self):
         self.db.getModel().setQuery(self.query)
