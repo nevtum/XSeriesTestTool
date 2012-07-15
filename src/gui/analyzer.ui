@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>564</height>
+    <width>713</width>
+    <height>379</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -106,8 +106,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>25</height>
+     <width>713</width>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSettings">
@@ -116,7 +116,6 @@
     </property>
     <addaction name="actionSet_Maximum_Rows"/>
     <addaction name="actionSerial"/>
-    <addaction name="actionSet_refresh_interval"/>
    </widget>
    <widget class="QMenu" name="menuSerial">
     <property name="title">
@@ -141,11 +140,6 @@
     <string>Set Maximum Rows</string>
    </property>
   </action>
-  <action name="actionRecord_Data">
-   <property name="text">
-    <string>Record New Session...</string>
-   </property>
-  </action>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
@@ -161,14 +155,9 @@
     <string>Serial...</string>
    </property>
   </action>
-  <action name="actionSet_refresh_interval">
-   <property name="text">
-    <string>Set refresh interval</string>
-   </property>
-  </action>
   <action name="actionSet_database_file">
    <property name="text">
-    <string>Set database file...</string>
+    <string>Save database file as...</string>
    </property>
   </action>
  </widget>
@@ -203,6 +192,22 @@
     <hint type="destinationlabel">
      <x>336</x>
      <y>525</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionQuit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>356</x>
+     <y>189</y>
     </hint>
    </hints>
   </connection>

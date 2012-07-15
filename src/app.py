@@ -35,12 +35,15 @@ class XPacketDB:
         q = QtSql.QSqlQuery(self.db)
         q.exec_(query)
     
-    def getData(self, rowindex):
-        assert(isinstance(rowindex, int))
-        record = self.model.record(rowindex)
-        packet = str(record.value("hex").toString())
+    def getDecodedData(self, rowindex):
+        packet = self.getRawData(rowindex)
         seq = [x for x in bytearray.fromhex(packet)]
         return self.xdec.createXMLPacket(seq)
+    
+    def getRawData(self, rowindex):
+        assert(isinstance(rowindex, int))
+        record = self.model.record(rowindex)
+        return str(record.value("hex").toString())
     
     def __del__(self):
         self.db.close()
@@ -61,8 +64,11 @@ class DecoderDialog(QtGui.QDialog):
         self.ui = Ui_packetViewer()
         self.ui.setupUi(self)
         self.setupConnections()
-        
-    def setText(self, message):
+    
+    def setRawMsg(self, message):
+        self.ui.lineEdit.setText(message)
+    
+    def setDecodedMsg(self, message):
         self.ui.textEdit.setText(message)
         
     def setupConnections(self):
@@ -92,8 +98,6 @@ class MyApp(QtGui.QMainWindow):
         self.ui.tableView.setModel(self.db.getModel())
         self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25"
         self.updateViewContents()
-        self.ui.lineEdit.setText(self.db.getModel().query().executedQuery())
-        self.ui.tableView.resizeColumnsToContents()
         
     def setupConnections(self):
         # set up connection to selection of record
@@ -136,15 +140,17 @@ class MyApp(QtGui.QMainWindow):
         # updates query from user specified SQL statement
         self.query = self.ui.lineEdit.text()
         self.updateViewContents()
-        self.ui.tableView.resizeColumnsToContents()
     
     def updateViewContents(self):
+        self.ui.lineEdit.setText(self.query)
         self.db.getModel().setQuery(self.query)
         self.ui.tableView.selectRow(0)
+        self.ui.tableView.resizeColumnsToContents()
         
     def decodeSelectedPacket(self):
         index = self.ui.tableView.currentIndex().row()
-        self.decDialog.setText(self.db.getData(index))
+        self.decDialog.setDecodedMsg(self.db.getDecodedData(index))
+        self.decDialog.setRawMsg(self.db.getRawData(index))
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
