@@ -412,4 +412,9 @@
 			<endbyte>4</endbyte>
 		</item>
 	</packet>
+		<packet name="cdb" length="128" pattern="30">
+		<item name="identifier" type="integer-reverse">
+			<byte>2</byte>
+		</item>
+	</packet>
 </config>

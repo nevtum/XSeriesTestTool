@@ -15,18 +15,42 @@ class CommsThread(QThread):
         com = comms(r"\\.\COM17", 9600)
         logger = DataLogger('test.db')
         self.stopped = False
+        BUFFER = []
         print "Serial thread started!"
         while True:
             #print "Awaiting packet..."
             if self.stopped:
                 print "Serial thread stopped!"
                 break
-            packet = com.Rx()
-            packetinfo = self.xdec.getMetaData(packet)
-            if packet is not None:
-                #print packetinfo.getPacketName(), ''.join(["%02X" % x for x in packet])
-                logger.logData('incoming', packetinfo.getPacketName(), packet) #not currently working
-                self.emit(SIGNAL("receivedpacket"))
+            newbuffer = com.Rx()
+            if newbuffer:
+                BUFFER += newbuffer
+            while len(BUFFER) > 0:
+                print ''.join(["%02X" % x for x in BUFFER])
+                packetinfo = self.xdec.getMetaData(BUFFER)
+                if packetinfo.getPacketName() == "unknown":
+                    packet = BUFFER
+                    BUFFER = []
+                    break
+                expectedlength = packetinfo.getPacketLength()
+                if expectedlength < len(BUFFER):
+                    print "packet length larger than expected length"
+                    print expectedlength, len(BUFFER)
+                    packet = BUFFER[:expectedlength]
+                    BUFFER = BUFFER[expectedlength:]
+                    logger.logData('incoming', packetinfo.getPacketName(), packet) #not currently working
+                    self.emit(SIGNAL("receivedpacket"))
+                elif expectedlength > len(BUFFER):
+                    print "packet length smaller than expected length"
+                    break
+                else:
+                    packet = BUFFER[:]
+                    BUFFER = []
+                    logger.logData('incoming', packetinfo.getPacketName(), packet) #not currently working
+                    self.emit(SIGNAL("receivedpacket"))
+
+                print packetinfo.getPacketName()
+
         com.close()
 
     def quit(self):
