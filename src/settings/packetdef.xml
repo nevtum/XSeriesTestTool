@@ -402,6 +402,127 @@
 			<startbyte>3</startbyte>
 			<endbyte>4</endbyte>
 		</item>
+		<item name="gmid" type="integer-reverse">
+			<startbyte>6</startbyte>
+			<endbyte>8</endbyte>
+		</item>
+		<item name="normal" type="boolean">
+			<byte>11</byte>
+			<bit>0</bit>
+		</item>
+		<item name="jackpothit" type="boolean">
+			<byte>11</byte>
+			<bit>1</bit>
+		</item>
+		<item name="reset" type="boolean">
+			<byte>11</byte>
+			<bit>2</bit>
+		</item>
+		<item name="powerup" type="boolean">
+			<byte>11</byte>
+			<bit>3</bit>
+		</item>
+		<item name="auditmode" type="boolean">
+			<byte>11</byte>
+			<bit>4</bit>
+		</item>
+		<item name="gmpowerdown" type="boolean">
+			<byte>12</byte>
+			<bit>0</bit>
+		</item>
+		<item name="meterdisconnect" type="boolean">
+			<byte>12</byte>
+			<bit>1</bit>
+		</item>
+		<item name="commsfailure" type="boolean">
+			<byte>12</byte>
+			<bit>2</bit>
+		</item>
+		<item name="configchange" type="boolean">
+			<byte>12</byte>
+			<bit>3</bit>
+		</item>
+		<item name="seccageopen" type="boolean">
+			<byte>13</byte>
+			<bit>0</bit>
+		</item>
+		<item name="memoryerror" type="boolean">
+			<byte>13</byte>
+			<bit>1</bit>
+		</item>
+		<item name="powersave" type="boolean">
+			<byte>13</byte>
+			<bit>2</bit>
+		</item>
+		<item name="testmode" type="boolean">
+			<byte>13</byte>
+			<bit>3</bit>
+		</item>
+		<item name="manufacturerspecificerror1" type="boolean">
+			<byte>13</byte>
+			<bit>4</bit>
+		</item>
+		<item name="manufacturerspecificerror2" type="boolean">
+			<byte>13</byte>
+			<bit>5</bit>
+		</item>
+		<item name="levelssupported" type="integer-reverse">
+			<byte>15</byte>
+		</item>
+		<item name="incpercentagelvl1" type="integer-reverse">
+			<startbyte>16</startbyte>
+			<endbyte>19</endbyte>
+		</item>
+		<item name="incpercentagelvl2" type="integer-reverse">
+			<startbyte>20</startbyte>
+			<endbyte>23</endbyte>
+		</item>
+		<item name="incpercentagelvl3" type="integer-reverse">
+			<startbyte>24</startbyte>
+			<endbyte>27</endbyte>
+		</item>
+		<item name="incpercentagelvl4" type="integer-reverse">
+			<startbyte>28</startbyte>
+			<endbyte>31</endbyte>
+		</item>
+		<item name="totalprogrtp" type="integer-reverse">
+			<startbyte>32</startbyte>
+			<endbyte>35</endbyte>
+		</item>
+		<!-- more items to add in between -->
+		<item name="currentjackpotlvl1" type="currency-reverse">
+			<startbyte>42</startbyte>
+			<endbyte>46</endbyte>
+		</item>
+		<item name="currentjackpotlvl2" type="currency-reverse">
+			<startbyte>47</startbyte>
+			<endbyte>51</endbyte>
+		</item>
+		<item name="currentjackpotlvl3" type="currency-reverse">
+			<startbyte>52</startbyte>
+			<endbyte>56</endbyte>
+		</item>
+		<item name="currentjackpotlvl4" type="currency-reverse">
+			<startbyte>57</startbyte>
+			<endbyte>61</endbyte>
+		</item>
+		<!-- more items to add in between -->
+		<item name="programid1" type="ascii-reverse">
+			<startbyte>72</startbyte>
+			<endbyte>79</endbyte>
+		</item>
+		<item name="programid2" type="ascii-reverse">
+			<startbyte>80</startbyte>
+			<endbyte>87</endbyte>
+		</item>
+		<item name="programid3" type="ascii-reverse">
+			<startbyte>88</startbyte>
+			<endbyte>95</endbyte>
+		</item>
+		<item name="programid4" type="ascii-reverse">
+			<startbyte>96</startbyte>
+			<endbyte>103</endbyte>
+		</item>
 	</packet>
 	<packet name="pdb2" length="128" pattern="11">
 		<item name="identifier" type="integer-reverse">
@@ -412,7 +533,7 @@
 			<endbyte>4</endbyte>
 		</item>
 	</packet>
-		<packet name="cdb" length="128" pattern="30">
+	<packet name="cdb" length="128" pattern="30">
 		<item name="identifier" type="integer-reverse">
 			<byte>2</byte>
 		</item>
