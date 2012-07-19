@@ -7,6 +7,9 @@
 			<startbyte>3</startbyte>
 			<endbyte>4</endbyte>
 		</item>
+		<item name="blockseqnr" type="integer-reverse">
+			<byte>5</byte>
+		</item>
 		<item name="gmid" type="integer-reverse">
 			<startbyte>6</startbyte>
 			<endbyte>8</endbyte>
@@ -402,6 +405,9 @@
 			<startbyte>3</startbyte>
 			<endbyte>4</endbyte>
 		</item>
+		<item name="blockseqnr" type="integer-reverse">
+			<byte>5</byte>
+		</item>
 		<item name="gmid" type="integer-reverse">
 			<startbyte>6</startbyte>
 			<endbyte>8</endbyte>
@@ -489,7 +495,14 @@
 			<startbyte>32</startbyte>
 			<endbyte>35</endbyte>
 		</item>
-		<!-- more items to add in between -->
+		<item name="egmsconnected" type="integer-reverse">
+			<startbyte>36</startbyte>
+			<endbyte>37</endbyte>
+		</item>
+		<item name="egmsnotconnected" type="integer-reverse">
+			<startbyte>39</startbyte>
+			<endbyte>40</endbyte>
+		</item>
 		<item name="currentjackpotlvl1" type="currency-reverse">
 			<startbyte>42</startbyte>
 			<endbyte>46</endbyte>
@@ -506,7 +519,20 @@
 			<startbyte>57</startbyte>
 			<endbyte>61</endbyte>
 		</item>
-		<!-- more items to add in between -->
+		<item name="currentjackpotwinlvl" type="integer-reverse">
+			<byte>62</byte>
+		</item>
+		<item name="currentgmidwon" type="integer-reverse">
+			<startbyte>63</startbyte>
+			<endbyte>65</endbyte>
+		</item>
+		<item name="jackpotwinpendingreset" type="currency-reverse">
+			<startbyte>66</startbyte>
+			<endbyte>70</endbyte>
+		</item>
+		<item name="nrjackpotstobereset" type="integer-reverse">
+			<byte>71</byte>
+		</item>
 		<item name="programid1" type="ascii-reverse">
 			<startbyte>72</startbyte>
 			<endbyte>79</endbyte>
@@ -531,6 +557,101 @@
 		<item name="version" type="integer-reverse">
 			<startbyte>3</startbyte>
 			<endbyte>4</endbyte>
+		</item>
+		<item name="blockseqnr" type="integer-reverse">
+			<byte>5</byte>
+		</item>
+		<item name="gmid" type="integer-reverse">
+			<startbyte>6</startbyte>
+			<endbyte>8</endbyte>
+		</item>
+		<item name="resetvaluelvl1" type="currency-reverse">
+			<startbyte>11</startbyte>
+			<endbyte>15</endbyte>
+		</item>
+		<item name="resetvaluelvl2" type="currency-reverse">
+			<startbyte>16</startbyte>
+			<endbyte>20</endbyte>
+		</item>
+		<item name="resetvaluelvl3" type="currency-reverse">
+			<startbyte>21</startbyte>
+			<endbyte>25</endbyte>
+		</item>
+		<item name="resetvaluelvl4" type="currency-reverse">
+			<startbyte>26</startbyte>
+			<endbyte>30</endbyte>
+		</item>
+		<item name="jackpotlimitlvl1" type="currency-reverse">
+			<startbyte>31</startbyte>
+			<endbyte>35</endbyte>
+		</item>
+		<item name="jackpotlimitlvl2" type="currency-reverse">
+			<startbyte>36</startbyte>
+			<endbyte>40</endbyte>
+		</item>
+		<item name="jackpotlimitlvl3" type="currency-reverse">
+			<startbyte>41</startbyte>
+			<endbyte>45</endbyte>
+		</item>
+		<item name="jackpotlimitlvl4" type="currency-reverse">
+			<startbyte>46</startbyte>
+			<endbyte>50</endbyte>
+		</item>
+		<item name="hiddenlvl1" type="currency-reverse">
+			<startbyte>51</startbyte>
+			<endbyte>55</endbyte>
+		</item>
+		<item name="hiddenlvl2" type="currency-reverse">
+			<startbyte>56</startbyte>
+			<endbyte>60</endbyte>
+		</item>
+		<item name="hiddenlvl3" type="currency-reverse">
+			<startbyte>61</startbyte>
+			<endbyte>65</endbyte>
+		</item>
+		<item name="hiddenlvl4" type="currency-reverse">
+			<startbyte>66</startbyte>
+			<endbyte>70</endbyte>
+		</item>
+		<item name="resetcountlvl1" type="integer-reverse">
+			<startbyte>71</startbyte>
+			<endbyte>75</endbyte>
+		</item>
+		<item name="resetcountlvl2" type="integer-reverse">
+			<startbyte>76</startbyte>
+			<endbyte>80</endbyte>
+		</item>
+		<item name="resetcountlvl3" type="integer-reverse">
+			<startbyte>81</startbyte>
+			<endbyte>85</endbyte>
+		</item>
+		<item name="resetcountlvl4" type="integer-reverse">
+			<startbyte>86</startbyte>
+			<endbyte>90</endbyte>
+		</item>
+		<item name="totalwonlvl1" type="currency-reverse">
+			<startbyte>91</startbyte>
+			<endbyte>95</endbyte>
+		</item>
+		<item name="totalwonlvl2" type="currency-reverse">
+			<startbyte>96</startbyte>
+			<endbyte>100</endbyte>
+		</item>
+		<item name="totalwonlvl3" type="currency-reverse">
+			<startbyte>101</startbyte>
+			<endbyte>105</endbyte>
+		</item>
+		<item name="totalwonlvl4" type="currency-reverse">
+			<startbyte>106</startbyte>
+			<endbyte>110</endbyte>
+		</item>
+		<item name="turnoversincestartup" type="currency-reverse">
+			<startbyte>111</startbyte>
+			<endbyte>115</endbyte>
+		</item>
+		<item name="turnoversinceconfig" type="currency-reverse">
+			<startbyte>116</startbyte>
+			<endbyte>120</endbyte>
 		</item>
 	</packet>
 	<packet name="cdb" length="128" pattern="30">
