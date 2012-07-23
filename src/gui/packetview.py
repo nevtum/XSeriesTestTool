@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'packetview.ui'
 #
-# Created: Sun Jul  1 02:25:39 2012
-#      by: PyQt4 UI code generator 4.8.5
+# Created: Mon Jul 23 23:22:46 2012
+#      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -35,7 +35,6 @@ class Ui_packetViewer(object):
         self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
         self.horizontalLayout.addWidget(self.lineEdit)
         self.btnLineCopy = QtGui.QPushButton(packetViewer)
-        self.btnLineCopy.setText(QtGui.QApplication.translate("packetViewer", "Copy", None, QtGui.QApplication.UnicodeUTF8))
         self.btnLineCopy.setObjectName(_fromUtf8("btnLineCopy"))
         self.horizontalLayout.addWidget(self.btnLineCopy)
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -50,11 +49,9 @@ class Ui_packetViewer(object):
         spacerItem = QtGui.QSpacerItem(98, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.btnCopy = QtGui.QPushButton(packetViewer)
-        self.btnCopy.setText(QtGui.QApplication.translate("packetViewer", "Copy", None, QtGui.QApplication.UnicodeUTF8))
         self.btnCopy.setObjectName(_fromUtf8("btnCopy"))
         self.horizontalLayout_2.addWidget(self.btnCopy)
         self.btnClose = QtGui.QPushButton(packetViewer)
-        self.btnClose.setText(QtGui.QApplication.translate("packetViewer", "Close", None, QtGui.QApplication.UnicodeUTF8))
         self.btnClose.setObjectName(_fromUtf8("btnClose"))
         self.horizontalLayout_2.addWidget(self.btnClose)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -64,5 +61,7 @@ class Ui_packetViewer(object):
         QtCore.QMetaObject.connectSlotsByName(packetViewer)
 
     def retranslateUi(self, packetViewer):
-        pass
+        self.btnLineCopy.setText(QtGui.QApplication.translate("packetViewer", "Copy", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnCopy.setText(QtGui.QApplication.translate("packetViewer", "Copy", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnClose.setText(QtGui.QApplication.translate("packetViewer", "Close", None, QtGui.QApplication.UnicodeUTF8))
 

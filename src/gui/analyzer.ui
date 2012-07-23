@@ -39,6 +39,13 @@
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="4">
+       <widget class="QPushButton" name="btnClear">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QCheckBox" name="checkBox">
         <property name="text">
@@ -63,26 +70,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="4">
-       <widget class="QPushButton" name="btnClear">
-        <property name="text">
-         <string>Clear</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="3">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>559</width>
-          <height>24</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
       <item row="1" column="3">
        <widget class="QPushButton" name="btnRecordPause">
         <property name="text">
@@ -94,6 +81,16 @@
        <widget class="QPushButton" name="btnAnalyze">
         <property name="text">
          <string>Decode Message</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLineEdit" name="lineEditPort"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Serial Port:</string>
         </property>
        </widget>
       </item>
