@@ -119,10 +119,15 @@ class MyApp(QtGui.QMainWindow):
     def on_btnRecordPause_clicked(self):
         if not self.recording:
             self.ui.btnRecordPause.setText("Pause")
+            self.ui.lineEditPort.setDisabled(True)
             self.recording = True
+            portname = str(self.ui.lineEditPort.text())
+            self.commThread.setcommport(portname)
+            self.commThread.setbaud(9600)
             self.commThread.start()
         else:
             self.ui.btnRecordPause.setText("Record")
+            self.ui.lineEditPort.setDisabled(False)
             self.recording = False
             self.commThread.quit()
     

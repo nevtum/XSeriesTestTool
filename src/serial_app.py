@@ -11,12 +11,19 @@ class CommsThread(QThread):
         self.xdec = XProtocolDecoder(self.meta)
         self.stopped = False
 
+    def setcommport(self, port):
+        self.commport = port
+
+    def setbaud(self, baud):
+        self.baud = int(baud)
+
     def run(self):
-        com = comms(r"\\.\COM17", 9600)
+        com = comms(self.commport, self.baud)
         logger = DataLogger('test.db')
         self.stopped = False
         BUFFER = []
         print "Serial thread started!"
+        print self.commport, self.baud
         while True:
             #print "Awaiting packet..."
             if self.stopped:
