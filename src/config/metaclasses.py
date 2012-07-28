@@ -4,7 +4,7 @@ Created on 31/08/2011
 @author: ntummon
 '''
 
-from xml.etree import cElementTree
+from xml.etree import ElementTree as cElementTree
 
 # This class contains the information of
 # how all the elements inside a packet.
