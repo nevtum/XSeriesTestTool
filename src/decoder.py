@@ -118,7 +118,7 @@ class DataLogger:
         self.con.commit()
         
     def logData(self, direction, packetid, seq):
-    	assert(isinstance(seq, list))
+        assert(isinstance(seq, list))
         data = ''.join(["%02X" % byte for byte in seq])
         if(direction not in ('incoming', 'outgoing')):
             raise ValueError()
@@ -127,3 +127,9 @@ class DataLogger:
         sql = "INSERT INTO packetlog VALUES('%s','%s','%s','%s')" % params
         cursor.execute(sql)
         self.con.commit()
+        
+    def queryData(self, query):
+        assert(isinstance(query, str))
+        cursor = self.con.cursor()
+        return cursor.execute(query)
+        

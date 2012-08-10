@@ -88,6 +88,7 @@ class MyApp(QtGui.QMainWindow):
         self.setupConnections()
         self.recording = False
         self.commThread = CommsThread()
+        self.replayThread = ReplayThread()
         
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -107,6 +108,8 @@ class MyApp(QtGui.QMainWindow):
         self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
         self.ui.btnClear.clicked.connect(self.on_btnClear_clicked)
         self.ui.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
+        self.ui.pushButton.clicked.connect(self.on_btnReplay_clicked)
+        
         self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
         self.ui.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
 
@@ -130,6 +133,12 @@ class MyApp(QtGui.QMainWindow):
             self.ui.lineEditPort.setDisabled(False)
             self.recording = False
             self.commThread.quit()
+            
+    def on_btnReplay_clicked(self):
+        portname = str(self.ui.lineEditPort.text())
+        self.replayThread.setcommport(portname)
+        self.replayThread.setbaud(9600)
+        self.replayThread.start()
     
     def on_MaxRowsAction_triggered(self):
         self.maxRowsDialog.exec_()

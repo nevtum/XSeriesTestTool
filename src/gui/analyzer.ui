@@ -46,23 +46,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox">
-        <property name="text">
-         <string>Auto Refresh</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>SQL:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="lineEdit"/>
-      </item>
       <item row="0" column="3">
        <widget class="QPushButton" name="btnRefresh">
         <property name="text">
@@ -84,13 +67,37 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
-       <widget class="QLineEdit" name="lineEditPort"/>
-      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Serial Port:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>SQL:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEdit"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="lineEditPort"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Replay</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="checkBox">
+        <property name="text">
+         <string>Auto Refresh</string>
         </property>
        </widget>
       </item>
@@ -167,12 +174,12 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>527</y>
+     <x>526</x>
+     <y>336</y>
     </hint>
     <hint type="destinationlabel">
-     <x>697</x>
-     <y>530</y>
+     <x>607</x>
+     <y>339</y>
     </hint>
    </hints>
   </connection>
@@ -183,12 +190,12 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>116</x>
-     <y>527</y>
+     <x>526</x>
+     <y>336</y>
     </hint>
     <hint type="destinationlabel">
-     <x>336</x>
-     <y>525</y>
+     <x>405</x>
+     <y>337</y>
     </hint>
    </hints>
   </connection>

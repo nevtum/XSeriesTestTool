@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'analyzer.ui'
 #
-# Created: Mon Jul 23 22:21:36 2012
+# Created: Sat Aug 11 00:09:32 2012
 #      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -36,15 +36,6 @@ class Ui_MainWindow(object):
         self.btnClear = QtGui.QPushButton(self.centralwidget)
         self.btnClear.setObjectName(_fromUtf8("btnClear"))
         self.gridLayout.addWidget(self.btnClear, 0, 4, 1, 1)
-        self.checkBox = QtGui.QCheckBox(self.centralwidget)
-        self.checkBox.setObjectName(_fromUtf8("checkBox"))
-        self.gridLayout.addWidget(self.checkBox, 0, 0, 1, 1)
-        self.label_3 = QtGui.QLabel(self.centralwidget)
-        self.label_3.setObjectName(_fromUtf8("label_3"))
-        self.gridLayout.addWidget(self.label_3, 0, 1, 1, 1)
-        self.lineEdit = QtGui.QLineEdit(self.centralwidget)
-        self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
-        self.gridLayout.addWidget(self.lineEdit, 0, 2, 1, 1)
         self.btnRefresh = QtGui.QPushButton(self.centralwidget)
         self.btnRefresh.setObjectName(_fromUtf8("btnRefresh"))
         self.gridLayout.addWidget(self.btnRefresh, 0, 3, 1, 1)
@@ -54,12 +45,24 @@ class Ui_MainWindow(object):
         self.btnAnalyze = QtGui.QPushButton(self.centralwidget)
         self.btnAnalyze.setObjectName(_fromUtf8("btnAnalyze"))
         self.gridLayout.addWidget(self.btnAnalyze, 1, 4, 1, 1)
-        self.lineEditPort = QtGui.QLineEdit(self.centralwidget)
-        self.lineEditPort.setObjectName(_fromUtf8("lineEditPort"))
-        self.gridLayout.addWidget(self.lineEditPort, 1, 2, 1, 1)
         self.label = QtGui.QLabel(self.centralwidget)
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
+        self.label_3 = QtGui.QLabel(self.centralwidget)
+        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.gridLayout.addWidget(self.label_3, 0, 0, 1, 1)
+        self.lineEdit = QtGui.QLineEdit(self.centralwidget)
+        self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
+        self.gridLayout.addWidget(self.lineEdit, 0, 1, 1, 1)
+        self.lineEditPort = QtGui.QLineEdit(self.centralwidget)
+        self.lineEditPort.setObjectName(_fromUtf8("lineEditPort"))
+        self.gridLayout.addWidget(self.lineEditPort, 1, 1, 1, 1)
+        self.pushButton = QtGui.QPushButton(self.centralwidget)
+        self.pushButton.setObjectName(_fromUtf8("pushButton"))
+        self.gridLayout.addWidget(self.pushButton, 1, 2, 1, 1)
+        self.checkBox = QtGui.QCheckBox(self.centralwidget)
+        self.checkBox.setObjectName(_fromUtf8("checkBox"))
+        self.gridLayout.addWidget(self.checkBox, 0, 2, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
@@ -101,12 +104,13 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
         self.btnClear.setText(QtGui.QApplication.translate("MainWindow", "Clear", None, QtGui.QApplication.UnicodeUTF8))
-        self.checkBox.setText(QtGui.QApplication.translate("MainWindow", "Auto Refresh", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_3.setText(QtGui.QApplication.translate("MainWindow", "SQL:", None, QtGui.QApplication.UnicodeUTF8))
         self.btnRefresh.setText(QtGui.QApplication.translate("MainWindow", "Refresh", None, QtGui.QApplication.UnicodeUTF8))
         self.btnRecordPause.setText(QtGui.QApplication.translate("MainWindow", "Record", None, QtGui.QApplication.UnicodeUTF8))
         self.btnAnalyze.setText(QtGui.QApplication.translate("MainWindow", "Decode Message", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Serial Port:", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_3.setText(QtGui.QApplication.translate("MainWindow", "SQL:", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton.setText(QtGui.QApplication.translate("MainWindow", "Replay", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBox.setText(QtGui.QApplication.translate("MainWindow", "Auto Refresh", None, QtGui.QApplication.UnicodeUTF8))
         self.menuSettings.setTitle(QtGui.QApplication.translate("MainWindow", "Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.menuSerial.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.menuAbout.setTitle(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
