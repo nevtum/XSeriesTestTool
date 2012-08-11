@@ -1,8 +1,29 @@
 from config.configmanager import metaRepository
 import sqlite3
 from datetime import datetime
+from serial_app import *
 
-class AbstractTypeDecoder:
+class TransmissionFactory:
+    def __init__(self):
+        self.xdec = None
+
+    def getProtocolDecoder(self):
+        if self.xdec == None:
+            xmetadata = metaRepository('settings/')
+            self.xdec = XProtocolDecoder(xmetadata)
+            self.xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
+            self.xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
+            self.xdec.registerTypeDecoder('boolean', booleanDecoder)
+            self.xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
+        return self.xdec
+
+    def getDataLogger(self, filename):
+        return DataLogger(filename)
+
+    def getSerialModule(self, port, baudrate):
+        return SerialModule(port, baudrate)
+
+class AbstractItemDecoder:
     def __init__(self, params):
         self.params = params
         
@@ -29,24 +50,24 @@ class AbstractTypeDecoder:
         assert(endbyte)
         return startbyte, endbyte
 
-class reverseIntegerDecoder(AbstractTypeDecoder):
+class reverseIntegerDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
         return self.getByteString(packet, l, h)
     
-class booleanDecoder(AbstractTypeDecoder):
+class booleanDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         byte = int(self.params.get('byte'))
         bit = int(self.params.get('bit'))
         return self.getBit(packet[byte-1], bit)
     
-class reverseCurrencyDecoder(AbstractTypeDecoder):
+class reverseCurrencyDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
         x = int(self.getByteString(packet, l, h))/100.00
         return '%.2f' % x
     
-class reverseAsciiDecoder(AbstractTypeDecoder):
+class reverseAsciiDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
         x = [chr(val) for val in self.getByteVector(packet, l, h)]
@@ -55,7 +76,7 @@ class reverseAsciiDecoder(AbstractTypeDecoder):
             return 'None'
         return chars
     
-class nullDecoder(AbstractTypeDecoder):
+class nullDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         return 'unknown decoding type'
 
@@ -66,7 +87,7 @@ class IDecoder:
         
     def registerTypeDecoder(self, key, constructor):
         assert(isinstance(key, str))
-        assert(issubclass(constructor, AbstractTypeDecoder))
+        assert(issubclass(constructor, AbstractItemDecoder))
         self.decoderfactory[key] = constructor
     
     def __getTypeDecoder(self, item):

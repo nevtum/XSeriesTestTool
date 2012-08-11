@@ -5,27 +5,20 @@ Created on 11/06/2012
 '''
 import sys
 from decoder import *
-from serial_app import *
+from comms_threads import *
 from PyQt4 import QtCore, QtGui, QtSql
 from gui.analyzer import Ui_MainWindow
 from gui.maxrowsdialog import Ui_Dialog
 from gui.packetview import Ui_packetViewer
  
-class XPacketDB:
-    def __init__(self):
+class QtSQLWrapper(QtCore.QObject):
+    def __init__(self, filename, parent):
+        QtCore.QObject.__init__(self, parent)
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName("test.db")
+        self.db.setDatabaseName(filename)
         self.db.open()
         self.model = QtSql.QSqlQueryModel()
-        self.setupDecoder()
-        
-    def setupDecoder(self):
-        xmetadata = metaRepository('settings/')
-        self.xdec = XProtocolDecoder(xmetadata)
-        self.xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
-        self.xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
-        self.xdec.registerTypeDecoder('boolean', booleanDecoder)
-        self.xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
+        self.factory = parent.factory
     
     def getModel(self):
         return self.model
@@ -36,9 +29,10 @@ class XPacketDB:
         q.exec_(query)
     
     def getDecodedData(self, rowindex):
+        dec = self.factory.getProtocolDecoder()
         packet = self.getRawData(rowindex)
         seq = [x for x in bytearray.fromhex(packet)]
-        return self.xdec.createXMLPacket(seq)
+        return dec.createXMLPacket(seq)
     
     def getRawData(self, rowindex):
         assert(isinstance(rowindex, int))
@@ -84,23 +78,23 @@ class MyApp(QtGui.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.db = None
+        self.factory = TransmissionFactory()
         self.setupChildDialogs()
         self.setupConnections()
-        self.recording = False
-        self.commThread = CommsThread()
-        self.replayThread = ReplayThread()
+        self.listenThread = ListenThread(self)
+        self.replayThread = ReplayThread(self)
+        self.ui.lineEditPort.setText("com17")
+        self.ui.lineEdit.setText("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25")
         
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
         self.maxRowsDialog = MaxRowsDialog(self)
     
     def setupDB(self):
-        if self.db is None:
-            self.db = XPacketDB()
+        if self.db == None:
+            self.db = QtSQLWrapper("test.db", self)
             self.ui.tableView.setModel(self.db.getModel())
-            self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25"
             self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
-        self.updateViewContents()
         
     def setupConnections(self):
         # set up connection to selection of record
@@ -108,39 +102,55 @@ class MyApp(QtGui.QMainWindow):
         self.ui.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
         self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
         self.ui.btnClear.clicked.connect(self.on_btnClear_clicked)
-        self.ui.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.ui.pushButton.clicked.connect(self.on_btnReplay_clicked)
-        
+        self.replaying = False
+        self.ui.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
+        self.recording = False
         self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
         self.ui.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
 
     def on_autoRefreshCheckBoxToggled(self):
         if self.ui.checkBox.isChecked():
-            self.connect(self.commThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
+            self.connect(self.listenThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
+            self.connect(self.replayThread, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
         else:
-            self.disconnect(self.commThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
+            self.disconnect(self.listenThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
+            self.disconnect(self.replayThread, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
     
     def on_btnRecordPause_clicked(self):
         if not self.recording:
             self.ui.btnRecordPause.setText("Pause")
+            self.ui.pushButton.setDisabled(True)
             self.ui.lineEditPort.setDisabled(True)
             self.recording = True
             portname = str(self.ui.lineEditPort.text())
-            self.commThread.setcommport(portname)
-            self.commThread.setbaud(9600)
-            self.commThread.start()
+            self.listenThread.setcommport(portname)
+            self.listenThread.setbaud(9600)
+            self.listenThread.start()
         else:
             self.ui.btnRecordPause.setText("Record")
+            self.ui.pushButton.setDisabled(False)
             self.ui.lineEditPort.setDisabled(False)
             self.recording = False
-            self.commThread.quit()
+            self.listenThread.quit()
             
     def on_btnReplay_clicked(self):
-        portname = str(self.ui.lineEditPort.text())
-        self.replayThread.setcommport(portname)
-        #self.replayThread.setcommport("com17")
-        self.replayThread.setbaud(9600)
-        self.replayThread.start()
+        if not self.replaying:
+            self.ui.pushButton.setText("Stop Replay")
+            self.ui.btnRecordPause.setDisabled(True)
+            self.ui.lineEditPort.setDisabled(True)
+            self.replaying = True
+            portname = str(self.ui.lineEditPort.text())
+            self.replayThread.setcommport(portname)
+            self.replayThread.setbaud(9600)
+            self.replayThread.start()
+        else:
+            # what about when thread finishes on its own?
+            self.ui.pushButton.setText("Replay")
+            self.ui.btnRecordPause.setDisabled(False)
+            self.ui.lineEditPort.setDisabled(False)
+            self.replaying = False
+            self.replayThread.quit()
     
     def on_MaxRowsAction_triggered(self):
         self.maxRowsDialog.exec_()
@@ -153,13 +163,12 @@ class MyApp(QtGui.QMainWindow):
         self.decDialog.show()
         
     def on_btnRefresh_clicked(self):
-        # updates query from user specified SQL statement
         self.setupDB()
+        # updates query from user specified SQL statement
         self.query = self.ui.lineEdit.text()
         self.updateViewContents()
     
     def updateViewContents(self):
-        self.ui.lineEdit.setText(self.query)
         self.db.getModel().setQuery(self.query)
         self.ui.tableView.selectRow(0)
         self.ui.tableView.resizeColumnsToContents()
