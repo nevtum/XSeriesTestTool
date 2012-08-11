@@ -83,7 +83,7 @@ class MyApp(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.setupDB()
+        self.db = None
         self.setupChildDialogs()
         self.setupConnections()
         self.recording = False
@@ -95,15 +95,16 @@ class MyApp(QtGui.QMainWindow):
         self.maxRowsDialog = MaxRowsDialog(self)
     
     def setupDB(self):
-        self.db = XPacketDB()
-        self.ui.tableView.setModel(self.db.getModel())
-        self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25"
+        if self.db is None:
+            self.db = XPacketDB()
+            self.ui.tableView.setModel(self.db.getModel())
+            self.query = "SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25"
+            self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
         self.updateViewContents()
         
     def setupConnections(self):
         # set up connection to selection of record
         # some bugs here regarding current row is not selected
-        self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
         self.ui.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
         self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
         self.ui.btnClear.clicked.connect(self.on_btnClear_clicked)
@@ -137,6 +138,7 @@ class MyApp(QtGui.QMainWindow):
     def on_btnReplay_clicked(self):
         portname = str(self.ui.lineEditPort.text())
         self.replayThread.setcommport(portname)
+        #self.replayThread.setcommport("com17")
         self.replayThread.setbaud(9600)
         self.replayThread.start()
     
@@ -152,6 +154,7 @@ class MyApp(QtGui.QMainWindow):
         
     def on_btnRefresh_clicked(self):
         # updates query from user specified SQL statement
+        self.setupDB()
         self.query = self.ui.lineEdit.text()
         self.updateViewContents()
     

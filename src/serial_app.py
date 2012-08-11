@@ -29,7 +29,7 @@ class CommsThread(QThread):
         self.stopped = False
         BUFFER = []
         DBGLOG("Serial thread started!")
-        print self.commport, self.baud
+        DBGLOG("port = %s, baud = %s" % (self.commport, self.baud))
         while True:
             DBGLOG("Awaiting packet...")
             if self.stopped:
@@ -39,21 +39,20 @@ class CommsThread(QThread):
             if newbuffer:
                 BUFFER += newbuffer
             while len(BUFFER) > 0:
-                DBGLOG(''.join(["%02X" % x for x in BUFFER]))
                 packetinfo = self.xdec.getMetaData(BUFFER)
                 if packetinfo.getPacketName() == "unknown":
                     packet = BUFFER
                     BUFFER = []
                     break
                 expectedlength = packetinfo.getPacketLength()
-                if expectedlength < len(BUFFER):
+                if  len(BUFFER) > expectedlength:
                     DBGLOG("packet length larger than expected length")
                     DBGLOG('expected = %i, actual = %i' % (expectedlength, len(BUFFER)))
                     packet = BUFFER[:expectedlength]
                     BUFFER = BUFFER[expectedlength:]
                     logger.logData('incoming', packetinfo.getPacketName(), packet)
                     self.emit(SIGNAL("receivedpacket"))
-                elif expectedlength > len(BUFFER):
+                elif len(BUFFER) < expectedlength:
                     DBGLOG("packet length smaller than expected length")
                     break
                 else:
@@ -62,7 +61,7 @@ class CommsThread(QThread):
                     logger.logData('incoming', packetinfo.getPacketName(), packet)
                     self.emit(SIGNAL("receivedpacket"))
 
-                print packetinfo.getPacketName()
+                DBGLOG(packetinfo.getPacketName())
         com.close()
 
     def quit(self):
@@ -85,24 +84,18 @@ class ReplayThread(QThread):
     def run(self):
         print "replaying data"
         #logger = DataLogger('test.db')
+        logger = DataLogger('replay.db')
         com = comms(self.commport, self.baud)
-        #list = logger.queryData("SELECT hex FROM packetlog ORDER BY timestamp ASC LIMIT 100")
+        list = logger.queryData("SELECT hex FROM packetlog ORDER BY timestamp ASC LIMIT 100")
         for entry in list:
+            if self.stopped:
+                return
             if len(entry) == 1:
-                if self.stopped:
-                    return
                 DBGLOG(entry[0])
-                # very ugly... needs refactoring
-                # to marshal/unmarshal messages properly
-                from binascii import unhexlify
-                b = unhexlify(entry[0])
-                DBGLOG(b)
-                # possible bugs in transmission
-                com.Tx(b)
-                b = [ord(x) for x in b]
-                DBGLOG(b)
-                #packetinfo = self.xdec.getMetaData(b)
-                #logger.logData('outgoing', packetinfo.getPacketName(), b)
+                seq = [x for x in bytearray.fromhex(entry[0])]
+                com.Tx(seq)
+                packetinfo = self.xdec.getMetaData(seq)
+                logger.logData('outgoing', packetinfo.getPacketName(), seq)
                 time.sleep(1)
                 
     def quit(self):
@@ -114,17 +107,19 @@ class comms:
         self.ser = serial.Serial(port, baud, timeout = 10)
         
     def Rx(self):
-        # refactor using an external unmarshal function
         data = self.ser.read(1)
         remainder = self.ser.inWaiting()
         data2 = self.ser.read(remainder)
-        BUFFER = bytearray(data + data2)
-        if len(data) > 0:
-            return [x for x in BUFFER]
+        seq = [x for x in bytearray(data + data2)] # unmarshal data
+        if len(seq) > 0:
+            print seq
+            return seq
     
-    def Tx(self, message):
-        # refactor using an external marshal function
-        self.ser.write(message)
+    def Tx(self, seq):
+        assert(isinstance(seq, list))
+        for byte in seq:
+            assert(0 <= byte <= 255)
+        self.ser.write(bytearray(seq)) # marshal data and write
         
     def __del__(self):
         self.ser.close()
