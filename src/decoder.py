@@ -137,10 +137,15 @@ class DataLogger:
         hex TEXT NOT NULL)"""
         cursor.execute(sql)
         self.con.commit()
+        self.duplicates = {}
         
     def logData(self, direction, packetid, seq):
         assert(isinstance(seq, list))
         data = ''.join(["%02X" % byte for byte in seq])
+        
+        # provide option to enable/disable diff packets
+        if self.__isRepeatedDataBlock(seq):
+            return
         if(direction not in ('incoming', 'outgoing')):
             raise ValueError()
         cursor = self.con.cursor()
@@ -148,6 +153,24 @@ class DataLogger:
         sql = "INSERT INTO packetlog VALUES('%s','%s','%s','%s')" % params
         cursor.execute(sql)
         self.con.commit()
+        
+    def __isRepeatedDataBlock(self, seq):
+        key = seq[1]
+        data = self.duplicates.get(key)
+        if data is None:
+            DBGLOG("NO DATA!")
+            self.duplicates[key] = seq
+            return True
+            
+        assert(len(seq) == len(data))
+        for i in range(len(seq)):
+            if seq[i] != data[i]:
+                self.duplicates[key] = seq
+                assert(seq == self.duplicates.get(key))
+                DBGLOG("DIFFERENT DATABLOCK!")
+                return False
+        DBGLOG("REPEATED!")
+        return True
         
     def queryData(self, query):
         assert(isinstance(query, str))
