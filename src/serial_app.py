@@ -17,7 +17,7 @@ class SerialModule:
         data2 = self.ser.read(remainder)
         seq = [x for x in bytearray(data + data2)] # unmarshal data
         if len(seq) > 0:
-            DBGLOG(str(seq))
+            #DBGLOG(str(seq))
             return seq
     
     def Tx(self, seq):

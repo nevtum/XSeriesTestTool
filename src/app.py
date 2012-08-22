@@ -108,6 +108,7 @@ class MyApp(QtGui.QMainWindow):
         self.recording = False
         self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
         self.ui.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
+        self.ui.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
 
     def on_autoRefreshCheckBoxToggled(self):
         if self.ui.checkBox.isChecked():
@@ -116,6 +117,12 @@ class MyApp(QtGui.QMainWindow):
         else:
             self.disconnect(self.listenThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
             self.disconnect(self.replayThread, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
+
+    def on_IgnoreDupesCheckBoxToggled(self):
+        if self.ui.cbFilterDupes.isChecked():
+            self.listenThread.filterduplicates(True)
+        else:
+            self.listenThread.filterduplicates(False)
     
     def on_btnRecordPause_clicked(self):
         if not self.recording:
