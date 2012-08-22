@@ -26,20 +26,20 @@ class TransmissionFactory:
 class AbstractItemDecoder:
     def __init__(self, params):
         self.params = params
-        
+
     def returnValue(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
-    
+
     def getByteVector(self, packet, lbound, hbound):
         return packet[int(hbound)-1:int(lbound)-2:-1]
-            
+
     def getByteString(self, packet, lbound, hbound):
         arr = ['%02X' % x for x in self.getByteVector(packet, lbound, hbound)]
         return ''.join(arr)
-    
+
     def getBit(self, byte, n):
         return ((byte >> n) & 0x1)
-    
+
     def getstartendbyte(self, params):
         assert(isinstance(params, dict))
         startbyte = params.get('startbyte')
@@ -54,19 +54,19 @@ class reverseIntegerDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
         return self.getByteString(packet, l, h)
-    
+
 class booleanDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         byte = int(self.params.get('byte'))
         bit = int(self.params.get('bit'))
         return self.getBit(packet[byte-1], bit)
-    
+
 class reverseCurrencyDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
         x = int(self.getByteString(packet, l, h))/100.00
         return '%.2f' % x
-    
+
 class reverseAsciiDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         l, h = self.getstartendbyte(self.params)
@@ -75,7 +75,7 @@ class reverseAsciiDecoder(AbstractItemDecoder):
         if chars == '':
             return 'None'
         return chars
-    
+
 class nullDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         return 'unknown decoding type'
@@ -89,7 +89,7 @@ class IDecoder:
         assert(isinstance(key, str))
         assert(issubclass(constructor, AbstractItemDecoder))
         self.decoderfactory[key] = constructor
-    
+
     def __getTypeDecoder(self, item):
         type = item.extract('type')
         params = item.extractParams()
@@ -97,7 +97,7 @@ class IDecoder:
         if dec is None:
             return nullDecoder
         return dec
-    
+
     def createXMLPacket(self, seq):
         assert(isinstance(seq, list))
         meta = self.getMetaData(seq)
@@ -105,7 +105,7 @@ class IDecoder:
             return "Empty packet"
         if(len(seq) != meta.getPacketLength()):
             return "invalid packet"
-        
+
         x = "<packet name=\"%s\">\n" % meta.getPacketName()
         for item in meta.allItems():
             dec = self.__getTypeDecoder(item)
@@ -114,7 +114,7 @@ class IDecoder:
             x += "\t<%s>%s</%s>\n" % (tag, value, tag)
         x += "</packet>"
         return x
-    
+
     def getMetaData(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
 
@@ -138,14 +138,10 @@ class DataLogger:
         cursor.execute(sql)
         self.con.commit()
         self.duplicates = {}
-        
+
     def logData(self, direction, packetid, seq):
         assert(isinstance(seq, list))
         data = ''.join(["%02X" % byte for byte in seq])
-        
-        # provide option to enable/disable diff packets
-        if self.__isRepeatedDataBlock(seq):
-            return
         if(direction not in ('incoming', 'outgoing')):
             raise ValueError()
         cursor = self.con.cursor()
@@ -153,25 +149,7 @@ class DataLogger:
         sql = "INSERT INTO packetlog VALUES('%s','%s','%s','%s')" % params
         cursor.execute(sql)
         self.con.commit()
-        
-    def __isRepeatedDataBlock(self, seq):
-        key = seq[1]
-        data = self.duplicates.get(key)
-        if data is None:
-            DBGLOG("NO DATA!")
-            self.duplicates[key] = seq
-            return True
-            
-        assert(len(seq) == len(data))
-        for i in range(len(seq)):
-            if seq[i] != data[i]:
-                self.duplicates[key] = seq
-                assert(seq == self.duplicates.get(key))
-                DBGLOG("DIFFERENT DATABLOCK!")
-                return False
-        DBGLOG("REPEATED!")
-        return True
-        
+
     def queryData(self, query):
         assert(isinstance(query, str))
         cursor = self.con.cursor()
