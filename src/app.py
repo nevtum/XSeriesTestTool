@@ -119,10 +119,11 @@ class MyApp(QtGui.QMainWindow):
             self.disconnect(self.replayThread, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
 
     def on_IgnoreDupesCheckBoxToggled(self):
+        filter = self.factory.getDuplicateDatablockFilter()
         if self.ui.cbFilterDupes.isChecked():
-            self.listenThread.filterduplicates(True)
+            filter.filterduplicates(True)
         else:
-            self.listenThread.filterduplicates(False)
+            filter.filterduplicates(False)
     
     def on_btnRecordPause_clicked(self):
         if not self.recording:

@@ -3,9 +3,42 @@ import sqlite3
 from datetime import datetime
 from serial_app import *
 
+class DuplicateDatablockFilter:
+    def __init__(self, default = False):
+        self.dupes = {}
+        assert(isinstance(default, bool))
+        self.filterduplicates(default)
+
+    def filterduplicates(self, toggle):
+        assert(isinstance(toggle, bool))
+        self.filtered = toggle
+        DBGLOG("Filtering enabled = %s" % toggle)
+
+    def differentToPrevious(self, blocktype, seq):
+        if not self.filtered:
+            return True
+
+        key = blocktype
+        data = self.dupes.get(key)
+        if data is None:
+            DBGLOG("NEW DATABLOCK!")
+            self.dupes[key] = seq
+            return True
+
+        assert(len(seq) == len(data))
+        for i in range(len(seq)):
+            if seq[i] != data[i]:
+                self.dupes[key] = seq
+                assert(seq == self.dupes.get(key))
+                DBGLOG("DIFFERENT DATABLOCK!")
+                return True
+        DBGLOG("REPEATED!")
+        return False
+
 class TransmissionFactory:
     def __init__(self):
         self.xdec = None
+        self.dupesfilter = None
 
     def getProtocolDecoder(self):
         if self.xdec == None:
@@ -19,6 +52,11 @@ class TransmissionFactory:
 
     def getDataLogger(self, filename):
         return DataLogger(filename)
+
+    def getDuplicateDatablockFilter(self):
+        if self.dupesfilter == None:
+            self.dupesfilter = DuplicateDatablockFilter(False)
+        return self.dupesfilter
 
     def getSerialModule(self, port, baudrate):
         return SerialModule(port, baudrate)
