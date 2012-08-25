@@ -158,11 +158,10 @@ class IDecoder:
 
 class XProtocolDecoder(IDecoder):
     def getMetaData(self, seq):
-        if(seq):
-            if(len(seq) >= 2):
-                if(seq[0] == 0xFF):
-                    return self.repo.getMetaObject(seq[1])
-        return self.repo.getMetaObject(None)
+        assert(len(seq) >= 2)
+        if(seq[0] != 0xFF):
+            return self.repo.getMetaObject(None)
+        return self.repo.getMetaObject(seq[1])
 
 class DataLogger:
     def __init__(self, filename):
