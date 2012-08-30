@@ -1,11 +1,4 @@
 import serial
-from datetime import datetime
-
-log = open('DebugLog.txt', 'w')
-
-def DBGLOG(message):
-    print message
-    log.write("%s %s\n" % (str(datetime.now()), message))
 
 class SerialModule:
     def __init__(self, port, baud):
@@ -17,7 +10,6 @@ class SerialModule:
         data2 = self.ser.read(remainder)
         seq = [x for x in bytearray(data + data2)] # unmarshal data
         if len(seq) > 0:
-            #DBGLOG(str(seq))
             return seq
     
     def Tx(self, seq):

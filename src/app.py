@@ -5,6 +5,7 @@ Created on 11/06/2012
 '''
 import sys
 from decoder import *
+from factory import TransmissionFactory
 from comms_threads import *
 from PyQt4 import QtCore, QtGui, QtSql
 from gui.analyzer import Ui_MainWindow

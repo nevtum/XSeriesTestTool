@@ -1,6 +1,7 @@
 import time
 from decoder import *
 from PyQt4.QtCore import QThread, SIGNAL
+from debug import *
 
 class ListenThread(QThread):
     def __init__(self, parent):
@@ -17,7 +18,7 @@ class ListenThread(QThread):
 
     def run(self):
         dec = self.factory.getProtocolDecoder()
-        logger = self.factory.getDataLogger('test.db')
+        publisher = self.factory.getPublisher()
 
         # add a try/finally statement in the future
         serial = self.factory.getSerialModule(self.port, self.baud)
@@ -58,8 +59,7 @@ class ListenThread(QThread):
                     packet = BUFFER[:]
                     BUFFER = []
 
-                if self.filter.differentToPrevious(packetinfo.getPacketName(), packet):
-                    logger.logData('incoming', packetinfo.getPacketName(), packet)
+                publisher.Record(packet)
                 self.emit(SIGNAL("receivedpacket"))
 
                 DBGLOG("TYPE: %s" % packetinfo.getPacketName())
@@ -91,8 +91,8 @@ class ReplayThread(QThread):
             if self.terminate:
                 break
             if len(entry) == 1:
-                DBGLOG(entry[0])
                 seq = [x for x in bytearray.fromhex(entry[0])]
+                DBGLOG(str(seq))
                 serial.Tx(seq)
                 packetinfo = dec.getMetaData(seq)
                 #logger.logData('outgoing', packetinfo.getPacketName(), seq)
