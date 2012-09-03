@@ -1,4 +1,5 @@
 from serial_app import SerialModule
+from comms_threads import MessageQueue
 from config.configmanager import metaRepository
 from decoder import *
 from views import *
@@ -7,11 +8,17 @@ class TransmissionFactory:
     def __init__(self):
         self.xdec = None
         self.dupesfilter = None
+        self.messagequeue = None
         
         # code to remove when all connections
         # established in gui layer
         self.publisher = Publisher()
         self.dupesfilter = DuplicateDatablockFilter(self.publisher)
+
+    def getMessageQueue(self):
+        if self.messagequeue == None:
+            self.messagequeue = MessageQueue()
+        return self.messagequeue
     
     def getPublisher(self):
         #if self.publisher == None:

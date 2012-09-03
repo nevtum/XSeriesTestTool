@@ -1,7 +1,25 @@
 import time
+import Queue
 from decoder import *
-from PyQt4.QtCore import QThread, SIGNAL
+from PyQt4.QtCore import QObject, QThread, SIGNAL
 from debug import *
+
+class MessageQueue(QObject):
+    def __init__(self):
+        QObject.__init__(self)
+        self.q = Queue.LifoQueue(10)
+
+    def add(self, message):
+        DBGLOG("adding new message to queue")
+        self.q.put(message)
+        DBGLOG("finished adding message")
+        self.emit(SIGNAL("receivedpacket"))
+
+    def dequeue(self):
+        return self.q.get()
+
+    def isEmpty(self):
+        return self.q.empty()
 
 class ListenThread(QThread):
     def __init__(self, parent):
@@ -22,6 +40,7 @@ class ListenThread(QThread):
 
         # add a try/finally statement in the future
         serial = self.factory.getSerialModule(self.port, self.baud)
+        queue = self.factory.getMessageQueue()
         self.terminate = False
         BUFFER = []
         DBGLOG("Serial thread started!")
@@ -53,14 +72,11 @@ class ListenThread(QThread):
                 if  len(BUFFER) > expectedlength:
                     DBGLOG("packet length larger than expected length")
                     DBGLOG('expected = %i, actual = %i' % (expectedlength, len(BUFFER)))
-                    packet = BUFFER[:expectedlength]
+                    queue.add(BUFFER[:expectedlength])
                     BUFFER = BUFFER[expectedlength:]
                 else:
-                    packet = BUFFER[:]
+                    queue.add(BUFFER[:])
                     BUFFER = []
-
-                publisher.Record(packet)
-                self.emit(SIGNAL("receivedpacket"))
 
                 DBGLOG("TYPE: %s" % packetinfo.getPacketName())
         serial.close()

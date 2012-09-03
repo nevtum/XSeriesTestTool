@@ -112,12 +112,13 @@ class MyApp(QtGui.QMainWindow):
         self.ui.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
 
     def on_autoRefreshCheckBoxToggled(self):
+        queue = self.factory.getMessageQueue()
         if self.ui.checkBox.isChecked():
-            self.connect(self.listenThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
-            self.connect(self.replayThread, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
+            self.connect(queue, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
+            self.connect(queue, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
         else:
-            self.disconnect(self.listenThread, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
-            self.disconnect(self.replayThread, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
+            self.disconnect(queue, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
+            self.disconnect(queue, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
 
     def on_IgnoreDupesCheckBoxToggled(self):
         filter = self.factory.getDuplicateDatablockFilter()

@@ -17,6 +17,7 @@ class Publisher:
 
     def Record(self, seq):
         self.packet = seq
+        DBGLOG("publishing to views")
         self.Publish()
     
     def Publish(self):
