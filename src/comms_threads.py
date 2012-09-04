@@ -1,6 +1,6 @@
 import time
 import Queue
-from decoder import *
+from serial_app import SerialModule
 from PyQt4.QtCore import QObject, QThread, SIGNAL
 from debug import *
 
@@ -25,7 +25,6 @@ class ListenThread(QThread):
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.factory = parent.factory
-        self.filter = self.factory.getDuplicateDatablockFilter()
         self.terminate = False
 
     def setcommport(self, port):
@@ -36,10 +35,9 @@ class ListenThread(QThread):
 
     def run(self):
         dec = self.factory.getProtocolDecoder()
-        publisher = self.factory.getPublisher()
 
         # add a try/finally statement in the future
-        serial = self.factory.getSerialModule(self.port, self.baud)
+        serial = SerialModule(self.port, self.baud)
         queue = self.factory.getMessageQueue()
         self.terminate = False
         BUFFER = []
@@ -101,7 +99,7 @@ class ReplayThread(QThread):
         DBGLOG("replaying data")
         dec = self.factory.getProtocolDecoder()
         logger = self.factory.getDataLogger('test.db')
-        serial = self.factory.getSerialModule(self.port, self.baud)
+        serial = SerialModule(self.port, self.baud)
         query = "SELECT hex FROM packetlog where direction ='incoming' ORDER BY timestamp ASC LIMIT 100"
         for entry in logger.queryData(query):
             if self.terminate:

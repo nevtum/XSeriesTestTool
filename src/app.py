@@ -6,6 +6,7 @@ Created on 11/06/2012
 import sys
 from decoder import *
 from factory import TransmissionFactory
+from views import DataLogger
 from comms_threads import *
 from PyQt4 import QtCore, QtGui, QtSql
 from gui.analyzer import Ui_MainWindow
@@ -111,17 +112,27 @@ class MyApp(QtGui.QMainWindow):
         self.ui.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
         self.ui.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
 
+        # make tidier code and define interfaces properly in publish-subscribe
+        self.queue = self.factory.getMessageQueue()
+        self.publisher = self.factory.getPublisher()
+        self.datalogger = DataLogger("test.db", self)
+        self.publisher.Attach(self.datalogger)
+        self.connect(self.queue, SIGNAL("receivedpacket"), self.on_Queued_message)
+
+    # make tidier code and define interfaces properly in publish-subscribe
+    def on_Queued_message(self):
+        self.publisher.Record(self.queue)
+
     def on_autoRefreshCheckBoxToggled(self):
-        queue = self.factory.getMessageQueue()
         if self.ui.checkBox.isChecked():
-            self.connect(queue, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
-            self.connect(queue, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
+            self.connect(self.datalogger, SIGNAL("newentry"), self.on_btnRefresh_clicked)
+            #self.connect(queue, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
         else:
-            self.disconnect(queue, SIGNAL("receivedpacket"), self.on_btnRefresh_clicked)
-            self.disconnect(queue, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
+            self.disconnect(self.datalogger, SIGNAL("newentry"), self.on_btnRefresh_clicked)
+            #self.disconnect(queue, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
 
     def on_IgnoreDupesCheckBoxToggled(self):
-        filter = self.factory.getDuplicateDatablockFilter()
+        filter = self.datalogger.getDuplicateDatablockFilter()
         if self.ui.cbFilterDupes.isChecked():
             filter.filterduplicates(True)
         else:

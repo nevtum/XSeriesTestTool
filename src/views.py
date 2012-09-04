@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 from debug import *
+from PyQt4.QtCore import QObject, SIGNAL
 
 class Publisher:
     def __init__(self):
@@ -13,18 +14,19 @@ class Publisher:
 
     def Detach(self, subscriber):
         if subscriber in self.subscribers:
-            self.subscribers.remove(x)
+            self.subscribers.remove(subscriber)
 
-    def Record(self, seq):
-        self.packet = seq
-        DBGLOG("publishing to views")
-        self.Publish()
-    
+    def Record(self, mq):
+        while not mq.isEmpty():
+            self.packet = mq.dequeue()
+            DBGLOG("publishing to views")
+            self.Publish()
+
     def Publish(self):
-        if len(self.subscribers) > 0:
-            for subscriber in self.subscribers:
-                subscriber.Update(self.packet)
+        for subscriber in self.subscribers:
+            subscriber.Update(self.packet)
 
+# don't think this class is necessary
 class Subscriber:
     def __init__(self, publisher):
         assert(isinstance(publisher, Publisher))
@@ -37,15 +39,10 @@ class Subscriber:
     def Update(self, seq):
         raise RuntimeError('Abstract method, must be overloaded!')
 
-class DuplicateDatablockFilter(Subscriber):
-    def __init__(self, publisher):
-        publisher.Attach(self) # hmmmmm... need to work on
+class DuplicateDatablockFilter:
+    def __init__(self):
         self.dupes = {}
         self.filterduplicates(False)
-
-    def Update(self, seq):
-        # add proper code later
-        DBGLOG("Confirmed working: %s" % str(seq))
 
     def filterduplicates(self, toggle):
         assert(isinstance(toggle, bool))
@@ -73,8 +70,9 @@ class DuplicateDatablockFilter(Subscriber):
         DBGLOG("REPEATED!")
         return False
 
-class DataLogger:
-    def __init__(self, filename):
+class DataLogger(QObject):
+    def __init__(self, filename, parent = None):
+        QObject.__init__(self, parent)
         self.con = sqlite3.connect(filename)
         cursor = self.con.cursor()
         sql = """CREATE TABLE IF NOT EXISTS packetlog(
@@ -82,12 +80,26 @@ class DataLogger:
         direction TEXT NOT NULL,
         packetid TEXT NOT NULL,
         hex TEXT NOT NULL)"""
+        self.dec = parent.factory.getProtocolDecoder()
+        self.filter = DuplicateDatablockFilter()
         cursor.execute(sql)
         self.con.commit()
         self.duplicates = {}
 
+    def Update(self, seq):
+        # add proper code later
+        meta = self.dec.getMetaData(seq)
+        self.logData("incoming", meta.getPacketName(), seq)
+        DBGLOG("Logger: emitting newentry signal")
+        self.emit(SIGNAL("newentry"))
+
+    def getDuplicateDatablockFilter(self):
+        return self.filter
+
     def logData(self, direction, packetid, seq):
         assert(isinstance(seq, list))
+        if not self.filter.differentToPrevious(packetid, seq):
+            return
         data = ''.join(["%02X" % byte for byte in seq])
         if(direction not in ('incoming', 'outgoing')):
             raise ValueError()
