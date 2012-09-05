@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'packetview.ui'
 #
-# Created: Mon Jul 23 23:22:46 2012
+# Created: Wed Sep 05 21:26:40 2012
 #      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -18,25 +18,33 @@ class Ui_packetViewer(object):
     def setupUi(self, packetViewer):
         packetViewer.setObjectName(_fromUtf8("packetViewer"))
         packetViewer.setWindowModality(QtCore.Qt.NonModal)
+        packetViewer.setEnabled(True)
         packetViewer.resize(741, 700)
         packetViewer.setWindowTitle(_fromUtf8("Packet View"))
+        packetViewer.setModal(False)
         self.verticalLayout = QtGui.QVBoxLayout(packetViewer)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.lineEdit = QtGui.QLineEdit(packetViewer)
-        self.lineEdit.setEnabled(True)
+        self.lineEdit.setEnabled(False)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.lineEdit.sizePolicy().hasHeightForWidth())
         self.lineEdit.setSizePolicy(sizePolicy)
+        self.lineEdit.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.lineEdit.setReadOnly(True)
         self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
         self.horizontalLayout.addWidget(self.lineEdit)
-        self.btnLineCopy = QtGui.QPushButton(packetViewer)
-        self.btnLineCopy.setObjectName(_fromUtf8("btnLineCopy"))
-        self.horizontalLayout.addWidget(self.btnLineCopy)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.btnPrev = QtGui.QPushButton(packetViewer)
+        self.btnPrev.setObjectName(_fromUtf8("btnPrev"))
+        self.horizontalLayout.addWidget(self.btnPrev)
+        self.btnNext = QtGui.QPushButton(packetViewer)
+        self.btnNext.setObjectName(_fromUtf8("btnNext"))
+        self.horizontalLayout.addWidget(self.btnNext)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.textEdit = QtGui.QTextEdit(packetViewer)
         self.textEdit.setEnabled(True)
@@ -46,9 +54,10 @@ class Ui_packetViewer(object):
         self.verticalLayout.addWidget(self.textEdit)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
-        spacerItem = QtGui.QSpacerItem(98, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem)
+        spacerItem1 = QtGui.QSpacerItem(98, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem1)
         self.btnCopy = QtGui.QPushButton(packetViewer)
+        self.btnCopy.setEnabled(True)
         self.btnCopy.setObjectName(_fromUtf8("btnCopy"))
         self.horizontalLayout_2.addWidget(self.btnCopy)
         self.btnClose = QtGui.QPushButton(packetViewer)
@@ -61,7 +70,8 @@ class Ui_packetViewer(object):
         QtCore.QMetaObject.connectSlotsByName(packetViewer)
 
     def retranslateUi(self, packetViewer):
-        self.btnLineCopy.setText(QtGui.QApplication.translate("packetViewer", "Copy", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnPrev.setText(QtGui.QApplication.translate("packetViewer", "Previous", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnNext.setText(QtGui.QApplication.translate("packetViewer", "Next", None, QtGui.QApplication.UnicodeUTF8))
         self.btnCopy.setText(QtGui.QApplication.translate("packetViewer", "Copy", None, QtGui.QApplication.UnicodeUTF8))
         self.btnClose.setText(QtGui.QApplication.translate("packetViewer", "Close", None, QtGui.QApplication.UnicodeUTF8))
 

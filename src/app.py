@@ -4,6 +4,7 @@ Created on 11/06/2012
 @author: neville
 '''
 import sys
+import sqlite3
 from decoder import *
 from factory import TransmissionFactory
 from views import DataLogger, Publisher
@@ -21,6 +22,9 @@ class QtSQLWrapper(QtCore.QObject):
         self.db.open()
         self.model = QtSql.QSqlQueryModel()
         self.factory = parent.factory
+
+        # just a quick fix for now. used for pysqlite
+        self.filename = filename
     
     def getModel(self):
         return self.model
@@ -29,18 +33,33 @@ class QtSQLWrapper(QtCore.QObject):
         query = "DELETE FROM packetlog"
         q = QtSql.QSqlQuery(self.db)
         q.exec_(query)
+        self.db.clearDatabase()
     
+    def getTimestamp(self, rowindex):
+        record = self.model.record(rowindex)
+        return record.value("timestamp").toString()
+
     def getDecodedData(self, rowindex):
         dec = self.factory.getProtocolDecoder()
-        packet = self.getRawData(rowindex)
+        packet = self.getRawData2(rowindex)
         seq = [x for x in bytearray.fromhex(packet)]
         return dec.createXMLPacket(seq)
     
     def getRawData(self, rowindex):
+        self.getRawData2(rowindex)
         assert(isinstance(rowindex, int))
         record = self.model.record(rowindex)
         return str(record.value("hex").toString())
     
+    # just a quick fix for now
+    def getRawData2(self, rowindex):
+        time = self.getTimestamp(rowindex)
+        sqlitedb = sqlite3.connect(self.filename)
+        cur = sqlitedb.cursor()
+        cur.execute("SELECT hex FROM packetlog WHERE timestamp = '%s'" % time)
+        for next in cur:
+            return next[0]
+
     def __del__(self):
         self.db.close()
 
@@ -61,7 +80,7 @@ class DecoderDialog(QtGui.QDialog):
         self.ui.setupUi(self)
         self.setupConnections()
     
-    def setRawMsg(self, message):
+    def UpdateTimestamp(self, message):
         self.ui.lineEdit.setText(message)
     
     def setDecodedMsg(self, message):
@@ -195,11 +214,12 @@ class MyApp(QtGui.QMainWindow):
         self.db.getModel().setQuery(self.query)
         self.ui.tableView.selectRow(0)
         self.ui.tableView.resizeColumnsToContents()
+        self.ui.tableView.setSortingEnabled(True)
         
     def decodeSelectedPacket(self):
         index = self.ui.tableView.currentIndex().row()
         self.decDialog.setDecodedMsg(self.db.getDecodedData(index))
-        self.decDialog.setRawMsg(self.db.getRawData(index))
+        self.decDialog.UpdateTimestamp(self.db.getTimestamp(index))
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
