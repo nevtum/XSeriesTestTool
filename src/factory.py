@@ -13,11 +13,6 @@ class TransmissionFactory:
         if self.messagequeue == None:
             self.messagequeue = MessageQueue()
         return self.messagequeue
-    
-    def getPublisher(self):
-        if self.publisher == None:
-            self.publisher = Publisher()
-        return self.publisher
 
     def getProtocolDecoder(self):
         if self.xdec == None:

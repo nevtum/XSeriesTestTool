@@ -12,6 +12,7 @@ class Publisher:
         if subscriber not in self.subscribers:
             self.subscribers.append(subscriber)
 
+    # this function is not in use.
     def Detach(self, subscriber):
         if subscriber in self.subscribers:
             self.subscribers.remove(subscriber)
@@ -25,19 +26,6 @@ class Publisher:
     def Publish(self):
         for subscriber in self.subscribers:
             subscriber.Update(self.packet)
-
-# don't think this class is necessary
-class Subscriber:
-    def __init__(self, publisher):
-        assert(isinstance(publisher, Publisher))
-        self.publisher = publisher
-        self.publisher.Attach(self)
-
-    def __del__(self):
-        self.publisher.Detach(self)
-
-    def Update(self, seq):
-        raise RuntimeError('Abstract method, must be overloaded!')
 
 class DuplicateDatablockFilter:
     def __init__(self):

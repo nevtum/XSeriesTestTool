@@ -6,7 +6,7 @@ Created on 11/06/2012
 import sys
 from decoder import *
 from factory import TransmissionFactory
-from views import DataLogger
+from views import DataLogger, Publisher
 from comms_threads import *
 from PyQt4 import QtCore, QtGui, QtSql
 from gui.analyzer import Ui_MainWindow
@@ -81,6 +81,9 @@ class MyApp(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.db = None
         self.factory = TransmissionFactory()
+        self.queue = self.factory.getMessageQueue()
+        self.datalogger = DataLogger("test.db", self)
+        self.publisher = Publisher()
         self.setupChildDialogs()
         self.setupConnections()
         self.listenThread = ListenThread(self)
@@ -104,22 +107,21 @@ class MyApp(QtGui.QMainWindow):
         self.ui.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
         self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
         self.ui.btnClear.clicked.connect(self.on_btnClear_clicked)
-        self.ui.pushButton.clicked.connect(self.on_btnReplay_clicked)
+        
+        # disable connection until ReplayThread is set up with MVC
+        #self.ui.pushButton.clicked.connect(self.on_btnReplay_clicked)
         self.replaying = False
         self.ui.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
         self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
         self.ui.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
         self.ui.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
-
-        # make tidier code and define interfaces properly in publish-subscribe
-        self.queue = self.factory.getMessageQueue()
-        self.publisher = self.factory.getPublisher()
-        self.datalogger = DataLogger("test.db", self)
-        self.publisher.Attach(self.datalogger)
         self.connect(self.queue, SIGNAL("receivedpacket"), self.on_Queued_message)
+        self.setupViews()
 
-    # make tidier code and define interfaces properly in publish-subscribe
+    def setupViews(self):
+        self.publisher.Attach(self.datalogger)
+        
     def on_Queued_message(self):
         self.publisher.Record(self.queue)
 
