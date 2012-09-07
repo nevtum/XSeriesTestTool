@@ -64,9 +64,22 @@ class DecoderDialog(QtGui.QDialog):
             contents = self.sqlwrapper.getDecodedData(srcMdlIndex.row())
             raw = self.sqlwrapper.getRawData(srcMdlIndex.row())
             
+            string = ""
+            for i in range(len(raw)):
+                string += raw[i]
+                if i > 0:
+                    if (i+1)%60 == 0:
+                        string += "\n"
+                    elif (i+1)%20 == 0:
+                        string += "\t"
+                    elif (i+1)%2 == 0:
+                        string += " "
+                    
+                
+            
             self.ui.lineEdit.setText(timestamp)
             self.ui.textEdit.setText(contents)
-            self.ui.uiRawData.setText(raw)
+            self.ui.uiRawData.setText(string)
             
             #DBGLOG("ProxyIndex: %i, ModelIndex: %i" % (newMdlIndex.row(), srcMdlIndex.row()))
  
