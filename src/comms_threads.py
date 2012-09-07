@@ -97,20 +97,18 @@ class ReplayThread(QThread):
 
     def run(self):
         DBGLOG("replaying data")
-        dec = self.factory.getProtocolDecoder()
-        logger = self.factory.getDataLogger('test.db')
+        wrapper = self.factory.getQtSQLWrapper()
         serial = SerialModule(self.port, self.baud)
+        queue = self.factory.getMessageQueue()
         query = "SELECT hex FROM packetlog where direction ='incoming' ORDER BY timestamp ASC LIMIT 100"
-        for entry in logger.queryData(query):
+        for entry in wrapper.runQuery(query):
             if self.terminate:
                 break
             if len(entry) == 1:
                 seq = [x for x in bytearray.fromhex(entry[0])]
                 DBGLOG(str(seq))
                 serial.Tx(seq)
-                packetinfo = dec.getMetaData(seq)
-                #logger.logData('outgoing', packetinfo.getPacketName(), seq)
-                self.emit(SIGNAL("sentpacket"))
+                queue.add(seq)
                 time.sleep(1)
         serial.close()
 

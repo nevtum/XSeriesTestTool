@@ -4,65 +4,14 @@ Created on 11/06/2012
 @author: neville
 '''
 import sys
-import sqlite3
-from decoder import *
 from factory import TransmissionFactory
 from views import DataLogger, Publisher
 from comms_threads import *
-from PyQt4 import QtCore, QtGui, QtSql
+from PyQt4 import QtGui
 from gui.analyzer import Ui_MainWindow
 from gui.maxrowsdialog import Ui_Dialog
 from gui.packetview import Ui_packetViewer
  
-class QtSQLWrapper(QtCore.QObject):
-    def __init__(self, filename, parent):
-        QtCore.QObject.__init__(self, parent)
-        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName(filename)
-        self.db.open()
-        self.model = QtSql.QSqlQueryModel()
-        self.factory = parent.factory
-
-        # just a quick fix for now. used for pysqlite
-        self.filename = filename
-    
-    def getModel(self):
-        return self.model
-    
-    def clearDatabase(self):
-        query = "DELETE FROM packetlog"
-        q = QtSql.QSqlQuery(self.db)
-        q.exec_(query)
-        self.db.clearDatabase()
-    
-    def getTimestamp(self, rowindex):
-        record = self.model.record(rowindex)
-        return record.value("timestamp").toString()
-
-    def getDecodedData(self, rowindex):
-        dec = self.factory.getProtocolDecoder()
-        packet = self.getRawData2(rowindex)
-        seq = [x for x in bytearray.fromhex(packet)]
-        return dec.createXMLPacket(seq)
-    
-    def getRawData(self, rowindex):
-        self.getRawData2(rowindex)
-        assert(isinstance(rowindex, int))
-        record = self.model.record(rowindex)
-        return str(record.value("hex").toString())
-    
-    # just a quick fix for now
-    def getRawData2(self, rowindex):
-        time = self.getTimestamp(rowindex)
-        sqlitedb = sqlite3.connect(self.filename)
-        cur = sqlitedb.cursor()
-        cur.execute("SELECT hex FROM packetlog WHERE timestamp = '%s'" % time)
-        for next in cur:
-            return next[0]
-
-    def __del__(self):
-        self.db.close()
-
 class MaxRowsDialog(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
@@ -116,7 +65,7 @@ class MyApp(QtGui.QMainWindow):
     
     def setupDB(self):
         if self.db == None:
-            self.db = QtSQLWrapper("test.db", self)
+            self.db = self.factory.getQtSQLWrapper()
             self.ui.tableView.setModel(self.db.getModel())
             self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
         
@@ -126,9 +75,7 @@ class MyApp(QtGui.QMainWindow):
         self.ui.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
         self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
         self.ui.btnClear.clicked.connect(self.on_btnClear_clicked)
-        
-        # disable connection until ReplayThread is set up with MVC
-        #self.ui.pushButton.clicked.connect(self.on_btnReplay_clicked)
+        self.ui.pushButton.clicked.connect(self.on_btnReplay_clicked)
         self.replaying = False
         self.ui.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
@@ -147,10 +94,8 @@ class MyApp(QtGui.QMainWindow):
     def on_autoRefreshCheckBoxToggled(self):
         if self.ui.checkBox.isChecked():
             self.connect(self.datalogger, SIGNAL("newentry"), self.on_btnRefresh_clicked)
-            #self.connect(queue, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
         else:
             self.disconnect(self.datalogger, SIGNAL("newentry"), self.on_btnRefresh_clicked)
-            #self.disconnect(queue, SIGNAL("sentpacket"), self.on_btnRefresh_clicked)
 
     def on_IgnoreDupesCheckBoxToggled(self):
         filter = self.datalogger.getDuplicateDatablockFilter()
@@ -213,7 +158,10 @@ class MyApp(QtGui.QMainWindow):
     def updateViewContents(self):
         self.db.getModel().setQuery(self.query)
         self.ui.tableView.selectRow(0)
-        self.ui.tableView.resizeColumnsToContents()
+        self.ui.tableView.setColumnWidth(0, 150)
+        self.ui.tableView.setColumnWidth(1, 60)
+        self.ui.tableView.setColumnWidth(2, 100)
+        self.ui.tableView.setColumnWidth(3, 250)
         self.ui.tableView.setSortingEnabled(True)
         
     def decodeSelectedPacket(self):
