@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 from debug import *
 from PyQt4.QtCore import QObject, SIGNAL
-from PyQt4 import QtSql
+from PyQt4 import QtSql, QtGui
 
 class QtSQLWrapper(QObject):
     def __init__(self, filename, decoder, parent = None):
@@ -12,14 +12,25 @@ class QtSQLWrapper(QObject):
         self.db.open()
         self.model = QtSql.QSqlQueryModel()
         self.dec = decoder
-
+        
+        """experimental"""
+        self.setupProxyModel()
+        
         # just a quick fix for now. used for pysqlite
         self.filename = filename
         self.sqlitedb = sqlite3.connect(self.filename)
         self.cur = self.sqlitedb.cursor()
-    
+
+    def setupProxyModel(self):
+        self.model.setQuery("SELECT * FROM packetlog")
+        self.proxy = QtGui.QSortFilterProxyModel()
+        self.proxy.setSourceModel(self.model)
+        self.proxy.setFilterKeyColumn(2)
+        #self.proxy.setFilterRegExp(".")
+        
     def getModel(self):
-        return self.model
+        # return self.model
+        return self.proxy
     
     def clearDatabase(self):
         query = "DELETE FROM packetlog"

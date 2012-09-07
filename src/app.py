@@ -7,7 +7,7 @@ import sys
 from factory import TransmissionFactory
 from views import DataLogger, Publisher
 from comms_threads import *
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from gui.analyzer import Ui_MainWindow
 from gui.maxrowsdialog import Ui_Dialog
 from gui.packetview import Ui_packetViewer
@@ -57,7 +57,9 @@ class MyApp(QtGui.QMainWindow):
         self.listenThread = ListenThread(self)
         self.replayThread = ReplayThread(self)
         self.ui.lineEditPort.setText("com17")
-        self.ui.lineEdit.setText("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25")
+        
+        """experimental"""
+        #self.ui.lineEdit.setText("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25")
         
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -68,6 +70,9 @@ class MyApp(QtGui.QMainWindow):
             self.db = self.factory.getQtSQLWrapper()
             self.ui.tableView.setModel(self.db.getModel())
             self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
+        """experimental"""
+        proxy = self.db.getModel()
+        QtCore.QObject.connect(self.ui.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
         
     def setupConnections(self):
         # set up connection to selection of record
@@ -84,6 +89,9 @@ class MyApp(QtGui.QMainWindow):
         self.ui.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
         self.connect(self.queue, SIGNAL("receivedpacket"), self.on_Queued_message)
         self.setupViews()
+        
+        """experimental"""
+        self.on_btnRefresh_clicked()
 
     def setupViews(self):
         self.publisher.Attach(self.datalogger)
@@ -156,7 +164,9 @@ class MyApp(QtGui.QMainWindow):
         self.updateViewContents()
     
     def updateViewContents(self):
-        self.db.getModel().setQuery(self.query)
+        """commented out (experimental"""
+        #self.db.getModel().setQuery(self.query)
+        
         self.ui.tableView.selectRow(0)
         self.ui.tableView.setColumnWidth(0, 150)
         self.ui.tableView.setColumnWidth(1, 60)
