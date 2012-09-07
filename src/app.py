@@ -11,36 +11,67 @@ from PyQt4 import QtGui, QtCore
 from gui.analyzer import Ui_MainWindow
 from gui.maxrowsdialog import Ui_Dialog
 from gui.packetview import Ui_packetViewer
- 
+
 class MaxRowsDialog(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.setupConnections()
-    
+
     def setupConnections(self):
         pass
-           
+
+
+
+
+
+
 class DecoderDialog(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.ui = Ui_packetViewer()
         self.ui.setupUi(self)
         self.setupConnections()
-    
-    def UpdateTimestamp(self, message):
-        self.ui.lineEdit.setText(message)
-    
-    def setDecodedMsg(self, message):
-        self.ui.textEdit.setText(message)
-        
+        self.sqlwrapper = parent.factory.getQtSQLWrapper()
+
     def setupConnections(self):
         self.ui.btnCopy.clicked.connect(self.on_btnCopy_clicked)
-        
+        self.ui.btnNext.clicked.connect(self.on_btnNext_clicked)
+        self.ui.btnPrev.clicked.connect(self.on_btnPrev_clicked)
+
     def on_btnCopy_clicked(self):
         self.ui.textEdit.selectAll()
         self.ui.textEdit.copy()
+
+    def on_btnNext_clicked(self):
+        mdlindex = self.parent().getCurrentModelIndex()
+        if mdlindex.isValid():
+            nextrow = mdlindex.row()+1
+            self.parent().ui.tableView.selectRow(nextrow)
+
+    def on_btnPrev_clicked(self):
+        mdlindex = self.parent().getCurrentModelIndex()
+        if mdlindex.isValid():
+            prevrow = mdlindex.row()-1
+            self.parent().ui.tableView.selectRow(prevrow)
+
+    def Update(self, newMdlIndex, oldMdlIndex):
+        if newMdlIndex.isValid():
+            srcMdlIndex = self.sqlwrapper.getModel().mapToSource(newMdlIndex)
+            
+            timestamp = self.sqlwrapper.getTimestamp(srcMdlIndex.row())
+            contents = self.sqlwrapper.getDecodedData(srcMdlIndex.row())
+            raw = self.sqlwrapper.getRawData(srcMdlIndex.row())
+            
+            self.ui.lineEdit.setText(timestamp)
+            self.ui.textEdit.setText(contents)
+            self.ui.uiRawData.setText(raw)
+            
+            #DBGLOG("ProxyIndex: %i, ModelIndex: %i" % (newMdlIndex.row(), srcMdlIndex.row()))
+ 
+ 
+ 
  
 class MyApp(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -53,27 +84,25 @@ class MyApp(QtGui.QMainWindow):
         self.datalogger = DataLogger("test.db", self)
         self.publisher = Publisher()
         self.setupChildDialogs()
+        self.setupDB()
         self.setupConnections()
         self.listenThread = ListenThread(self)
         self.replayThread = ReplayThread(self)
         self.ui.lineEditPort.setText("com17")
-        
-        """experimental"""
-        #self.ui.lineEdit.setText("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 25")
-        
+
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
         self.maxRowsDialog = MaxRowsDialog(self)
-    
+
     def setupDB(self):
-        if self.db == None:
-            self.db = self.factory.getQtSQLWrapper()
-            self.ui.tableView.setModel(self.db.getModel())
-            self.ui.tableView.selectionModel().currentRowChanged.connect(self.decodeSelectedPacket)
-        """experimental"""
+        self.db = self.factory.getQtSQLWrapper()
+        self.ui.tableView.setModel(self.db.getModel())
+        QObject.connect(self.ui.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
+
         proxy = self.db.getModel()
-        QtCore.QObject.connect(self.ui.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
-        
+        QObject.connect(self.ui.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
+        self.updateViewContents()
+
     def setupConnections(self):
         # set up connection to selection of record
         # some bugs here regarding current row is not selected
@@ -89,13 +118,14 @@ class MyApp(QtGui.QMainWindow):
         self.ui.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
         self.connect(self.queue, SIGNAL("receivedpacket"), self.on_Queued_message)
         self.setupViews()
-        
-        """experimental"""
-        self.on_btnRefresh_clicked()
 
     def setupViews(self):
         self.publisher.Attach(self.datalogger)
-        
+
+    def getCurrentModelIndex(self):
+        index = self.ui.tableView.selectionModel().currentIndex()
+        return index
+
     def on_Queued_message(self):
         self.publisher.Record(self.queue)
 
@@ -111,7 +141,7 @@ class MyApp(QtGui.QMainWindow):
             filter.filterduplicates(True)
         else:
             filter.filterduplicates(False)
-    
+
     def on_btnRecordPause_clicked(self):
         if not self.recording:
             self.ui.btnRecordPause.setText("Pause")
@@ -128,7 +158,7 @@ class MyApp(QtGui.QMainWindow):
             self.ui.lineEditPort.setDisabled(False)
             self.recording = False
             self.listenThread.quit()
-            
+
     def on_btnReplay_clicked(self):
         if not self.replaying:
             self.ui.pushButton.setText("Stop Replay")
@@ -146,39 +176,31 @@ class MyApp(QtGui.QMainWindow):
             self.ui.lineEditPort.setDisabled(False)
             self.replaying = False
             self.replayThread.quit()
-    
+
     def on_MaxRowsAction_triggered(self):
         self.maxRowsDialog.exec_()
-        
+
     def on_btnClear_clicked(self):
         self.db.clearDatabase()
         self.updateViewContents()
-    
+
     def on_btnAnalyze_clicked(self):
         self.decDialog.show()
-        
+
     def on_btnRefresh_clicked(self):
-        self.setupDB()
-        # updates query from user specified SQL statement
-        self.query = self.ui.lineEdit.text()
         self.updateViewContents()
-    
+
     def updateViewContents(self):
         """commented out (experimental"""
         #self.db.getModel().setQuery(self.query)
-        
-        self.ui.tableView.selectRow(0)
+
+        self.db.refresh()
         self.ui.tableView.setColumnWidth(0, 150)
         self.ui.tableView.setColumnWidth(1, 60)
         self.ui.tableView.setColumnWidth(2, 100)
         self.ui.tableView.setColumnWidth(3, 250)
         self.ui.tableView.setSortingEnabled(True)
-        
-    def decodeSelectedPacket(self):
-        index = self.ui.tableView.currentIndex().row()
-        self.decDialog.setDecodedMsg(self.db.getDecodedData(index))
-        self.decDialog.UpdateTimestamp(self.db.getTimestamp(index))
-        
+
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myapp = MyApp()

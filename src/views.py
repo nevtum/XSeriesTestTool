@@ -22,21 +22,25 @@ class QtSQLWrapper(QObject):
         self.cur = self.sqlitedb.cursor()
 
     def setupProxyModel(self):
-        self.model.setQuery("SELECT * FROM packetlog")
         self.proxy = QtGui.QSortFilterProxyModel()
         self.proxy.setSourceModel(self.model)
         self.proxy.setFilterKeyColumn(2)
+        self.proxy.setDynamicSortFilter(True)
         #self.proxy.setFilterRegExp(".")
         
     def getModel(self):
         # return self.model
         return self.proxy
     
+    def refresh(self):
+        #DBGLOG("Wrapper: Refreshing!!!")
+        self.model.setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
+    
     def clearDatabase(self):
         query = "DELETE FROM packetlog"
         q = QtSql.QSqlQuery(self.db)
         q.exec_(query)
-        self.db.clearDatabase()
+        #self.db.clearDatabase()
     
     def getTimestamp(self, rowindex):
         record = self.model.record(rowindex)
