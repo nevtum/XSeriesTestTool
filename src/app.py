@@ -7,7 +7,7 @@ import sys
 from factory import TransmissionFactory
 from views import DataLogger, Publisher
 from comms_threads import *
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui, QtCore, uic
 from gui.analyzer import Ui_MainWindow
 from gui.maxrowsdialog import Ui_Dialog
 from gui.packetview import Ui_packetViewer
@@ -22,27 +22,26 @@ class MaxRowsDialog(QtGui.QDialog):
     def setupConnections(self):
         pass
 
+decbase, decform = uic.loadUiType("gui/packetview.ui")
+appbase, appform = uic.loadUiType("gui/analyzer.ui")
 
 
 
-
-
-class DecoderDialog(QtGui.QDialog):
+class DecoderDialog(decbase, decform):
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
-        self.ui = Ui_packetViewer()
-        self.ui.setupUi(self)
+        super(decbase, self).__init__(parent)
+        self.setupUi(self)
         self.setupConnections()
         self.sqlwrapper = parent.factory.getQtSQLWrapper()
 
     def setupConnections(self):
-        self.ui.btnCopy.clicked.connect(self.on_btnCopy_clicked)
-        self.ui.btnNext.clicked.connect(self.on_btnNext_clicked)
-        self.ui.btnPrev.clicked.connect(self.on_btnPrev_clicked)
+        self.btnCopy.clicked.connect(self.on_btnCopy_clicked)
+        self.btnNext.clicked.connect(self.on_btnNext_clicked)
+        self.btnPrev.clicked.connect(self.on_btnPrev_clicked)
 
     def on_btnCopy_clicked(self):
-        self.ui.textEdit.selectAll()
-        self.ui.textEdit.copy()
+        self.textEdit.selectAll()
+        self.textEdit.copy()
 
     def on_btnNext_clicked(self):
         mdlindex = self.parent().getCurrentModelIndex()
@@ -77,20 +76,19 @@ class DecoderDialog(QtGui.QDialog):
                     
                 
             
-            self.ui.lineEdit.setText(timestamp)
-            self.ui.textEdit.setText(contents)
-            self.ui.uiRawData.setText(string)
+            self.lineEdit.setText(timestamp)
+            self.textEdit.setText(contents)
+            self.uiRawData.setText(string)
             
             #DBGLOG("ProxyIndex: %i, ModelIndex: %i" % (newMdlIndex.row(), srcMdlIndex.row()))
  
  
  
  
-class MyApp(QtGui.QMainWindow):
+class MyApp(appbase, appform):
     def __init__(self, parent=None):
-        QtGui.QMainWindow.__init__(self, parent)
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
+        super(appbase, self).__init__(parent)
+        self.setupUi(self)
         self.db = None
         self.factory = TransmissionFactory()
         self.queue = self.factory.getMessageQueue()
@@ -101,7 +99,7 @@ class MyApp(QtGui.QMainWindow):
         self.setupConnections()
         self.listenThread = ListenThread(self)
         self.replayThread = ReplayThread(self)
-        self.ui.lineEditPort.setText("com17")
+        self.lineEditPort.setText("com17")
 
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -109,26 +107,26 @@ class MyApp(QtGui.QMainWindow):
 
     def setupDB(self):
         self.db = self.factory.getQtSQLWrapper()
-        self.ui.tableView.setModel(self.db.getModel())
-        QObject.connect(self.ui.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
+        self.tableView.setModel(self.db.getModel())
+        QObject.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
 
         proxy = self.db.getModel()
-        QObject.connect(self.ui.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
+        QObject.connect(self.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
         self.updateViewContents()
 
     def setupConnections(self):
         # set up connection to selection of record
         # some bugs here regarding current row is not selected
-        self.ui.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
-        self.ui.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
-        self.ui.btnClear.clicked.connect(self.on_btnClear_clicked)
-        self.ui.pushButton.clicked.connect(self.on_btnReplay_clicked)
+        self.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
+        self.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
+        self.btnClear.clicked.connect(self.on_btnClear_clicked)
+        self.pushButton.clicked.connect(self.on_btnReplay_clicked)
         self.replaying = False
-        self.ui.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
+        self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
-        self.ui.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
-        self.ui.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
-        self.ui.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
+        self.actionSet_Maximum_Rows.triggered.connect(self.on_MaxRowsAction_triggered)
+        self.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
+        self.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
         self.connect(self.queue, SIGNAL("receivedpacket"), self.on_Queued_message)
         self.setupViews()
 
@@ -136,7 +134,7 @@ class MyApp(QtGui.QMainWindow):
         self.publisher.Attach(self.datalogger)
 
     def getCurrentModelIndex(self):
-        index = self.ui.tableView.selectionModel().currentIndex()
+        index = self.tableView.selectionModel().currentIndex()
         return index
 
     def on_Queued_message(self):
@@ -208,12 +206,12 @@ class MyApp(QtGui.QMainWindow):
         #self.db.getModel().setQuery(self.query)
 
         self.db.refresh()
-        self.ui.tableView.setColumnWidth(0, 150)
-        self.ui.tableView.setColumnWidth(1, 60)
-        self.ui.tableView.setColumnWidth(2, 100)
-        self.ui.tableView.setColumnWidth(3, 250)
-        self.ui.tableView.horizontalHeader().setStretchLastSection(True)
-        self.ui.tableView.setSortingEnabled(True)
+        self.tableView.setColumnWidth(0, 150)
+        self.tableView.setColumnWidth(1, 60)
+        self.tableView.setColumnWidth(2, 100)
+        self.tableView.setColumnWidth(3, 250)
+        self.tableView.horizontalHeader().setStretchLastSection(True)
+        self.tableView.setSortingEnabled(True)
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
