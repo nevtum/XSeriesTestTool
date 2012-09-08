@@ -105,6 +105,7 @@ class XProtocolDecoder(IDecoder):
     def getMetaData(self, seq):
         assert(len(seq) >= 2)
         if(seq[0] != 0xFF):
-            return self.repo.getMetaObject(None)
+            raise IndexError("Start of block is not 0xFF!!")
+            #return self.repo.getMetaObject(None)
         return self.repo.getMetaObject(seq[1])
         

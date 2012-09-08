@@ -6,8 +6,9 @@ Created on 11/06/2012
 import sys
 from factory import TransmissionFactory
 from views import DataLogger, Publisher
-from comms_threads import *
-from PyQt4 import QtGui, QtCore, uic
+from comms_threads import ListenThread, ReplayThread
+from PyQt4 import QtGui, uic
+from PyQt4.QtCore import SIGNAL
 
 decbase, decform = uic.loadUiType("gui/packetview.ui")
 appbase, appform = uic.loadUiType("gui/analyzer.ui")
@@ -95,10 +96,10 @@ class MyApp(appbase, appform):
     def setupDB(self):
         self.db = self.factory.getQtSQLWrapper()
         self.tableView.setModel(self.db.getModel())
-        QObject.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
+        self.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
 
         proxy = self.db.getModel()
-        QObject.connect(self.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
+        self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
         self.updateViewContents()
 
     def setupConnections(self):

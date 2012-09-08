@@ -11,13 +11,13 @@ class MessageQueue(QObject):
 
     def add(self, message):
         DBGLOG("MessageQueue: adding new message to queue")
+        assert(message)
         self.q.put(message)
         DBGLOG("MessageQueue: finished adding message")
         self.emit(SIGNAL("receivedpacket"))
 
     def dequeue(self):
         item = self.q.get()
-        DBGLOG("MessageQueue: packet size %i" % len(item))
         return item
 
     def isEmpty(self):
@@ -53,15 +53,13 @@ class ListenThread(QThread):
             newbuffer = serial.Rx()
             if newbuffer:
                 BUFFER += newbuffer
-                DBGLOG("ListenThread: Bytes: %s" % str(BUFFER))
+                #DBGLOG("ListenThread: Bytes: %s" % str(BUFFER))
             while len(BUFFER) > 0:
                 try:
                     packetinfo = dec.getMetaData(BUFFER)
                     expectedlength = packetinfo.getPacketLength()
                 except ValueError:
                     DBGLOG("ListenThread: length is zero")
-                    queue.add(BUFFER[:])
-                    BUFFER = []
 
                 if packetinfo.getPacketName() == "unknown":
                     DBGLOG("ListenThread: Unknown packet received")
@@ -83,7 +81,7 @@ class ListenThread(QThread):
                     queue.add(BUFFER[:])
                     BUFFER = []
 
-                DBGLOG("TYPE: %s" % packetinfo.getPacketName())
+                DBGLOG("ListenThread: TYPE = %s" % packetinfo.getPacketName())
         serial.close()
 
     def quit(self):

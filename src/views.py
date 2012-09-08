@@ -26,14 +26,12 @@ class QtSQLWrapper(QObject):
         self.proxy.setSourceModel(self.model)
         self.proxy.setFilterKeyColumn(2)
         self.proxy.setDynamicSortFilter(True)
-        #self.proxy.setFilterRegExp(".")
         
     def getModel(self):
-        # return self.model
         return self.proxy
     
     def refresh(self):
-        #DBGLOG("Wrapper: Refreshing!!!")
+        DBGLOG("Wrapper: Refreshing!!!")
         self.model.setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
     
     def clearDatabase(self):
