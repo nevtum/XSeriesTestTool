@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>713</width>
-    <height>379</height>
+    <width>574</width>
+    <height>512</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -146,16 +146,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="2">
-       <widget class="QLineEdit" name="lineEditPort">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>20</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="8">
        <widget class="QPushButton" name="btnAnalyze">
         <property name="text">
@@ -179,6 +169,22 @@
         </property>
        </spacer>
       </item>
+      <item row="1" column="2">
+       <widget class="QLineEdit" name="lineEditPort">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>20</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -188,7 +194,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>713</width>
+     <width>574</width>
      <height>20</height>
     </rect>
    </property>
@@ -196,7 +202,6 @@
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="actionSet_Maximum_Rows"/>
     <addaction name="actionSerial"/>
    </widget>
    <widget class="QMenu" name="menuSerial">

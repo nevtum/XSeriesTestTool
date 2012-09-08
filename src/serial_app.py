@@ -2,7 +2,7 @@ import serial
 
 class SerialModule:
     def __init__(self, port, baud):
-        self.ser = serial.Serial(port, baud, timeout = 10)
+        self.ser = serial.Serial(port, baud, timeout = 1)
         
     def Rx(self):
         data = self.ser.read(1)

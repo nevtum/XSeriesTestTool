@@ -10,10 +10,8 @@ class QtSQLWrapper(QObject):
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(filename)
         self.db.open()
-        self.model = QtSql.QSqlQueryModel()
+        self.model = QtSql.QSqlQueryModel(self)
         self.dec = decoder
-        
-        """experimental"""
         self.setupProxyModel()
         
         # just a quick fix for now. used for pysqlite

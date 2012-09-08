@@ -189,7 +189,6 @@ class MyApp(appbase, appform):
         self.tableView.setColumnWidth(0, 150)
         self.tableView.setColumnWidth(1, 60)
         self.tableView.setColumnWidth(2, 100)
-        self.tableView.setColumnWidth(3, 250)
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.tableView.setSortingEnabled(True)
 
