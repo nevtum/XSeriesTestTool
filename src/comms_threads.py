@@ -10,13 +10,15 @@ class MessageQueue(QObject):
         self.q = Queue.LifoQueue(10)
 
     def add(self, message):
-        DBGLOG("adding new message to queue")
+        DBGLOG("MessageQueue: adding new message to queue")
         self.q.put(message)
-        DBGLOG("finished adding message")
+        DBGLOG("MessageQueue: finished adding message")
         self.emit(SIGNAL("receivedpacket"))
 
     def dequeue(self):
-        return self.q.get()
+        item = self.q.get()
+        DBGLOG("MessageQueue: packet size %i" % len(item))
+        return item
 
     def isEmpty(self):
         return self.q.empty()
@@ -41,38 +43,43 @@ class ListenThread(QThread):
         queue = self.factory.getMessageQueue()
         self.terminate = False
         BUFFER = []
-        DBGLOG("Serial thread started!")
-        DBGLOG("port = %s, baud = %s" % (self.port, self.baud))
+        DBGLOG("ListenThread: Serial thread started!")
+        DBGLOG("ListenThread: port = %s, baud = %s" % (self.port, self.baud))
         while True:
-            DBGLOG("Awaiting packet...")
+            DBGLOG("ListenThread: Awaiting packet...")
             if self.terminate:
-                DBGLOG("Serial thread stopped!")
+                DBGLOG("ListenThread: Serial thread stopped!")
                 break
             newbuffer = serial.Rx()
             if newbuffer:
                 BUFFER += newbuffer
-                DBGLOG("Bytes: %s" % str(BUFFER))
+                DBGLOG("ListenThread: Bytes: %s" % str(BUFFER))
             while len(BUFFER) > 0:
-                packetinfo = dec.getMetaData(BUFFER)
-                expectedlength = packetinfo.getPacketLength()
+                try:
+                    packetinfo = dec.getMetaData(BUFFER)
+                    expectedlength = packetinfo.getPacketLength()
+                except ValueError:
+                    DBGLOG("ListenThread: length is zero")
+                    queue.add(BUFFER[:])
+                    BUFFER = []
+
                 if packetinfo.getPacketName() == "unknown":
-                    DBGLOG("Unknown packet received")
-                    #packet = BUFFER
+                    DBGLOG("ListenThread: Unknown packet received")
+                    queue.add(BUFFER[:])
                     BUFFER = []
                     break
-                elif expectedlength == 0:
-                    break
                 elif len(BUFFER) < expectedlength:
-                    DBGLOG("packet length smaller than expected length")
-                    DBGLOG('expected = %i, actual = %i' % (expectedlength, len(BUFFER)))
+                    DBGLOG("ListenThread: packet length smaller than expected length")
+                    DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
                     break
-
-                if  len(BUFFER) > expectedlength:
-                    DBGLOG("packet length larger than expected length")
-                    DBGLOG('expected = %i, actual = %i' % (expectedlength, len(BUFFER)))
+                elif len(BUFFER) > expectedlength:
+                    DBGLOG("ListenThread: packet length larger than expected length")
+                    DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
                     queue.add(BUFFER[:expectedlength])
                     BUFFER = BUFFER[expectedlength:]
+                    break
                 else:
+                    DBGLOG("ListenThread: length matches")
                     queue.add(BUFFER[:])
                     BUFFER = []
 

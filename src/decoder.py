@@ -1,3 +1,4 @@
+from debug import *
 
 class AbstractItemDecoder:
     def __init__(self, params):
@@ -77,10 +78,16 @@ class IDecoder:
     def createXMLPacket(self, seq):
         assert(isinstance(seq, list))
         meta = self.getMetaData(seq)
-        if meta.getPacketLength() == 0:
-            return "Empty packet"
-        if(len(seq) != meta.getPacketLength()):
-            return "invalid packet"
+
+        try:
+            packetlength = meta.getPacketLength()
+        except ValueError:
+            #DBGLOG("Decoder: cannot decode packet")
+            return "no logic defined to decode packet"
+
+        if(len(seq) != packetlength):
+            #DBGLOG("Decoder: corrupted packet")
+            return "corrupted packet"
 
         x = "<packet name=\"%s\">\n" % meta.getPacketName()
         for item in meta.allItems():

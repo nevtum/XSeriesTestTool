@@ -43,10 +43,10 @@ class codecMetaObject:
 
 class NullMetaObject:
     def getPacketName(self):
-        return "Unknown"
+        return "unknown"
     
     def getPacketLength(self):
-        return 0
+        raise ValueError("N/A. Unknown packet!")
         
     def allItems(self):
         return []

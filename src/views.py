@@ -90,7 +90,7 @@ class Publisher:
     def Record(self, mq):
         while not mq.isEmpty():
             self.packet = mq.dequeue()
-            DBGLOG("publishing to views")
+            DBGLOG("Publisher: publishing to views")
             self.Publish()
 
     def Publish(self):
@@ -105,7 +105,7 @@ class DuplicateDatablockFilter:
     def filterduplicates(self, toggle):
         assert(isinstance(toggle, bool))
         self.filtered = toggle
-        DBGLOG("Filtering enabled = %s" % toggle)
+        DBGLOG("DDFilter: Filtering enabled = %s" % toggle)
 
     def differentToPrevious(self, blocktype, seq):
         if not self.filtered:
@@ -114,7 +114,7 @@ class DuplicateDatablockFilter:
         key = blocktype
         data = self.dupes.get(key)
         if data is None:
-            DBGLOG("NEW DATABLOCK!")
+            DBGLOG("DDFilter: NEW DATABLOCK!")
             self.dupes[key] = seq
             return True
 
@@ -123,9 +123,9 @@ class DuplicateDatablockFilter:
             if seq[i] != data[i]:
                 self.dupes[key] = seq
                 assert(seq == self.dupes.get(key))
-                DBGLOG("DIFFERENT DATABLOCK!")
+                DBGLOG("DDFilter: DIFFERENT DATABLOCK!")
                 return True
-        DBGLOG("REPEATED!")
+        DBGLOG("DDFilter: REPEATED!")
         return False
 
 class DataLogger(QObject):
