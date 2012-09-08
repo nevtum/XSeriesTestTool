@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'packetview.ui'
 #
-# Created: Sat Sep 08 01:31:19 2012
+# Created: Sat Sep 08 12:54:24 2012
 #      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -65,7 +65,7 @@ class Ui_packetViewer(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.uiRawData.sizePolicy().hasHeightForWidth())
         self.uiRawData.setSizePolicy(sizePolicy)
-        self.uiRawData.setMaximumSize(QtCore.QSize(16777215, 70))
+        self.uiRawData.setMaximumSize(QtCore.QSize(16777215, 80))
         self.uiRawData.setReadOnly(True)
         self.uiRawData.setObjectName(_fromUtf8("uiRawData"))
         self.verticalLayout.addWidget(self.uiRawData)

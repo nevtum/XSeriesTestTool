@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>XSeriesTestTool</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -27,12 +27,18 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>60</width>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>0</width>
           <height>0</height>
          </size>
         </property>
         <property name="text">
-         <string>Filter:</string>
+         <string>Regex Filter:</string>
         </property>
        </widget>
       </item>

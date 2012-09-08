@@ -212,6 +212,7 @@ class MyApp(QtGui.QMainWindow):
         self.ui.tableView.setColumnWidth(1, 60)
         self.ui.tableView.setColumnWidth(2, 100)
         self.ui.tableView.setColumnWidth(3, 250)
+        self.ui.tableView.horizontalHeader().setStretchLastSection(True)
         self.ui.tableView.setSortingEnabled(True)
 
 if __name__ == "__main__":
