@@ -82,14 +82,13 @@ class Publisher:
         if subscriber not in self.subscribers:
             self.subscribers.append(subscriber)
 
-    # this function is not in use.
+    # this function is not currently in use.
     def Detach(self, subscriber):
         if subscriber in self.subscribers:
             self.subscribers.remove(subscriber)
 
-    def Record(self, mq):
-        while not mq.isEmpty():
-            self.packet = mq.dequeue()
+    def Record(self, packet):
+            self.packet = packet
             DBGLOG("Publisher: publishing to views")
             self.Publish()
 
@@ -138,7 +137,7 @@ class DataLogger(QObject):
         direction TEXT NOT NULL,
         packetid TEXT NOT NULL,
         hex TEXT NOT NULL)"""
-        self.dec = parent.factory.getProtocolDecoder()
+        self.dec = parent.getFactory().getProtocolDecoder()
         self.filter = DuplicateDatablockFilter()
         cursor.execute(sql)
         self.con.commit()

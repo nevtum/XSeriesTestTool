@@ -15,11 +15,11 @@ appbase, appform = uic.loadUiType("gui/analyzer.ui")
 
 
 class DecoderDialog(decbase, decform):
-    def __init__(self, parent=None):
+    def __init__(self, parent = None):
         super(decbase, self).__init__(parent)
         self.setupUi(self)
         self.setupConnections()
-        self.sqlwrapper = parent.factory.getQtSQLWrapper()
+        self.sqlwrapper = parent.getFactory().getQtSQLWrapper()
 
     def setupConnections(self):
         self.btnCopy.clicked.connect(self.on_btnCopy_clicked)
@@ -34,13 +34,13 @@ class DecoderDialog(decbase, decform):
         mdlindex = self.parent().getCurrentModelIndex()
         if mdlindex.isValid():
             nextrow = mdlindex.row()+1
-            self.parent().ui.tableView.selectRow(nextrow)
+            self.parent().tableView.selectRow(nextrow)
 
     def on_btnPrev_clicked(self):
         mdlindex = self.parent().getCurrentModelIndex()
         if mdlindex.isValid():
             prevrow = mdlindex.row()-1
-            self.parent().ui.tableView.selectRow(prevrow)
+            self.parent().tableView.selectRow(prevrow)
 
     def Update(self, newMdlIndex, oldMdlIndex):
         if newMdlIndex.isValid():
@@ -71,7 +71,7 @@ class DecoderDialog(decbase, decform):
 
 
 class MyApp(appbase, appform):
-    def __init__(self, parent=None):
+    def __init__(self, parent = None):
         super(appbase, self).__init__(parent)
         self.setupUi(self)
         self.db = None
@@ -85,6 +85,9 @@ class MyApp(appbase, appform):
         self.listenThread = ListenThread(self)
         self.replayThread = ReplayThread(self)
         self.lineEditPort.setText("com17")
+
+    def getFactory(self):
+        return self.factory
 
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -119,7 +122,8 @@ class MyApp(appbase, appform):
         return index
 
     def on_Queued_message(self):
-        self.publisher.Record(self.queue)
+        while not self.queue.isEmpty():
+            self.publisher.Record(self.queue.dequeue())
 
     def on_autoRefreshCheckBoxToggled(self):
         if self.checkBox.isChecked():

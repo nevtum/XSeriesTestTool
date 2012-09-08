@@ -26,7 +26,7 @@ class MessageQueue(QObject):
 class ListenThread(QThread):
     def __init__(self, parent):
         QThread.__init__(self, parent)
-        self.factory = parent.factory
+        self.factory = parent.getFactory()
         self.terminate = False
 
     def setcommport(self, port):
@@ -93,7 +93,7 @@ class ListenThread(QThread):
 class ReplayThread(QThread):
     def __init__(self, parent):
         QThread.__init__(self, parent)
-        self.factory = parent.factory
+        self.factory = parent.getFactory()
         self.terminate = False
 
     def setcommport(self, port):
