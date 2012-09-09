@@ -14,28 +14,37 @@ class TestDataEditor(base, form):
     def __init__(self, parent = None):
         super(base, self).__init__(parent)
         self.setupUi(self)
-        
+
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName("test.db")
         self.db.open()
-        
+
         self.mdl = QtSql.QSqlTableModel(self, self.db)
         self.mdl.setTable("packetlog")
         self.mdl.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
         self.mdl.select()
-        
-        self.uiView.setModel(self.mdl)
+
+        self.proxymdl = QtGui.QSortFilterProxyModel(self)
+        self.proxymdl.setSourceModel(self.mdl)
+        self.proxymdl.setFilterKeyColumn(2)
+        self.proxymdl.setDynamicSortFilter(True)
+
+        self.uiView.setModel(self.proxymdl)
         self.uiView.setColumnWidth(0, 150)
-        self.uiView.setColumnWidth(1, 70)
-        self.uiView.setColumnWidth(2, 60)
+        self.uiView.resizeColumnToContents(1)
+        self.uiView.resizeColumnToContents(2)
+        #self.uiView.setColumnWidth(1, 70)
+        #self.uiView.setColumnWidth(2, 60)
         #self.uiView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.uiView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         #self.uiView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.uiView.horizontalHeader().setStretchLastSection(True)
-        
+        self.uiView.setSortingEnabled(True)
+
         self.btnInsert.clicked.connect(self.addItem)
         self.btnRemove.clicked.connect(self.removeRow)
-        
+        self.lineEdit.textChanged.connect(self.proxymdl.setFilterRegExp)
+
     def addItem(self):
         query = QtSql.QSqlQuery(self.db)
         query.prepare("INSERT INTO packetlog VALUES(:date,:direction,:type,:contents)")
@@ -43,7 +52,7 @@ class TestDataEditor(base, form):
         query.bindValue(":direction", "incoming")
         query.bindValue(":type", "testpacket")
         query.bindValue(":contents", "80F3AB69170037A00B")
-        
+
         index = self.uiView.selectionModel().currentIndex()
         print query.exec_()
         self.mdl.select()

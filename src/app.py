@@ -103,8 +103,8 @@ class MyApp(appbase, appform):
         self.updateViewContents()
 
     def setupConnections(self):
-        self.btnRefresh.clicked.connect(self.on_btnRefresh_clicked)
-        self.btnAnalyze.clicked.connect(self.on_btnAnalyze_clicked)
+        self.btnRefresh.clicked.connect(self.updateViewContents)
+        self.btnAnalyze.clicked.connect(self.decDialog.show)
         self.btnClear.clicked.connect(self.on_btnClear_clicked)
         self.pushButton.clicked.connect(self.on_btnReplay_clicked)
         self.replaying = False
@@ -128,9 +128,9 @@ class MyApp(appbase, appform):
 
     def on_autoRefreshCheckBoxToggled(self):
         if self.checkBox.isChecked():
-            self.connect(self.datalogger, SIGNAL("newentry"), self.on_btnRefresh_clicked)
+            self.connect(self.datalogger, SIGNAL("newentry"), self.updateViewContents)
         else:
-            self.disconnect(self.datalogger, SIGNAL("newentry"), self.on_btnRefresh_clicked)
+            self.disconnect(self.datalogger, SIGNAL("newentry"), self.updateViewContents)
 
     def on_IgnoreDupesCheckBoxToggled(self):
         ddfilter = self.datalogger.getDuplicateDatablockFilter()
@@ -176,12 +176,6 @@ class MyApp(appbase, appform):
 
     def on_btnClear_clicked(self):
         self.db.clearDatabase()
-        self.updateViewContents()
-
-    def on_btnAnalyze_clicked(self):
-        self.decDialog.show()
-
-    def on_btnRefresh_clicked(self):
         self.updateViewContents()
 
     def updateViewContents(self):
