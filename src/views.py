@@ -5,19 +5,14 @@ from PyQt4.QtCore import QObject, SIGNAL
 from PyQt4 import QtSql, QtGui
 
 class QtSQLWrapper(QObject):
-    def __init__(self, filename, decoder, parent = None):
+    def __init__(self, filename, parent = None):
         QObject.__init__(self, parent)
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(filename)
         self.db.open()
+
         self.model = QtSql.QSqlQueryModel(self)
-        self.dec = decoder
         self.setupProxyModel()
-        
-        # just a quick fix for now. used for pysqlite
-        self.filename = filename
-        self.sqlitedb = sqlite3.connect(self.filename)
-        self.cur = self.sqlitedb.cursor()
 
     def setupProxyModel(self):
         self.proxy = QtGui.QSortFilterProxyModel()
@@ -25,8 +20,11 @@ class QtSQLWrapper(QObject):
         self.proxy.setFilterKeyColumn(2)
         self.proxy.setDynamicSortFilter(True)
         
-    def getModel(self):
+    def getProxyModel(self):
         return self.proxy
+    
+    def getSourceModel(self):
+        return self.model
     
     def refresh(self):
         DBGLOG("Wrapper: Refreshing!!!")
@@ -36,35 +34,6 @@ class QtSQLWrapper(QObject):
         query = "DELETE FROM packetlog"
         q = QtSql.QSqlQuery(self.db)
         q.exec_(query)
-        #self.db.clearDatabase()
-    
-    def getTimestamp(self, rowindex):
-        record = self.model.record(rowindex)
-        return record.value("timestamp").toString()
-
-    def getDecodedData(self, rowindex):
-        packet = self.getRawData2(rowindex)
-        seq = [x for x in bytearray.fromhex(packet)]
-        return self.dec.createXMLPacket(seq)
-    
-    def getRawData(self, rowindex):
-        self.getRawData2(rowindex)
-        assert(isinstance(rowindex, int))
-        record = self.model.record(rowindex)
-        return str(record.value("hex").toString())
-    
-    # just a quick fix for now
-    def getRawData2(self, rowindex):
-        time = self.getTimestamp(rowindex)
-        sqlitedb = sqlite3.connect(self.filename)
-        cur = sqlitedb.cursor()
-        cur.execute("SELECT hex FROM packetlog WHERE timestamp = '%s'" % time)
-        for next in cur:
-            return next[0]
-    
-    def runQuery(self, querystring):
-        self.cur.execute(querystring)
-        return tuple(self.cur)
 
     def __del__(self):
         self.db.close()

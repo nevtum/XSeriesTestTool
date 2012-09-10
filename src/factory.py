@@ -27,5 +27,5 @@ class TransmissionFactory:
     
     def getQtSQLWrapper(self):
         if self.sqlwrapper == None:
-            self.sqlwrapper = QtSQLWrapper("test.db", self.getProtocolDecoder())
+            self.sqlwrapper = QtSQLWrapper("test.db")
         return self.sqlwrapper

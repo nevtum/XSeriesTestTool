@@ -44,17 +44,18 @@ class TestDataEditor(base, form):
         self.btnInsert.clicked.connect(self.addItem)
         self.btnRemove.clicked.connect(self.removeRow)
         self.lineEdit.textChanged.connect(self.proxymdl.setFilterRegExp)
+		
+        self.query = QtSql.QSqlQuery(self.db)
 
     def addItem(self):
-        query = QtSql.QSqlQuery(self.db)
-        query.prepare("INSERT INTO packetlog VALUES(:date,:direction,:type,:contents)")
-        query.bindValue(":date", str(datetime.now()))
-        query.bindValue(":direction", "incoming")
-        query.bindValue(":type", "testpacket")
-        query.bindValue(":contents", "80F3AB69170037A00B")
+        self.query.prepare("INSERT INTO packetlog VALUES(:date,:direction,:type,:contents)")
+        self.query.bindValue(":date", str(datetime.now()))
+        self.query.bindValue(":direction", "incoming")
+        self.query.bindValue(":type", "testpacket")
+        self.query.bindValue(":contents", "")
 
         index = self.uiView.selectionModel().currentIndex()
-        print query.exec_()
+        print self.query.exec_()
         self.mdl.select()
         self.uiView.selectRow(index.row())
 

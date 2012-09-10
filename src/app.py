@@ -21,6 +21,7 @@ class DecoderDialog(decbase, decform):
         self.setupUi(self)
         self.setupConnections()
         self.sqlwrapper = parent.getFactory().getQtSQLWrapper()
+        self.decoder = parent.getFactory().getProtocolDecoder()
 
     def setupConnections(self):
         self.btnCopy.clicked.connect(self.on_btnCopy_clicked)
@@ -45,11 +46,16 @@ class DecoderDialog(decbase, decform):
 
     def Update(self, newMdlIndex, oldMdlIndex):
         if newMdlIndex.isValid():
-            srcMdlIndex = self.sqlwrapper.getModel().mapToSource(newMdlIndex)
+            proxy = self.sqlwrapper.getProxyModel()
+            origmdl = self.sqlwrapper.getSourceModel()
+            srcMdlIndex = proxy.mapToSource(newMdlIndex)
             
-            timestamp = self.sqlwrapper.getTimestamp(srcMdlIndex.row())
-            contents = self.sqlwrapper.getDecodedData(srcMdlIndex.row())
-            raw = self.sqlwrapper.getRawData(srcMdlIndex.row())
+            record = origmdl.record(srcMdlIndex.row())
+            timestamp = record.value("timestamp").toString()
+            raw = str(record.value("hex").toString())
+            seq = [x for x in bytearray.fromhex(raw)]
+            
+            decoded = self.decoder.createXMLPacket(seq)
             
             string = ""
             for i in range(len(raw)):
@@ -63,7 +69,7 @@ class DecoderDialog(decbase, decform):
                         string += " "
 
             self.lineEdit.setText(timestamp)
-            self.textEdit.setText(contents)
+            self.textEdit.setText(decoded)
             self.uiRawData.setText(string)
 
             #DBGLOG("ProxyIndex: %i, ModelIndex: %i" % (newMdlIndex.row(), srcMdlIndex.row()))
@@ -95,10 +101,10 @@ class MyApp(appbase, appform):
 
     def setupDB(self):
         self.db = self.factory.getQtSQLWrapper()
-        self.tableView.setModel(self.db.getModel())
+        self.tableView.setModel(self.db.getProxyModel())
         self.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
 
-        proxy = self.db.getModel()
+        proxy = self.db.getProxyModel()
         self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
         self.updateViewContents()
 
