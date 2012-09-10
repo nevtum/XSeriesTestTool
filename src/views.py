@@ -10,56 +10,50 @@ class QtSQLWrapper(QObject):
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(filename)
         self.db.open()
-
         self.model = QtSql.QSqlQueryModel(self)
         self.setupProxyModel()
+        self.query = QtSql.QSqlQuery(self.db)
+        self.filter = DuplicateDatablockFilter()
+
+    def getDuplicateDatablockFilter(self):
+        return self.filter
+
+    def addRecord(self, direction, type, bytearray):
+        if not self.filter.differentToPrevious(type, bytearray):
+            return
+
+        hexstring = ''.join(["%02X" % byte for byte in bytearray])
+        self.query.prepare("INSERT INTO packetlog VALUES(:date,:direction,:type,:contents)")
+        self.query.bindValue(":date", str(datetime.now()))
+        self.query.bindValue(":direction", str(direction))
+        self.query.bindValue(":type", type)
+        self.query.bindValue(":contents", str(hexstring))
+        self.query.exec_()
+        self.emit(SIGNAL("newentry"))
 
     def setupProxyModel(self):
         self.proxy = QtGui.QSortFilterProxyModel()
         self.proxy.setSourceModel(self.model)
         self.proxy.setFilterKeyColumn(2)
         self.proxy.setDynamicSortFilter(True)
-        
+
     def getProxyModel(self):
         return self.proxy
-    
+
     def getSourceModel(self):
         return self.model
-    
-    def refresh(self):
-        DBGLOG("Wrapper: Refreshing!!!")
-        self.model.setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
-    
+
     def clearDatabase(self):
         query = "DELETE FROM packetlog"
-        q = QtSql.QSqlQuery(self.db)
-        q.exec_(query)
+        self.query.exec_(query)
+
+    def runSelectQuery(self, query):
+        self.query.prepare(query)
+        self.query.exec_()
+        # need more code
 
     def __del__(self):
         self.db.close()
-
-class Publisher:
-    def __init__(self):
-        self.subscribers = []
-        self.packet = None
-
-    def Attach(self, subscriber):
-        if subscriber not in self.subscribers:
-            self.subscribers.append(subscriber)
-
-    # this function is not currently in use.
-    def Detach(self, subscriber):
-        if subscriber in self.subscribers:
-            self.subscribers.remove(subscriber)
-
-    def Record(self, packet):
-            self.packet = packet
-            DBGLOG("Publisher: publishing to views")
-            self.Publish()
-
-    def Publish(self):
-        for subscriber in self.subscribers:
-            subscriber.Update(self.packet)
 
 class DuplicateDatablockFilter:
     def __init__(self):
@@ -68,6 +62,8 @@ class DuplicateDatablockFilter:
 
     def filterduplicates(self, toggle):
         assert(isinstance(toggle, bool))
+        if toggle == False:
+            self.dupes.clear()
         self.filtered = toggle
         DBGLOG("DDFilter: Filtering enabled = %s" % toggle)
 
@@ -91,6 +87,32 @@ class DuplicateDatablockFilter:
                 return True
         DBGLOG("DDFilter: REPEATED!")
         return False
+
+
+""" REMOVE UNNECESSARY CLASSES BELOW """
+
+class Publisher:
+    def __init__(self):
+        self.subscribers = []
+        self.packet = None
+
+    def Attach(self, subscriber):
+        if subscriber not in self.subscribers:
+            self.subscribers.append(subscriber)
+
+    # this function is not currently in use.
+    def Detach(self, subscriber):
+        if subscriber in self.subscribers:
+            self.subscribers.remove(subscriber)
+
+    def Record(self, packet):
+            self.packet = packet
+            DBGLOG("Publisher: publishing to views")
+            self.Publish()
+
+    def Publish(self):
+        for subscriber in self.subscribers:
+            subscriber.Update(self.packet)
 
 class DataLogger(QObject):
     def __init__(self, filename, parent = None):

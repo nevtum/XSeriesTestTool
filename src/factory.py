@@ -10,10 +10,12 @@ class TransmissionFactory:
         self.publisher = None
         self.sqlwrapper = None
 
+    """
     def getMessageQueue(self):
         if self.messagequeue == None:
             self.messagequeue = MessageQueue()
         return self.messagequeue
+    """
 
     def getProtocolDecoder(self):
         if self.xdec == None:

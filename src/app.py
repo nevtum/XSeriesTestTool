@@ -5,7 +5,7 @@ Created on 11/06/2012
 '''
 import sys
 from factory import TransmissionFactory
-from views import DataLogger, Publisher
+from views import Publisher
 from comms_threads import ListenThread, ReplayThread
 from PyQt4 import QtGui, uic
 from PyQt4.QtCore import SIGNAL
@@ -83,9 +83,9 @@ class MyApp(appbase, appform):
         self.setupUi(self)
         self.db = None
         self.factory = TransmissionFactory()
-        self.queue = self.factory.getMessageQueue()
-        self.datalogger = DataLogger("test.db", self)
-        self.publisher = Publisher()
+        #self.queue = self.factory.getMessageQueue()
+        #self.datalogger = DataLogger("test.db", self)
+        #self.publisher = Publisher()
         self.setupChildDialogs()
         self.setupDB()
         self.setupConnections()
@@ -118,11 +118,10 @@ class MyApp(appbase, appform):
         self.recording = False
         self.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
         self.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
-        self.connect(self.queue, SIGNAL("receivedpacket"), self.on_Queued_message)
-        self.setupViews()
+        #self.setupViews()
 
-    def setupViews(self):
-        self.publisher.Attach(self.datalogger)
+    #def setupViews(self):
+    #    self.publisher.Attach(self.datalogger)
 
     def getCurrentModelIndex(self):
         index = self.tableView.selectionModel().currentIndex()
@@ -134,12 +133,12 @@ class MyApp(appbase, appform):
 
     def on_autoRefreshCheckBoxToggled(self):
         if self.checkBox.isChecked():
-            self.connect(self.datalogger, SIGNAL("newentry"), self.updateViewContents)
+            self.connect(self.db, SIGNAL("newentry"), self.updateViewContents)
         else:
-            self.disconnect(self.datalogger, SIGNAL("newentry"), self.updateViewContents)
+            self.disconnect(self.db, SIGNAL("newentry"), self.updateViewContents)
 
     def on_IgnoreDupesCheckBoxToggled(self):
-        ddfilter = self.datalogger.getDuplicateDatablockFilter()
+        ddfilter = self.db.getDuplicateDatablockFilter()
         if self.cbFilterDupes.isChecked():
             ddfilter.filterduplicates(True)
         else:
@@ -185,7 +184,7 @@ class MyApp(appbase, appform):
         self.updateViewContents()
 
     def updateViewContents(self):
-        self.db.refresh()
+        self.db.getSourceModel().setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
         self.tableView.setColumnWidth(0, 150)
         self.tableView.setColumnWidth(1, 60)
         self.tableView.setColumnWidth(2, 100)

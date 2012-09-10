@@ -40,7 +40,8 @@ class ListenThread(QThread):
 
         # add a try/finally statement in the future
         serial = SerialModule(self.port, self.baud)
-        queue = self.factory.getMessageQueue()
+        #queue = self.factory.getMessageQueue()
+        db = self.factory.getQtSQLWrapper()
         self.terminate = False
         BUFFER = []
         DBGLOG("ListenThread: Serial thread started!")
@@ -61,9 +62,11 @@ class ListenThread(QThread):
                 except ValueError:
                     DBGLOG("ListenThread: length is zero")
 
-                if packetinfo.getPacketName() == "unknown":
+                type = packetinfo.getPacketName()
+                if type == "unknown":
                     DBGLOG("ListenThread: Unknown packet received")
-                    queue.add(BUFFER[:])
+                    #queue.add(BUFFER[:])
+                    db.addRecord("incoming", type, BUFFER[:])
                     BUFFER = []
                     break
                 elif len(BUFFER) < expectedlength:
@@ -73,12 +76,14 @@ class ListenThread(QThread):
                 elif len(BUFFER) > expectedlength:
                     DBGLOG("ListenThread: packet length larger than expected length")
                     DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
-                    queue.add(BUFFER[:expectedlength])
+                    #queue.add(BUFFER[:expectedlength])
+                    db.addRecord("incoming", type, BUFFER[:])
                     BUFFER = BUFFER[expectedlength:]
                     break
                 else:
                     DBGLOG("ListenThread: length matches")
-                    queue.add(BUFFER[:])
+                    #queue.add(BUFFER[:])
+                    db.addRecord("incoming", type, BUFFER[:])
                     BUFFER = []
 
                 DBGLOG("ListenThread: TYPE = %s" % packetinfo.getPacketName())
@@ -106,7 +111,7 @@ class ReplayThread(QThread):
         serial = SerialModule(self.port, self.baud)
         queue = self.factory.getMessageQueue()
         query = "SELECT hex FROM packetlog where direction ='incoming' ORDER BY timestamp ASC LIMIT 100"
-        for entry in wrapper.runQuery(query):
+        for entry in wrapper.runSelectQuery(query):
             if self.terminate:
                 break
             if len(entry) == 1:
