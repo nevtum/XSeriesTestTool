@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>574</width>
-    <height>512</height>
+    <width>751</width>
+    <height>621</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -69,7 +69,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="btnReplay">
         <property name="text">
          <string>Replay Recording</string>
         </property>
@@ -185,6 +185,29 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="2">
+       <widget class="QLineEdit" name="lineEditTitle">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Set Title:</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -194,7 +217,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>574</width>
+     <width>751</width>
      <height>20</height>
     </rect>
    </property>
@@ -257,12 +280,12 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>526</x>
-     <y>336</y>
+     <x>387</x>
+     <y>469</y>
     </hint>
     <hint type="destinationlabel">
-     <x>607</x>
-     <y>339</y>
+     <x>468</x>
+     <y>472</y>
     </hint>
    </hints>
   </connection>
@@ -279,6 +302,22 @@
     <hint type="destinationlabel">
      <x>356</x>
      <y>189</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lineEditTitle</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>setWindowTitle(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>398</x>
+     <y>31</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>326</x>
+     <y>-13</y>
     </hint>
    </hints>
   </connection>

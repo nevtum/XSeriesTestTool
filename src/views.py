@@ -15,9 +15,6 @@ class QtSQLWrapper(QObject):
         self.query = QtSql.QSqlQuery(self.db)
         self.filter = DuplicateDatablockFilter()
 
-    def getDuplicateDatablockFilter(self):
-        return self.filter
-
     def addRecord(self, direction, type, bytearray):
         if not self.filter.differentToPrevious(type, bytearray):
             return
@@ -37,6 +34,18 @@ class QtSQLWrapper(QObject):
         self.proxy.setFilterKeyColumn(2)
         self.proxy.setDynamicSortFilter(True)
 
+    def refresh(self):
+        self.model.setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
+
+    def setAutoRefresh(self, toggle):
+        if toggle == True:
+            self.connect(self, SIGNAL("newentry"), self.refresh)
+        else:
+            self.disconnect(self, SIGNAL("newentry"), self.refresh)
+
+    def filterduplicates(self, toggle):
+        self.filter.filterduplicates(toggle)
+
     def getProxyModel(self):
         return self.proxy
 
@@ -46,6 +55,7 @@ class QtSQLWrapper(QObject):
     def clearDatabase(self):
         query = "DELETE FROM packetlog"
         self.query.exec_(query)
+        self.refresh()
 
     def runSelectQuery(self, query):
         self.query.prepare(query)
@@ -62,9 +72,8 @@ class DuplicateDatablockFilter:
 
     def filterduplicates(self, toggle):
         assert(isinstance(toggle, bool))
-        if toggle == False:
-            self.dupes.clear()
         self.filtered = toggle
+        self.dupes.clear()
         DBGLOG("DDFilter: Filtering enabled = %s" % toggle)
 
     def differentToPrevious(self, blocktype, seq):
@@ -87,73 +96,3 @@ class DuplicateDatablockFilter:
                 return True
         DBGLOG("DDFilter: REPEATED!")
         return False
-
-
-""" REMOVE UNNECESSARY CLASSES BELOW """
-
-class Publisher:
-    def __init__(self):
-        self.subscribers = []
-        self.packet = None
-
-    def Attach(self, subscriber):
-        if subscriber not in self.subscribers:
-            self.subscribers.append(subscriber)
-
-    # this function is not currently in use.
-    def Detach(self, subscriber):
-        if subscriber in self.subscribers:
-            self.subscribers.remove(subscriber)
-
-    def Record(self, packet):
-            self.packet = packet
-            DBGLOG("Publisher: publishing to views")
-            self.Publish()
-
-    def Publish(self):
-        for subscriber in self.subscribers:
-            subscriber.Update(self.packet)
-
-class DataLogger(QObject):
-    def __init__(self, filename, parent = None):
-        QObject.__init__(self, parent)
-        self.con = sqlite3.connect(filename)
-        cursor = self.con.cursor()
-        sql = """CREATE TABLE IF NOT EXISTS packetlog(
-        timestamp DATETIME,
-        direction TEXT NOT NULL,
-        packetid TEXT NOT NULL,
-        hex TEXT NOT NULL)"""
-        self.dec = parent.getFactory().getProtocolDecoder()
-        self.filter = DuplicateDatablockFilter()
-        cursor.execute(sql)
-        self.con.commit()
-        self.duplicates = {}
-
-    def Update(self, seq):
-        # add proper code later
-        meta = self.dec.getMetaData(seq)
-        self.logData("incoming", meta.getPacketName(), seq)
-        DBGLOG("Logger: emitting newentry signal")
-        self.emit(SIGNAL("newentry"))
-
-    def getDuplicateDatablockFilter(self):
-        return self.filter
-
-    def logData(self, direction, packetid, seq):
-        assert(isinstance(seq, list))
-        if not self.filter.differentToPrevious(packetid, seq):
-            return
-        data = ''.join(["%02X" % byte for byte in seq])
-        if(direction not in ('incoming', 'outgoing')):
-            raise ValueError()
-        cursor = self.con.cursor()
-        params = (str(datetime.now()), direction, packetid, data)
-        sql = "INSERT INTO packetlog VALUES('%s','%s','%s','%s')" % params
-        cursor.execute(sql)
-        self.con.commit()
-
-    def queryData(self, query):
-        assert(isinstance(query, str))
-        cursor = self.con.cursor()
-        return cursor.execute(query)

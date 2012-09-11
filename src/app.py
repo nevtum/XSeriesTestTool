@@ -5,7 +5,6 @@ Created on 11/06/2012
 '''
 import sys
 from factory import TransmissionFactory
-from views import Publisher
 from comms_threads import ListenThread, ReplayThread
 from PyQt4 import QtGui, uic
 from PyQt4.QtCore import SIGNAL
@@ -81,20 +80,24 @@ class MyApp(appbase, appform):
     def __init__(self, parent = None):
         super(appbase, self).__init__(parent)
         self.setupUi(self)
-        self.db = None
         self.factory = TransmissionFactory()
-        #self.queue = self.factory.getMessageQueue()
-        #self.datalogger = DataLogger("test.db", self)
-        #self.publisher = Publisher()
         self.setupChildDialogs()
         self.setupDB()
         self.setupConnections()
+        self.setupWidgets()
         self.listenThread = ListenThread(self)
         self.replayThread = ReplayThread(self)
         self.lineEditPort.setText("com17")
 
     def getFactory(self):
         return self.factory
+
+    def setupWidgets(self):
+        self.tableView.setColumnWidth(0, 150)
+        self.tableView.setColumnWidth(1, 60)
+        self.tableView.setColumnWidth(2, 100)
+        self.tableView.horizontalHeader().setStretchLastSection(True)
+        self.tableView.setSortingEnabled(True)
 
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -106,48 +109,28 @@ class MyApp(appbase, appform):
 
         proxy = self.db.getProxyModel()
         self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
-        self.updateViewContents()
+        self.refreshView()
 
     def setupConnections(self):
-        self.btnRefresh.clicked.connect(self.updateViewContents)
+        self.btnRefresh.clicked.connect(self.refreshView)
         self.btnAnalyze.clicked.connect(self.decDialog.show)
-        self.btnClear.clicked.connect(self.on_btnClear_clicked)
-        self.pushButton.clicked.connect(self.on_btnReplay_clicked)
+        self.btnClear.clicked.connect(self.db.clearDatabase)
+        self.btnReplay.clicked.connect(self.on_btnReplay_clicked)
         self.replaying = False
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
-        self.checkBox.toggled.connect(self.on_autoRefreshCheckBoxToggled)
-        self.cbFilterDupes.toggled.connect(self.on_IgnoreDupesCheckBoxToggled)
-        #self.setupViews()
+        self.checkBox.toggled.connect(self.db.setAutoRefresh)
+        self.cbFilterDupes.toggled.connect(self.db.filterduplicates)
+        self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
-    #def setupViews(self):
-    #    self.publisher.Attach(self.datalogger)
-
-    def getCurrentModelIndex(self):
-        index = self.tableView.selectionModel().currentIndex()
-        return index
-
-    def on_Queued_message(self):
-        while not self.queue.isEmpty():
-            self.publisher.Record(self.queue.dequeue())
-
-    def on_autoRefreshCheckBoxToggled(self):
-        if self.checkBox.isChecked():
-            self.connect(self.db, SIGNAL("newentry"), self.updateViewContents)
-        else:
-            self.disconnect(self.db, SIGNAL("newentry"), self.updateViewContents)
-
-    def on_IgnoreDupesCheckBoxToggled(self):
-        ddfilter = self.db.getDuplicateDatablockFilter()
-        if self.cbFilterDupes.isChecked():
-            ddfilter.filterduplicates(True)
-        else:
-            ddfilter.filterduplicates(False)
+    def refreshView(self):
+        self.db.refresh()
+        # add code to refresh view as well
 
     def on_btnRecordPause_clicked(self):
         if not self.recording:
             self.btnRecordPause.setText("Pause")
-            self.pushButton.setDisabled(True)
+            self.btnReplay.setDisabled(True)
             self.lineEditPort.setDisabled(True)
             self.recording = True
             portname = str(self.lineEditPort.text())
@@ -156,14 +139,14 @@ class MyApp(appbase, appform):
             self.listenThread.start()
         else:
             self.btnRecordPause.setText("Record")
-            self.pushButton.setDisabled(False)
+            self.btnReplay.setDisabled(False)
             self.lineEditPort.setDisabled(False)
             self.recording = False
             self.listenThread.quit()
 
     def on_btnReplay_clicked(self):
         if not self.replaying:
-            self.pushButton.setText("Stop Replay")
+            self.btnReplay.setText("Stop Replay")
             self.btnRecordPause.setDisabled(True)
             self.lineEditPort.setDisabled(True)
             self.replaying = True
@@ -173,23 +156,11 @@ class MyApp(appbase, appform):
             self.replayThread.start()
         else:
             # what about when thread finishes on its own?
-            self.pushButton.setText("Replay")
+            self.btnReplay.setText("Replay")
             self.btnRecordPause.setDisabled(False)
             self.lineEditPort.setDisabled(False)
             self.replaying = False
             self.replayThread.quit()
-
-    def on_btnClear_clicked(self):
-        self.db.clearDatabase()
-        self.updateViewContents()
-
-    def updateViewContents(self):
-        self.db.getSourceModel().setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
-        self.tableView.setColumnWidth(0, 150)
-        self.tableView.setColumnWidth(1, 60)
-        self.tableView.setColumnWidth(2, 100)
-        self.tableView.horizontalHeader().setStretchLastSection(True)
-        self.tableView.setSortingEnabled(True)
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)

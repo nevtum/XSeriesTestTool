@@ -36,12 +36,11 @@ class ListenThread(QThread):
         self.baud = int(baud)
 
     def run(self):
+        db = self.factory.getQtSQLWrapper()
         dec = self.factory.getProtocolDecoder()
 
         # add a try/finally statement in the future
         serial = SerialModule(self.port, self.baud)
-        #queue = self.factory.getMessageQueue()
-        db = self.factory.getQtSQLWrapper()
         self.terminate = False
         BUFFER = []
         DBGLOG("ListenThread: Serial thread started!")
@@ -107,18 +106,17 @@ class ReplayThread(QThread):
 
     def run(self):
         DBGLOG("replaying data")
-        wrapper = self.factory.getQtSQLWrapper()
+        db = self.factory.getQtSQLWrapper()
         serial = SerialModule(self.port, self.baud)
-        queue = self.factory.getMessageQueue()
         query = "SELECT hex FROM packetlog where direction ='incoming' ORDER BY timestamp ASC LIMIT 100"
-        for entry in wrapper.runSelectQuery(query):
+        for entry in db.runSelectQuery(query):
             if self.terminate:
                 break
             if len(entry) == 1:
                 seq = [x for x in bytearray.fromhex(entry[0])]
                 DBGLOG(str(seq))
                 serial.Tx(seq)
-                queue.add(seq)
+                db.addRecord("incoming", type, seq)
                 time.sleep(1)
         serial.close()
 

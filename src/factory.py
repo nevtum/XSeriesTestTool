@@ -1,21 +1,11 @@
-from comms_threads import MessageQueue
 from config.configmanager import metaRepository
 from decoder import *
-from views import Publisher, QtSQLWrapper
+from views import QtSQLWrapper
 
 class TransmissionFactory:
     def __init__(self):
         self.xdec = None
-        self.messagequeue = None
-        self.publisher = None
         self.sqlwrapper = None
-
-    """
-    def getMessageQueue(self):
-        if self.messagequeue == None:
-            self.messagequeue = MessageQueue()
-        return self.messagequeue
-    """
 
     def getProtocolDecoder(self):
         if self.xdec == None:
