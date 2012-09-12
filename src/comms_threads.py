@@ -4,25 +4,6 @@ from serial_app import SerialModule
 from PyQt4.QtCore import QObject, QThread, SIGNAL
 from debug import *
 
-class MessageQueue(QObject):
-    def __init__(self):
-        QObject.__init__(self)
-        self.q = Queue.LifoQueue(10)
-
-    def add(self, message):
-        DBGLOG("MessageQueue: adding new message to queue")
-        assert(message)
-        self.q.put(message)
-        DBGLOG("MessageQueue: finished adding message")
-        self.emit(SIGNAL("receivedpacket"))
-
-    def dequeue(self):
-        item = self.q.get()
-        return item
-
-    def isEmpty(self):
-        return self.q.empty()
-
 class ListenThread(QThread):
     def __init__(self, parent):
         QThread.__init__(self, parent)
@@ -60,30 +41,27 @@ class ListenThread(QThread):
                     expectedlength = packetinfo.getPacketLength()
                 except ValueError:
                     DBGLOG("ListenThread: length is zero")
+                except AssertionError:
+                    DBGLOG("ListenThread: packet not large enough to determine SOB")
 
                 type = packetinfo.getPacketName()
                 if type == "unknown":
-                    DBGLOG("ListenThread: Unknown packet received")
+                    DBGLOG("ListenThread: Unknown packet type")
                     #queue.add(BUFFER[:])
                     db.addRecord("incoming", type, BUFFER[:])
                     BUFFER = []
                     break
-                elif len(BUFFER) < expectedlength:
+                elif 0 < len(BUFFER) < expectedlength:
                     DBGLOG("ListenThread: packet length smaller than expected length")
                     DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
                     break
-                elif len(BUFFER) > expectedlength:
-                    DBGLOG("ListenThread: packet length larger than expected length")
+                elif len(BUFFER) >= expectedlength:
                     DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
                     #queue.add(BUFFER[:expectedlength])
                     db.addRecord("incoming", type, BUFFER[:expectedlength])
                     BUFFER = BUFFER[expectedlength:]
-                    break
                 else:
-                    DBGLOG("ListenThread: length matches")
-                    #queue.add(BUFFER[:])
-                    db.addRecord("incoming", type, BUFFER[:])
-                    BUFFER = []
+                    raise AssertionError('Code should never reach here')
 
                 DBGLOG("ListenThread: TYPE = %s" % packetinfo.getPacketName())
         serial.close()
@@ -119,6 +97,7 @@ class ReplayThread(QThread):
                 db.addRecord("incoming", type, seq)
                 time.sleep(1)
         serial.close()
+        self.emit(SIGNAL("TxComplete"))
 
     def quit(self):
         # this bit is not thread safe. Make improvements later.

@@ -155,7 +155,8 @@ class MyApp(appbase, appform):
             self.replayThread.setbaud(9600)
             self.replayThread.start()
         else:
-            # what about when thread finishes on its own?
+            # add slot to listen to signal
+            # when thread finishes on its own
             self.btnReplay.setText("Replay")
             self.btnRecordPause.setDisabled(False)
             self.lineEditPort.setDisabled(False)

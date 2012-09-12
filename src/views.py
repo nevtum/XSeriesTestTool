@@ -69,8 +69,16 @@ class QtSQLWrapper(QObject):
 
     def runSelectQuery(self, query):
         self.query.prepare(query)
-        self.query.exec_()
-        # need more code
+        if self.query.isSelect():
+            if self.query.exec_():
+                list = []
+                while self.query.next():
+                    list.append(self.query.nextResult())
+                print list
+                return list
+            DBGLOG("Wrapper: query did not execute successfully")
+        DBGLOG("Wrapper: not a SELECT query")
+        return []
 
     def __del__(self):
         self.db.close()
