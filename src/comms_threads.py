@@ -76,7 +76,7 @@ class ListenThread(QThread):
                     DBGLOG("ListenThread: packet length larger than expected length")
                     DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
                     #queue.add(BUFFER[:expectedlength])
-                    db.addRecord("incoming", type, BUFFER[:])
+                    db.addRecord("incoming", type, BUFFER[:expectedlength])
                     BUFFER = BUFFER[expectedlength:]
                     break
                 else:

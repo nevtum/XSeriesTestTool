@@ -14,6 +14,16 @@ class QtSQLWrapper(QObject):
         self.setupProxyModel()
         self.query = QtSql.QSqlQuery(self.db)
         self.filter = DuplicateDatablockFilter()
+        self.createSQLTables()
+
+    def createSQLTables(self):
+        sql = """CREATE TABLE IF NOT EXISTS packetlog(
+        timestamp DATETIME,
+        direction TEXT NOT NULL,
+        packetid TEXT NOT NULL,
+        hex TEXT NOT NULL)"""
+        self.query.prepare(sql)
+        self.query.exec_()
 
     def addRecord(self, direction, type, bytearray):
         if not self.filter.differentToPrevious(type, bytearray):
