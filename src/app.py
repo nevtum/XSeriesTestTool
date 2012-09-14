@@ -42,8 +42,24 @@ class DecoderDialog(decbase, decform):
         if mdlindex.isValid():
             prevrow = mdlindex.row()-1
             self.parent().tableView.selectRow(prevrow)
+    
+    def getDiffBitmask(self, newMdlIndex, oldMdlIndex):
+        if newMdlIndex.isValid():
+            proxy = self.sqlwrapper.getProxyModel()
+            origmdl = self.sqlwrapper.getSourceModel()
+            newIndex = proxy.mapToSource(newMdlIndex)
+            oldIndex = proxy.mapToSource(oldMdlIndex)
+            
+            newrecord = origmdl.record(newIndex.row()).value("hex").toString()
+            oldrecord = origmdl.record(oldIndex.row()).value("hex").toString()
+            
+            newseq = [x for x in bytearray.fromhex(str(newrecord))]
+            oldseq = [x for x in bytearray.fromhex(str(oldrecord))]
+            
+            self.decoder.diffXMLPacket(newseq, oldseq)
 
     def Update(self, newMdlIndex, oldMdlIndex):
+        self.getDiffBitmask(newMdlIndex, oldMdlIndex)
         if newMdlIndex.isValid():
             proxy = self.sqlwrapper.getProxyModel()
             origmdl = self.sqlwrapper.getSourceModel()

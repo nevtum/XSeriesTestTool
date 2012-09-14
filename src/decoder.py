@@ -1,33 +1,33 @@
 class AbstractItemDecoder:
     def __init__(self, params):
+        assert(isinstance(params, dict))
         self.params = params
 
     def returnValue(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
 
-    def getByteVector(self, packet, lbound, hbound):
+    def getByteArray(self, packet, lbound, hbound):
         return packet[int(hbound)-1:int(lbound)-2:-1]
 
     def getByteString(self, packet, lbound, hbound):
-        arr = ['%02X' % x for x in self.getByteVector(packet, lbound, hbound)]
+        arr = ['%02X' % x for x in self.getByteArray(packet, lbound, hbound)]
         return ''.join(arr)
 
     def getBit(self, byte, n):
         return ((byte >> n) & 0x1)
 
-    def getstartendbyte(self, params):
-        assert(isinstance(params, dict))
-        startbyte = params.get('startbyte')
-        endbyte = params.get('endbyte')
+    def getstartendbyte(self):
+        startbyte = self.params.get('startbyte')
+        endbyte = self.params.get('endbyte')
         if not startbyte:
-            startbyte = endbyte = params.get('byte')
+            startbyte = endbyte = self.params.get('byte')
         assert(startbyte)
         assert(endbyte)
         return startbyte, endbyte
 
 class reverseIntegerDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
-        l, h = self.getstartendbyte(self.params)
+        l, h = self.getstartendbyte()
         return self.getByteString(packet, l, h)
 
 class booleanDecoder(AbstractItemDecoder):
@@ -38,14 +38,14 @@ class booleanDecoder(AbstractItemDecoder):
 
 class reverseCurrencyDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
-        l, h = self.getstartendbyte(self.params)
+        l, h = self.getstartendbyte()
         x = int(self.getByteString(packet, l, h))/100.00
         return '%.2f' % x
 
 class reverseAsciiDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
-        l, h = self.getstartendbyte(self.params)
-        x = [chr(val) for val in self.getByteVector(packet, l, h)]
+        l, h = self.getstartendbyte()
+        x = [chr(val) for val in self.getByteArray(packet, l, h)]
         chars = ''.join(x).strip()
         if chars == '':
             return 'None'
@@ -72,6 +72,30 @@ class IDecoder:
         if dec is None:
             return nullDecoder
         return dec
+    
+    def diffXMLPacket(self, seq1, seq2):
+        if seq1[:2] != seq2[:2]:
+            return None
+        xor = [a^b for a, b in zip(seq1, seq2)]
+        meta = self.getMetaData(seq1)
+        
+        # really need to reduce coupling here
+        x = "<packet name=\"%s\">\n" % meta.getPacketName()
+        for item in meta.allItems():
+            dec = self.__getTypeDecoder(item)
+            params = item.extractParams()
+            start, end = dec.getstartendbyte()
+            if max(dec.getByteArray(xor, start, end)) > 0:
+                tag = item.extract('name')
+                value1 = dec.returnValue(seq1)
+                value2 = dec.returnValue(seq2)
+                x += "\t<%s>\n" % tag
+                x += "\t\t<changeset old=\"%s\" new=\"%s\"\>\n" % (value2, value1)
+                #x += " <%s>%s</%s>\n" % ("new", value2, "new")
+                x += "\t</%s>\n" % tag
+        x += "</packet>"
+        print x
+        return x
 
     def createXMLPacket(self, seq):
         assert(isinstance(seq, list))
