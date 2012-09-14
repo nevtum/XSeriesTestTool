@@ -42,36 +42,27 @@ class DecoderDialog(decbase, decform):
         if mdlindex.isValid():
             prevrow = mdlindex.row()-1
             self.parent().tableView.selectRow(prevrow)
-    
-    def getDiffBitmask(self, newMdlIndex, oldMdlIndex):
-        if newMdlIndex.isValid():
-            proxy = self.sqlwrapper.getProxyModel()
-            origmdl = self.sqlwrapper.getSourceModel()
-            newIndex = proxy.mapToSource(newMdlIndex)
-            oldIndex = proxy.mapToSource(oldMdlIndex)
-            
-            newrecord = origmdl.record(newIndex.row()).value("hex").toString()
-            oldrecord = origmdl.record(oldIndex.row()).value("hex").toString()
-            
-            newseq = [x for x in bytearray.fromhex(str(newrecord))]
-            oldseq = [x for x in bytearray.fromhex(str(oldrecord))]
-            
-            self.decoder.diffXMLPacket(newseq, oldseq)
 
     def Update(self, newMdlIndex, oldMdlIndex):
-        self.getDiffBitmask(newMdlIndex, oldMdlIndex)
         if newMdlIndex.isValid():
             proxy = self.sqlwrapper.getProxyModel()
             origmdl = self.sqlwrapper.getSourceModel()
-            srcMdlIndex = proxy.mapToSource(newMdlIndex)
-            
-            record = origmdl.record(srcMdlIndex.row())
-            timestamp = record.value("timestamp").toString()
-            raw = str(record.value("hex").toString())
-            seq = [x for x in bytearray.fromhex(raw)]
-            
-            decoded = self.decoder.createXMLPacket(seq)
-            
+
+            newIndex = proxy.mapToSource(newMdlIndex)
+            oldIndex = proxy.mapToSource(oldMdlIndex)
+
+            newrecord = origmdl.record(newIndex.row())
+            oldrecord = origmdl.record(oldIndex.row())
+
+            timestamp = newrecord.value("timestamp").toString()
+            raw = str(newrecord.value("hex").toString())
+
+            newseq = [x for x in bytearray.fromhex(str(newrecord.value("hex").toString()))]
+            oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("hex").toString()))]
+
+            decoded = self.decoder.createXMLPacket(newseq)
+            diffed = self.decoder.diffXMLPacket(newseq, oldseq)
+
             string = ""
             for i in range(len(raw)):
                 string += raw[i]
@@ -84,7 +75,8 @@ class DecoderDialog(decbase, decform):
                         string += " "
 
             self.lineEdit.setText(timestamp)
-            self.textEdit.setText(decoded)
+            self.uiDetail.setText(decoded)
+            self.uiChangeSet.setText(diffed)
             self.uiRawData.setText(string)
 
             #DBGLOG("ProxyIndex: %i, ModelIndex: %i" % (newMdlIndex.row(), srcMdlIndex.row()))

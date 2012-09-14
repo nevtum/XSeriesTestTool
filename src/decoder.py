@@ -26,23 +26,41 @@ class AbstractItemDecoder:
         return startbyte, endbyte
 
 class reverseIntegerDecoder(AbstractItemDecoder):
+    def isNonzero(self, packet):
+        l, h = self.getstartendbyte()
+        array = self.getByteArray(packet, l, h)
+        return max(array) != 0
+
     def returnValue(self, packet):
         l, h = self.getstartendbyte()
         return self.getByteString(packet, l, h)
 
 class booleanDecoder(AbstractItemDecoder):
+    def isNonzero(self, packet):
+        return self.returnValue(packet) != 0
+
     def returnValue(self, packet):
         byte = int(self.params.get('byte'))
         bit = int(self.params.get('bit'))
         return self.getBit(packet[byte-1], bit)
 
 class reverseCurrencyDecoder(AbstractItemDecoder):
+    def isNonzero(self, packet):
+        l, h = self.getstartendbyte()
+        array = self.getByteArray(packet, l, h)
+        return max(array) != 0
+
     def returnValue(self, packet):
         l, h = self.getstartendbyte()
         x = int(self.getByteString(packet, l, h))/100.00
         return '%.2f' % x
 
 class reverseAsciiDecoder(AbstractItemDecoder):
+    def isNonzero(self, packet):
+        l, h = self.getstartendbyte()
+        array = self.getByteArray(packet, l, h)
+        return max(array) != 0
+
     def returnValue(self, packet):
         l, h = self.getstartendbyte()
         x = [chr(val) for val in self.getByteArray(packet, l, h)]
@@ -52,6 +70,9 @@ class reverseAsciiDecoder(AbstractItemDecoder):
         return chars
 
 class nullDecoder(AbstractItemDecoder):
+    def isNonzero(self, packet):
+        return False
+
     def returnValue(self, packet):
         return 'unknown decoding type'
 
@@ -75,8 +96,10 @@ class IDecoder:
     
     def diffXMLPacket(self, seq1, seq2):
         if seq1[:2] != seq2[:2]:
-            return None
+            return "Cannot compare different packet types"
         xor = [a^b for a, b in zip(seq1, seq2)]
+        if max(xor) == 0:
+            return "No change"
         meta = self.getMetaData(seq1)
         
         # really need to reduce coupling here
@@ -85,16 +108,16 @@ class IDecoder:
             dec = self.__getTypeDecoder(item)
             params = item.extractParams()
             start, end = dec.getstartendbyte()
-            if max(dec.getByteArray(xor, start, end)) > 0:
+            if dec.isNonzero(xor):
                 tag = item.extract('name')
                 value1 = dec.returnValue(seq1)
                 value2 = dec.returnValue(seq2)
-                x += "\t<%s>\n" % tag
-                x += "\t\t<changeset old=\"%s\" new=\"%s\"\>\n" % (value2, value1)
+                x += "    <%s>\n" % tag
+                x += "        <%s>%s</%s>\n" % ("new", value1, "new")
+                x += "        <%s>%s</%s>\n" % ("old", value2, "old")
                 #x += " <%s>%s</%s>\n" % ("new", value2, "new")
-                x += "\t</%s>\n" % tag
+                x += "    </%s>\n" % tag
         x += "</packet>"
-        print x
         return x
 
     def createXMLPacket(self, seq):
@@ -115,7 +138,7 @@ class IDecoder:
             dec = self.__getTypeDecoder(item)
             value = dec.returnValue(seq)
             tag = item.extract('name')
-            x += "\t<%s>%s</%s>\n" % (tag, value, tag)
+            x += "    <%s>%s</%s>\n" % (tag, value, tag)
         x += "</packet>"
         return x
 
