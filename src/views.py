@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 from debug import *
-from PyQt4.QtCore import QObject, SIGNAL
+from PyQt4.QtCore import QObject, SIGNAL, Qt
 from PyQt4 import QtSql, QtGui
 
 class QtSQLWrapper(QObject):
@@ -10,13 +10,19 @@ class QtSQLWrapper(QObject):
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(filename)
         self.db.open()
-        self.model = QtSql.QSqlQueryModel(self)
-        self.setupProxyModel()
-        self.query = QtSql.QSqlQuery(self.db)
-        self.filter = DuplicateDatablockFilter()
+
         self.createSQLTables()
+        self.setupSourceModel()
+        self.setupProxyModel()
+        self.filter = DuplicateDatablockFilter()
+
+    def setupSourceModel(self):
+        self.model = QtSql.QSqlTableModel(self)
+        self.model.setTable("packetlog")
+        self.model.sort(0, Qt.DescendingOrder)
 
     def createSQLTables(self):
+        self.query = QtSql.QSqlQuery(self.db)
         sql = """CREATE TABLE IF NOT EXISTS packetlog(
         timestamp DATETIME,
         direction TEXT NOT NULL,
@@ -45,7 +51,8 @@ class QtSQLWrapper(QObject):
         self.proxy.setDynamicSortFilter(True)
 
     def refresh(self):
-        self.model.setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
+        self.model.select()
+        #self.model.setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
 
     def setAutoRefresh(self, toggle):
         if toggle == True:

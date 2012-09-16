@@ -142,14 +142,14 @@
      </property>
      <widget class="QWidget" name="tab1">
       <attribute name="title">
-       <string>Detail</string>
+       <string>Selected</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="margin">
         <number>5</number>
        </property>
        <item>
-        <widget class="QTextEdit" name="uiDetail">
+        <widget class="QTextEdit" name="uiSelected">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -174,7 +174,20 @@
      </widget>
      <widget class="QWidget" name="tab2">
       <attribute name="title">
-       <string>Changesets</string>
+       <string>Deselected</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="margin">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QTextEdit" name="uiDeselected"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab3">
+      <attribute name="title">
+       <string>Difference</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <property name="margin">
@@ -256,7 +269,7 @@
   <tabstop>btnNext</tabstop>
   <tabstop>btnCopy</tabstop>
   <tabstop>btnClose</tabstop>
-  <tabstop>uiDetail</tabstop>
+  <tabstop>uiSelected</tabstop>
   <tabstop>uiRawData</tabstop>
  </tabstops>
  <resources/>

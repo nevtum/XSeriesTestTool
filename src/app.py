@@ -44,25 +44,17 @@ class DecoderDialog(decbase, decform):
             self.parent().tableView.selectRow(prevrow)
 
     def Update(self, newMdlIndex, oldMdlIndex):
+        proxy = self.sqlwrapper.getProxyModel()
+        origmdl = self.sqlwrapper.getSourceModel()
+
         if newMdlIndex.isValid():
-            proxy = self.sqlwrapper.getProxyModel()
-            origmdl = self.sqlwrapper.getSourceModel()
-
             newIndex = proxy.mapToSource(newMdlIndex)
-            oldIndex = proxy.mapToSource(oldMdlIndex)
-
             newrecord = origmdl.record(newIndex.row())
-            oldrecord = origmdl.record(oldIndex.row())
+            newseq = [x for x in bytearray.fromhex(str(newrecord.value("hex").toString()))]
+            self.uiSelected.setText(self.decoder.createXMLPacket(newseq))
 
             timestamp = newrecord.value("timestamp").toString()
             raw = str(newrecord.value("hex").toString())
-
-            newseq = [x for x in bytearray.fromhex(str(newrecord.value("hex").toString()))]
-            oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("hex").toString()))]
-
-            decoded = self.decoder.createXMLPacket(newseq)
-            diffed = self.decoder.diffXMLPacket(newseq, oldseq)
-
             string = ""
             for i in range(len(raw)):
                 string += raw[i]
@@ -75,9 +67,16 @@ class DecoderDialog(decbase, decform):
                         string += " "
 
             self.lineEdit.setText(timestamp)
-            self.uiDetail.setText(decoded)
-            self.uiChangeSet.setText(diffed)
             self.uiRawData.setText(string)
+
+        if oldMdlIndex.isValid():
+            oldIndex = proxy.mapToSource(oldMdlIndex)
+            oldrecord = origmdl.record(oldIndex.row())
+            oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("hex").toString()))]
+            self.uiDeselected.setText(self.decoder.createXMLPacket(oldseq))
+
+        if newMdlIndex.isValid() & oldMdlIndex.isValid():
+            self.uiChangeSet.setText(self.decoder.diffXMLPacket(newseq, oldseq))
 
             #DBGLOG("ProxyIndex: %i, ModelIndex: %i" % (newMdlIndex.row(), srcMdlIndex.row()))
 
@@ -106,6 +105,7 @@ class MyApp(appbase, appform):
         self.tableView.setColumnWidth(2, 100)
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.tableView.setSortingEnabled(True)
+        self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
