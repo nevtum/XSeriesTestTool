@@ -132,7 +132,10 @@ class MyApp(appbase, appform):
         self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
     def refreshView(self):
+        index = self.tableView.selectionModel().currentIndex()
         self.db.refresh()
+        self.tableView.selectRow(index.row())
+        print index.row()
         # add code to refresh view as well
 
     def on_btnRecordPause_clicked(self):

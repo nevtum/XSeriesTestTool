@@ -35,16 +35,25 @@ class TestDataEditor(base, form):
         self.uiView.resizeColumnToContents(2)
         #self.uiView.setColumnWidth(1, 70)
         #self.uiView.setColumnWidth(2, 60)
-        #self.uiView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.uiView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.uiView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        #self.uiView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.uiView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.uiView.horizontalHeader().setStretchLastSection(True)
         self.uiView.setSortingEnabled(True)
+
+        self.mapper = QtGui.QDataWidgetMapper(self)
+        self.mapper.setModel(self.proxymdl)
+        self.mapper.addMapping(self.uiDateTime, 0)
+        self.mapper.addMapping(self.uiDirection, 1)
+        self.mapper.addMapping(self.uiType, 2)
+        self.mapper.addMapping(self.uiPacket, 3)
+        self.mapper.toFirst()
+        self.connect(self.uiView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.mapper.setCurrentModelIndex)
 
         self.btnInsert.clicked.connect(self.addItem)
         self.btnRemove.clicked.connect(self.removeRow)
         self.lineEdit.textChanged.connect(self.proxymdl.setFilterRegExp)
-		
+
         self.query = QtSql.QSqlQuery(self.db)
 
     def addItem(self):
