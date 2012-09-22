@@ -6,12 +6,34 @@ Created on 11/06/2012
 import sys
 from factory import TransmissionFactory
 from comms_threads import ListenThread, ReplayThread
-from PyQt4 import QtGui, uic
+from PyQt4 import QtGui, uic, QtCore
 from PyQt4.QtCore import SIGNAL
 
 decbase, decform = uic.loadUiType("gui/packetview.ui")
 appbase, appform = uic.loadUiType("gui/analyzer.ui")
 
+
+class XmlSyntaxHighlighter(QtGui.QSyntaxHighlighter):
+    def __init__(self, parent=None):
+        super(XmlSyntaxHighlighter, self).__init__(parent)
+        self.formattingRules = []
+
+        # Inner xml format.
+        rule = QtGui.QTextCharFormat()
+        rule.setFontWeight(QtGui.QFont.Bold)
+        regex = QtCore.QRegExp("[^\>]+(?=\<\/)")
+        regex.setMinimal(True)
+        self.formattingRules.append((regex, rule))
+
+
+    def highlightBlock(self, text):
+        for pattern, rule in self.formattingRules:
+            expression = QtCore.QRegExp(pattern)
+            index = expression.indexIn(text)
+            while index >= 0:
+                length = expression.matchedLength()
+                self.setFormat(index, length, rule)
+                index = expression.indexIn(text, index + length)
 
 
 class DecoderDialog(decbase, decform):
@@ -21,6 +43,9 @@ class DecoderDialog(decbase, decform):
         self.setupConnections()
         self.sqlwrapper = parent.getFactory().getQtSQLWrapper()
         self.decoder = parent.getFactory().getProtocolDecoder()
+        self.hl1 = XmlSyntaxHighlighter(self.uiSelected)
+        self.hl2 = XmlSyntaxHighlighter(self.uiDeselected)
+        self.hl3 = XmlSyntaxHighlighter(self.uiChangeSet)
 
     def setupConnections(self):
         self.btnCopy.clicked.connect(self.on_btnCopy_clicked)
@@ -132,10 +157,10 @@ class MyApp(appbase, appform):
         self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
     def refreshView(self):
-        index = self.tableView.selectionModel().currentIndex()
+        #index = self.tableView.selectionModel().currentIndex()
         self.db.refresh()
-        self.tableView.selectRow(index.row())
-        print index.row()
+        #self.tableView.selectRow(index.row())
+        #print index.row()
         # add code to refresh view as well
 
     def on_btnRecordPause_clicked(self):
