@@ -21,6 +21,7 @@ class XmlSyntaxHighlighter(QtGui.QSyntaxHighlighter):
         # Inner xml format.
         rule = QtGui.QTextCharFormat()
         rule.setFontWeight(QtGui.QFont.Bold)
+        rule.setForeground(QtCore.Qt.blue)
         regex = QtCore.QRegExp("[^\>]+(?=\<\/)")
         regex.setMinimal(True)
         self.formattingRules.append((regex, rule))
@@ -28,12 +29,11 @@ class XmlSyntaxHighlighter(QtGui.QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         for pattern, rule in self.formattingRules:
-            expression = QtCore.QRegExp(pattern)
-            index = expression.indexIn(text)
+            index = pattern.indexIn(text)
             while index >= 0:
-                length = expression.matchedLength()
+                length = pattern.matchedLength()
                 self.setFormat(index, length, rule)
-                index = expression.indexIn(text, index + length)
+                index = pattern.indexIn(text, index + length)
 
 
 class DecoderDialog(decbase, decform):
@@ -49,24 +49,14 @@ class DecoderDialog(decbase, decform):
 
     def setupConnections(self):
         self.btnCopy.clicked.connect(self.on_btnCopy_clicked)
-        self.btnNext.clicked.connect(self.on_btnNext_clicked)
-        self.btnPrev.clicked.connect(self.on_btnPrev_clicked)
+        self.btnNext.clicked.connect(self.parent().toNext)
+        self.btnPrev.clicked.connect(self.parent().toPrevious)
+        self.btnFirst.clicked.connect(self.parent().toFirst)
+        self.btnLast.clicked.connect(self.parent().toLast)
 
     def on_btnCopy_clicked(self):
         self.textEdit.selectAll()
         self.textEdit.copy()
-
-    def on_btnNext_clicked(self):
-        mdlindex = self.parent().getCurrentModelIndex()
-        if mdlindex.isValid():
-            nextrow = mdlindex.row()+1
-            self.parent().tableView.selectRow(nextrow)
-
-    def on_btnPrev_clicked(self):
-        mdlindex = self.parent().getCurrentModelIndex()
-        if mdlindex.isValid():
-            prevrow = mdlindex.row()-1
-            self.parent().tableView.selectRow(prevrow)
 
     def Update(self, newMdlIndex, oldMdlIndex):
         proxy = self.sqlwrapper.getProxyModel()
@@ -157,11 +147,26 @@ class MyApp(appbase, appform):
         self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
     def refreshView(self):
-        #index = self.tableView.selectionModel().currentIndex()
         self.db.refresh()
-        #self.tableView.selectRow(index.row())
-        #print index.row()
-        # add code to refresh view as well
+
+    # to control tableView navigation
+    def toFirst(self):
+        self.tableView.selectRow(0)
+
+    # to control tableView navigation
+    def toNext(self):
+        row = self.tableView.selectionModel().currentIndex().row()
+        self.tableView.selectRow(row+1)
+
+    # to control tableView navigation
+    def toPrevious(self):
+        row = self.tableView.selectionModel().currentIndex().row()
+        self.tableView.selectRow(row-1)
+
+    # to control tableView navigation
+    def toLast(self):
+        rowcount = self.db.getProxyModel().rowCount()
+        self.tableView.selectRow(rowcount-1)
 
     def on_btnRecordPause_clicked(self):
         if not self.recording:

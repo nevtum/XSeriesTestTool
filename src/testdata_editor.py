@@ -50,11 +50,21 @@ class TestDataEditor(base, form):
         self.mapper.toFirst()
         self.connect(self.uiView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.mapper.setCurrentModelIndex)
 
+        self.btnPrev.clicked.connect(self.toPrevious)
+        self.btnNext.clicked.connect(self.toNext)
         self.btnInsert.clicked.connect(self.addItem)
         self.btnRemove.clicked.connect(self.removeRow)
         self.lineEdit.textChanged.connect(self.proxymdl.setFilterRegExp)
 
         self.query = QtSql.QSqlQuery(self.db)
+
+    def toNext(self):
+        row = self.uiView.selectionModel().currentIndex().row()
+        self.uiView.selectRow(row+1)
+
+    def toPrevious(self):
+        row = self.uiView.selectionModel().currentIndex().row()
+        self.uiView.selectRow(row-1)
 
     def addItem(self):
         self.query.prepare("INSERT INTO packetlog VALUES(:date,:direction,:type,:contents)")
