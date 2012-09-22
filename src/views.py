@@ -30,6 +30,7 @@ class QtSQLWrapper(QObject):
         hex TEXT NOT NULL)"""
         self.query.prepare(sql)
         self.query.exec_()
+        self.query.finish()
 
     def addRecord(self, direction, type, bytearray):
         if not self.filter.differentToPrevious(type, bytearray):
@@ -42,6 +43,7 @@ class QtSQLWrapper(QObject):
         self.query.bindValue(":type", type)
         self.query.bindValue(":contents", str(hexstring))
         self.query.exec_()
+        self.query.finish()
         self.emit(SIGNAL("newentry"))
 
     def setupProxyModel(self):
@@ -72,19 +74,21 @@ class QtSQLWrapper(QObject):
     def clearDatabase(self):
         query = "DELETE FROM packetlog"
         self.query.exec_(query)
+        self.query.finish()
         self.refresh()
 
     def runSelectQuery(self, query):
+        if self.query.isActive():
+            DBGLOG("Wrapper: previous query is still active")
+            return []
         self.query.prepare(query)
-        if self.query.isSelect():
-            if self.query.exec_():
-                list = []
-                while self.query.next():
-                    list.append(self.query.nextResult())
-                print list
-                return list
-            DBGLOG("Wrapper: query did not execute successfully")
-        DBGLOG("Wrapper: not a SELECT query")
+        if self.query.exec_():
+            list = []
+            while self.query.next():
+                list.append(str(self.query.value(0).toString()))
+            DBGLOG("Wrapper: %i" % len(list))
+            return list
+        DBGLOG("Wrapper: query did not execute successfully")
         return []
 
     def __del__(self):
