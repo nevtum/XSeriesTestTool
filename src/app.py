@@ -13,29 +13,6 @@ decbase, decform = uic.loadUiType("gui/packetview.ui")
 appbase, appform = uic.loadUiType("gui/analyzer.ui")
 
 
-class XmlSyntaxHighlighter(QtGui.QSyntaxHighlighter):
-    def __init__(self, parent=None):
-        super(XmlSyntaxHighlighter, self).__init__(parent)
-        self.formattingRules = []
-
-        # Inner xml format.
-        rule = QtGui.QTextCharFormat()
-        rule.setFontWeight(QtGui.QFont.Bold)
-        rule.setForeground(QtCore.Qt.blue)
-        regex = QtCore.QRegExp("[^\>]+(?=\<\/)")
-        regex.setMinimal(True)
-        self.formattingRules.append((regex, rule))
-
-
-    def highlightBlock(self, text):
-        for pattern, rule in self.formattingRules:
-            index = pattern.indexIn(text)
-            while index >= 0:
-                length = pattern.matchedLength()
-                self.setFormat(index, length, rule)
-                index = pattern.indexIn(text, index + length)
-
-
 class DecoderDialog(decbase, decform):
     def __init__(self, parent = None):
         super(decbase, self).__init__(parent)
@@ -43,9 +20,6 @@ class DecoderDialog(decbase, decform):
         self.setupConnections()
         self.sqlwrapper = parent.getFactory().getQtSQLWrapper()
         self.decoder = parent.getFactory().getProtocolDecoder()
-        self.hl1 = XmlSyntaxHighlighter(self.uiSelected)
-        self.hl2 = XmlSyntaxHighlighter(self.uiDeselected)
-        self.hl3 = XmlSyntaxHighlighter(self.uiChangeSet)
 
     def setupConnections(self):
         self.btnCopy.clicked.connect(self.on_btnCopy_clicked)
@@ -58,6 +32,13 @@ class DecoderDialog(decbase, decform):
         self.textEdit.selectAll()
         self.textEdit.copy()
 
+    def GetPrettyPrint(self, seq):
+        packetname, array = self.decoder.getDecodedData(seq)
+        mystring = "Packet: %s\n" % packetname
+        for key, value in array:
+            mystring += "    {0:50s}\t{1}\n".format(key, value)
+        return mystring
+
     def Update(self, newMdlIndex, oldMdlIndex):
         proxy = self.sqlwrapper.getProxyModel()
         origmdl = self.sqlwrapper.getSourceModel()
@@ -66,7 +47,8 @@ class DecoderDialog(decbase, decform):
             newIndex = proxy.mapToSource(newMdlIndex)
             newrecord = origmdl.record(newIndex.row())
             newseq = [x for x in bytearray.fromhex(str(newrecord.value("hex").toString()))]
-            self.uiSelected.setText(self.decoder.createXMLPacket(newseq))
+
+            self.uiSelected.setText(self.GetPrettyPrint(newseq))
 
             timestamp = newrecord.value("timestamp").toString()
             raw = str(newrecord.value("hex").toString())
@@ -88,10 +70,18 @@ class DecoderDialog(decbase, decform):
             oldIndex = proxy.mapToSource(oldMdlIndex)
             oldrecord = origmdl.record(oldIndex.row())
             oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("hex").toString()))]
-            self.uiDeselected.setText(self.decoder.createXMLPacket(oldseq))
+            #self.uiDeselected.setText(self.decoder.createXMLPacket(oldseq))
+            self.uiDeselected.setText(self.GetPrettyPrint(oldseq))
 
         if newMdlIndex.isValid() & oldMdlIndex.isValid():
-            self.uiChangeSet.setText(self.decoder.diffXMLPacket(newseq, oldseq))
+            packetname, array = self.decoder.getDiffPackets(newseq, oldseq)
+            mystring = "Packet: %s\n" % packetname
+
+            for key, newval, oldval in array:
+                mystring += "  {0}\n".format(key)
+                mystring += "    {0:10s}\t{1}\n".format('after:', newval)
+                mystring += "    {0:10s}\t{1}\n\n".format('before:', oldval)
+            self.uiChangeSet.setText(mystring)
 
             #DBGLOG("ProxyIndex: %i, ModelIndex: %i" % (newMdlIndex.row(), srcMdlIndex.row()))
 

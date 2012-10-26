@@ -212,6 +212,7 @@
 			<startbyte>85</startbyte>
 			<endbyte>86</endbyte>
 		</item>
+<!--
 		<item name="programid1" type="ascii-reverse">
 			<startbyte>88</startbyte>
 			<endbyte>95</endbyte>
@@ -226,6 +227,11 @@
 		</item>
 		<item name="programid4" type="ascii-reverse">
 			<startbyte>112</startbyte>
+			<endbyte>119</endbyte>
+		</item>
+-->
+		<item name="programid" type="ascii-reverse">
+			<startbyte>88</startbyte>
 			<endbyte>119</endbyte>
 		</item>
 		<item name="prtp" type="currency-reverse">
@@ -533,6 +539,7 @@
 		<item name="nrjackpotstobereset" type="integer-reverse">
 			<byte>71</byte>
 		</item>
+<!--
 		<item name="programid1" type="ascii-reverse">
 			<startbyte>72</startbyte>
 			<endbyte>79</endbyte>
@@ -547,6 +554,11 @@
 		</item>
 		<item name="programid4" type="ascii-reverse">
 			<startbyte>96</startbyte>
+			<endbyte>103</endbyte>
+		</item>
+-->
+		<item name="programid" type="ascii-reverse">
+			<startbyte>72</startbyte>
 			<endbyte>103</endbyte>
 		</item>
 	</packet>

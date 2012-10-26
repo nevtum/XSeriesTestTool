@@ -93,34 +93,8 @@ class IDecoder:
         if dec is None:
             return nullDecoder
         return dec
-    
-    def diffXMLPacket(self, seq1, seq2):
-        if seq1[:2] != seq2[:2]:
-            return "Cannot compare different packet types"
-        xor = [a^b for a, b in zip(seq1, seq2)]
-        if max(xor) == 0:
-            return "No change"
-        meta = self.getMetaData(seq1)
-        
-        # really need to reduce coupling here
-        x = "<packet name=\"%s\">\n" % meta.getPacketName()
-        for item in meta.allItems():
-            dec = self.__getTypeDecoder(item)
-            params = item.extractParams()
-            start, end = dec.getstartendbyte()
-            if dec.isNonzero(xor):
-                tag = item.extract('name')
-                value1 = dec.returnValue(seq1)
-                value2 = dec.returnValue(seq2)
-                x += "    <%s>\n" % tag
-                x += "        <%s>%s</%s>\n" % ("new", value1, "new")
-                x += "        <%s>%s</%s>\n" % ("old", value2, "old")
-                #x += " <%s>%s</%s>\n" % ("new", value2, "new")
-                x += "    </%s>\n" % tag
-        x += "</packet>"
-        return x
 
-    def createXMLPacket(self, seq):
+    def getDecodedData(self, seq):
         assert(isinstance(seq, list))
         try:
             meta = self.getMetaData(seq)
@@ -133,14 +107,38 @@ class IDecoder:
         if(len(seq) != packetlength):
             return "corrupted packet"
 
-        x = "<packet name=\"%s\">\n" % meta.getPacketName()
+        array = []
+
         for item in meta.allItems():
             dec = self.__getTypeDecoder(item)
             value = dec.returnValue(seq)
-            tag = item.extract('name')
-            x += "    <%s>%s</%s>\n" % (tag, value, tag)
-        x += "</packet>"
-        return x
+            key = item.extract('name')
+            array.append((key, value))
+
+        return meta.getPacketName(), array
+
+    def getDiffPackets(self, seq1, seq2):
+        meta1 = self.getMetaData(seq1)
+        meta2 = self.getMetaData(seq2)
+        if meta1.getPacketName() != meta2.getPacketName():
+            return "Cannot compare different packet types", [("", "N/A", "N/A")]
+        xor = [a^b for a, b in zip(seq1, seq2)]
+        if max(xor) == 0:
+            return "{0} ==> (No change)".format(meta1.getPacketName()), []
+
+        array = []
+
+        for item in meta1.allItems():
+            dec = self.__getTypeDecoder(item)
+            params = item.extractParams()
+            start, end = dec.getstartendbyte()
+            if dec.isNonzero(xor):
+                key = item.extract('name')
+                newvalue = dec.returnValue(seq1)
+                oldvalue = dec.returnValue(seq2)
+                array.append((key, newvalue, oldvalue))
+
+        return meta1.getPacketName(), array
 
     def getMetaData(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
