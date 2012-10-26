@@ -3,7 +3,7 @@
 		<item name="identifier" type="integer-reverse">
 			<byte>2</byte>
 		</item>
-		<item name="version" type="currency-reverse">
+		<item name="version" type="integer-reverse">
 			<startbyte>3</startbyte>
 			<endbyte>4</endbyte>
 		</item>
@@ -208,7 +208,7 @@
 			<byte>84</byte>
 			<bit>5</bit>
 		</item>
-		<item name="basecreditvalue" type="integer-reverse">
+		<item name="basecreditvalue" type="currency-reverse">
 			<startbyte>85</startbyte>
 			<endbyte>86</endbyte>
 		</item>

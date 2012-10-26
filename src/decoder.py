@@ -11,7 +11,7 @@ class AbstractItemDecoder:
 
     def getByteString(self, packet, lbound, hbound):
         arr = ['%02X' % x for x in self.getByteArray(packet, lbound, hbound)]
-        return ''.join(arr)
+        return int(''.join(arr))
 
     def getBit(self, byte, n):
         return ((byte >> n) & 0x1)
@@ -37,12 +37,17 @@ class reverseIntegerDecoder(AbstractItemDecoder):
 
 class booleanDecoder(AbstractItemDecoder):
     def isNonzero(self, packet):
-        return self.returnValue(packet) != 0
+        byte = int(self.params.get('byte'))
+        bit = int(self.params.get('bit'))
+        return self.getBit(packet[byte-1], bit) != 0
 
     def returnValue(self, packet):
         byte = int(self.params.get('byte'))
         bit = int(self.params.get('bit'))
-        return self.getBit(packet[byte-1], bit)
+        if self.getBit(packet[byte-1], bit):
+            return "ON"
+        else:
+            return "OFF"
 
 class reverseCurrencyDecoder(AbstractItemDecoder):
     def isNonzero(self, packet):
@@ -53,7 +58,7 @@ class reverseCurrencyDecoder(AbstractItemDecoder):
     def returnValue(self, packet):
         l, h = self.getstartendbyte()
         x = int(self.getByteString(packet, l, h))/100.00
-        return '%.2f' % x
+        return "${:,.2f}".format(x)
 
 class reverseAsciiDecoder(AbstractItemDecoder):
     def isNonzero(self, packet):
