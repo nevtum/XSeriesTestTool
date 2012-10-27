@@ -46,12 +46,12 @@ class DecoderDialog(decbase, decform):
         if newMdlIndex.isValid():
             newIndex = proxy.mapToSource(newMdlIndex)
             newrecord = origmdl.record(newIndex.row())
-            newseq = [x for x in bytearray.fromhex(str(newrecord.value("hex").toString()))]
+            newseq = [x for x in bytearray.fromhex(str(newrecord.value("Data").toString()))]
 
             self.uiSelected.setText(self.GetPrettyPrint(newseq))
 
-            timestamp = newrecord.value("timestamp").toString()
-            raw = str(newrecord.value("hex").toString())
+            timestamp = newrecord.value("LastChanged").toString()
+            raw = str(newrecord.value("Data").toString())
             string = ""
             for i in range(len(raw)):
                 string += raw[i]
@@ -69,7 +69,7 @@ class DecoderDialog(decbase, decform):
         if oldMdlIndex.isValid():
             oldIndex = proxy.mapToSource(oldMdlIndex)
             oldrecord = origmdl.record(oldIndex.row())
-            oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("hex").toString()))]
+            oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("Data").toString()))]
             #self.uiDeselected.setText(self.decoder.createXMLPacket(oldseq))
             self.uiDeselected.setText(self.GetPrettyPrint(oldseq))
 
@@ -105,12 +105,17 @@ class MyApp(appbase, appform):
         return self.factory
 
     def setupWidgets(self):
-        self.tableView.setColumnWidth(0, 150)
-        self.tableView.setColumnWidth(1, 60)
-        self.tableView.setColumnWidth(2, 100)
-        self.tableView.horizontalHeader().setStretchLastSection(True)
-        self.tableView.setSortingEnabled(True)
-        self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.tableView.setColumnWidth(0, 40)
+        self.tableView.setColumnWidth(1, 150)
+        self.tableView.setColumnWidth(2, 60)
+        self.tableView.setColumnWidth(3, 60)
+        #self.tableView.horizontalHeader().setStretchLastSection(True)
+        #self.tableView.setSortingEnabled(True)
+        #self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        
+        self.tableView2.setColumnWidth(0, 150)
+        #self.tableView2.setColumnWidth(1, 150)
+        #self.tableView2.setColumnWidth(2, 60)
 
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -118,6 +123,7 @@ class MyApp(appbase, appform):
     def setupDB(self):
         self.db = self.factory.getQtSQLWrapper()
         self.tableView.setModel(self.db.getProxyModel())
+        self.tableView2.setModel(self.db.sessionmodel)
         self.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
 
         proxy = self.db.getProxyModel()
@@ -133,7 +139,7 @@ class MyApp(appbase, appform):
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
         self.checkBox.toggled.connect(self.db.setAutoRefresh)
-        self.cbFilterDupes.toggled.connect(self.db.filterduplicates)
+        #self.cbFilterDupes.toggled.connect(self.db.filterduplicates)
         self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
     def refreshView(self):

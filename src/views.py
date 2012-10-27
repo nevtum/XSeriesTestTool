@@ -15,33 +15,51 @@ class QtSQLWrapper(QObject):
         self.setupSourceModel()
         self.setupProxyModel()
         self.filter = DuplicateDatablockFilter()
+        self.filter.filterduplicates(True)
 
     def setupSourceModel(self):
         self.model = QtSql.QSqlTableModel(self)
-        self.model.setTable("packetlog")
+        self.model.setTable("distinctpackets")
         self.model.sort(0, Qt.DescendingOrder)
+        
+        self.sessionmodel = QtSql.QSqlTableModel(self)
+        self.sessionmodel.setTable("session")
+        self.sessionmodel.sort(0, Qt.DescendingOrder)
 
     def createSQLTables(self):
         self.query = QtSql.QSqlQuery(self.db)
-        sql = """CREATE TABLE IF NOT EXISTS packetlog(
-        timestamp DATETIME,
-        direction TEXT NOT NULL,
-        packetid TEXT NOT NULL,
-        hex TEXT NOT NULL)"""
+        sql = """CREATE TABLE IF NOT EXISTS session(
+        Timestamp DATETIME,
+        PacketID INTEGER NOT NULL)"""
+        self.query.prepare(sql)
+        self.query.exec_()
+        sql = """CREATE TABLE IF NOT EXISTS distinctpackets(
+        ID INTEGER PRIMARY KEY,
+        LastChanged DATETIME,
+        Direction TEXT NOT NULL,
+        Class TEXT NOT NULL,
+        Data TEXT NOT NULL)"""
         self.query.prepare(sql)
         self.query.exec_()
         self.query.finish()
 
     def addRecord(self, direction, type, bytearray):
-        if not self.filter.differentToPrevious(type, bytearray):
-            return
-
         hexstring = ''.join(["%02X" % byte for byte in bytearray])
-        self.query.prepare("INSERT INTO packetlog VALUES(:date,:direction,:type,:contents)")
+        
+        if self.filter.differentToPrevious(type, bytearray):
+            self.query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
+            self.query.bindValue(":date", str(datetime.now()))
+            self.query.bindValue(":direction", str(direction))
+            self.query.bindValue(":type", type)
+            self.query.bindValue(":contents", str(hexstring))
+            self.query.exec_()
+        
+        sql = "SELECT MAX(ID) FROM distinctpackets WHERE Data = '%s'" % hexstring
+        id = self.runSelectQuery(sql)
+        
+        self.query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
         self.query.bindValue(":date", str(datetime.now()))
-        self.query.bindValue(":direction", str(direction))
-        self.query.bindValue(":type", type)
-        self.query.bindValue(":contents", str(hexstring))
+        self.query.bindValue(":packetid", id[0])
         self.query.exec_()
         self.query.finish()
         self.emit(SIGNAL("newentry"))
@@ -49,11 +67,12 @@ class QtSQLWrapper(QObject):
     def setupProxyModel(self):
         self.proxy = QtGui.QSortFilterProxyModel()
         self.proxy.setSourceModel(self.model)
-        self.proxy.setFilterKeyColumn(2)
+        self.proxy.setFilterKeyColumn(3)
         self.proxy.setDynamicSortFilter(True)
 
     def refresh(self):
         self.model.select()
+        self.sessionmodel.select()
         #self.model.setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
 
     def setAutoRefresh(self, toggle):
@@ -62,8 +81,8 @@ class QtSQLWrapper(QObject):
         else:
             self.disconnect(self, SIGNAL("newentry"), self.refresh)
 
-    def filterduplicates(self, toggle):
-        self.filter.filterduplicates(toggle)
+    #def filterduplicates(self, toggle):
+    #    self.filter.filterduplicates(toggle)
 
     def getProxyModel(self):
         return self.proxy
