@@ -21,10 +21,22 @@ class QtSQLWrapper(QObject):
         self.model = QtSql.QSqlTableModel(self)
         self.model.setTable("distinctpackets")
         self.model.sort(0, Qt.DescendingOrder)
-        
-        self.sessionmodel = QtSql.QSqlTableModel(self)
+
+        self.sessionmodel = QtSql.QSqlRelationalTableModel(self)
         self.sessionmodel.setTable("session")
+        self.sessionmodel.setRelation(1, QtSql.QSqlRelation("distinctpackets", "ID", "Class"))
         self.sessionmodel.sort(0, Qt.DescendingOrder)
+
+    def setupProxyModel(self):
+        self.proxy = QtGui.QSortFilterProxyModel()
+        self.proxy.setSourceModel(self.model)
+        self.proxy.setFilterKeyColumn(3)
+        self.proxy.setDynamicSortFilter(True)
+        
+        self.sessionproxy = QtGui.QSortFilterProxyModel()
+        self.sessionproxy.setSourceModel(self.sessionmodel)
+        self.sessionproxy.setFilterKeyColumn(1)
+        self.sessionproxy.setDynamicSortFilter(True)
 
     def createSQLTables(self):
         self.query = QtSql.QSqlQuery(self.db)
@@ -45,30 +57,29 @@ class QtSQLWrapper(QObject):
 
     def addRecord(self, direction, type, bytearray):
         hexstring = ''.join(["%02X" % byte for byte in bytearray])
+        loggedtime = str(datetime.now())
         
         if self.filter.differentToPrevious(type, bytearray):
             self.query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
-            self.query.bindValue(":date", str(datetime.now()))
+            self.query.bindValue(":date", loggedtime)
             self.query.bindValue(":direction", str(direction))
             self.query.bindValue(":type", type)
             self.query.bindValue(":contents", str(hexstring))
             self.query.exec_()
+            self.query.finish()
         
-        sql = "SELECT MAX(ID) FROM distinctpackets WHERE Data = '%s'" % hexstring
+        sql = """SELECT MAX(ID)
+        FROM distinctpackets 
+        WHERE Class = '%s'
+        AND Direction = 'incoming'""" % type
         id = self.runSelectQuery(sql)
         
         self.query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
-        self.query.bindValue(":date", str(datetime.now()))
+        self.query.bindValue(":date", loggedtime)
         self.query.bindValue(":packetid", id[0])
         self.query.exec_()
         self.query.finish()
         self.emit(SIGNAL("newentry"))
-
-    def setupProxyModel(self):
-        self.proxy = QtGui.QSortFilterProxyModel()
-        self.proxy.setSourceModel(self.model)
-        self.proxy.setFilterKeyColumn(3)
-        self.proxy.setDynamicSortFilter(True)
 
     def refresh(self):
         self.model.select()
@@ -86,13 +97,16 @@ class QtSQLWrapper(QObject):
 
     def getProxyModel(self):
         return self.proxy
+    
+    def getSessionProxy(self):
+        return self.sessionproxy
 
     def getSourceModel(self):
         return self.model
 
     def clearDatabase(self):
-        query = "DELETE FROM packetlog"
-        self.query.exec_(query)
+        self.query.exec_("DELETE FROM session")
+        self.query.exec_("DELETE FROM distinctpackets")
         self.query.finish()
         self.refresh()
 

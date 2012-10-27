@@ -109,13 +109,8 @@ class MyApp(appbase, appform):
         self.tableView.setColumnWidth(1, 150)
         self.tableView.setColumnWidth(2, 60)
         self.tableView.setColumnWidth(3, 60)
-        #self.tableView.horizontalHeader().setStretchLastSection(True)
-        #self.tableView.setSortingEnabled(True)
-        #self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         
         self.tableView2.setColumnWidth(0, 150)
-        #self.tableView2.setColumnWidth(1, 150)
-        #self.tableView2.setColumnWidth(2, 60)
 
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self)
@@ -123,23 +118,24 @@ class MyApp(appbase, appform):
     def setupDB(self):
         self.db = self.factory.getQtSQLWrapper()
         self.tableView.setModel(self.db.getProxyModel())
-        self.tableView2.setModel(self.db.sessionmodel)
+        self.tableView2.setModel(self.db.sessionproxy)
         self.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
 
         proxy = self.db.getProxyModel()
+        sessionproxy = self.db.getSessionProxy()
         self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
+        self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), sessionproxy.setFilterRegExp)
         self.refreshView()
 
     def setupConnections(self):
-        self.btnRefresh.clicked.connect(self.refreshView)
-        self.btnAnalyze.clicked.connect(self.decDialog.show)
-        self.btnClear.clicked.connect(self.db.clearDatabase)
+        self.actionRefresh.triggered.connect(self.refreshView)
+        self.actionOpenDecoder.triggered.connect(self.decDialog.show)
+        self.actionClear_Session_data.triggered.connect(self.db.clearDatabase)
         self.btnReplay.clicked.connect(self.on_btnReplay_clicked)
         self.replaying = False
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
-        self.checkBox.toggled.connect(self.db.setAutoRefresh)
-        #self.cbFilterDupes.toggled.connect(self.db.filterduplicates)
+        self.actionEnable_Autorefresh.toggled.connect(self.db.setAutoRefresh)
         self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
     def refreshView(self):
