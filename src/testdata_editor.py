@@ -20,17 +20,17 @@ class TestDataEditor(base, form):
         self.db.open()
 
         self.mdl = QtSql.QSqlTableModel(self, self.db)
-        self.mdl.setTable("packetlog")
+        self.mdl.setTable("distinctpackets")
         self.mdl.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
         self.mdl.select()
 
         self.proxymdl = QtGui.QSortFilterProxyModel(self)
         self.proxymdl.setSourceModel(self.mdl)
-        self.proxymdl.setFilterKeyColumn(2)
+        self.proxymdl.setFilterKeyColumn(3)
         self.proxymdl.setDynamicSortFilter(True)
 
         self.uiView.setModel(self.proxymdl)
-        self.uiView.setColumnWidth(0, 150)
+        self.uiView.setColumnWidth(0, 50)
         self.uiView.resizeColumnToContents(1)
         self.uiView.resizeColumnToContents(2)
         #self.uiView.setColumnWidth(1, 70)
@@ -43,10 +43,10 @@ class TestDataEditor(base, form):
 
         self.mapper = QtGui.QDataWidgetMapper(self)
         self.mapper.setModel(self.proxymdl)
-        self.mapper.addMapping(self.uiDateTime, 0)
-        self.mapper.addMapping(self.uiDirection, 1)
-        self.mapper.addMapping(self.uiType, 2)
-        self.mapper.addMapping(self.uiPacket, 3)
+        self.mapper.addMapping(self.uiDateTime, 1)
+        self.mapper.addMapping(self.uiDirection, 2)
+        self.mapper.addMapping(self.uiType, 3)
+        self.mapper.addMapping(self.uiPacket, 4)
         self.mapper.toFirst()
         self.connect(self.uiView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.mapper.setCurrentModelIndex)
 
