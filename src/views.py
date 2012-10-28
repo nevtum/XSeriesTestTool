@@ -12,12 +12,12 @@ class QtSQLWrapper(QObject):
         self.db.open()
 
         self.createSQLTables()
-        self.setupSourceModel()
-        self.setupProxyModel()
+        self.setupSourceModels()
+        self.setupProxyModels()
         self.filter = DuplicateDatablockFilter()
         self.filter.filterduplicates(True)
 
-    def setupSourceModel(self):
+    def setupSourceModels(self):
         self.model = QtSql.QSqlTableModel(self)
         self.model.setTable("distinctpackets")
         self.model.sort(0, Qt.DescendingOrder)
@@ -27,7 +27,7 @@ class QtSQLWrapper(QObject):
         self.sessionmodel.setRelation(1, QtSql.QSqlRelation("distinctpackets", "ID", "Class"))
         self.sessionmodel.sort(0, Qt.DescendingOrder)
 
-    def setupProxyModel(self):
+    def setupProxyModels(self):
         self.proxy = QtGui.QSortFilterProxyModel()
         self.proxy.setSourceModel(self.model)
         self.proxy.setFilterKeyColumn(3)
@@ -100,9 +100,6 @@ class QtSQLWrapper(QObject):
     
     def getSessionProxy(self):
         return self.sessionproxy
-
-    def getSourceModel(self):
-        return self.model
 
     def clearDatabase(self):
         self.query.exec_("DELETE FROM session")

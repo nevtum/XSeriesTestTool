@@ -105,26 +105,33 @@ class IDecoder:
             meta = self.getMetaData(seq)
             packetlength = meta.getPacketLength()
         except ValueError:
-            return "no logic defined to decode packet"
+            return "unknown", [("no logic defined to decode packet", "")]
         except IndexError:
-            return "start of block is not 0xff"
+            return "unknown", [("start of block is not 0xff", "")]
 
         if(len(seq) != packetlength):
-            return "corrupted packet"
+            return meta.getPacketName(), [("corrupted packet", "")]
 
         array = []
 
         for item in meta.allItems():
             dec = self.__getTypeDecoder(item)
-            value = dec.returnValue(seq)
+            try:
+                value = dec.returnValue(seq)
+            except ValueError:
+                value = "CORRUPTED"
             key = item.extract('name')
             array.append((key, value))
 
         return meta.getPacketName(), array
 
     def getDiffPackets(self, seq1, seq2):
-        meta1 = self.getMetaData(seq1)
-        meta2 = self.getMetaData(seq2)
+        try:
+            meta1 = self.getMetaData(seq1)
+            meta2 = self.getMetaData(seq2)
+        except IndexError:
+            return "Cannot compare different packet types", [("", "N/A", "N/A")]
+
         if meta1.getPacketName() != meta2.getPacketName():
             return "Cannot compare different packet types", [("", "N/A", "N/A")]
         xor = [a^b for a, b in zip(seq1, seq2)]
@@ -139,8 +146,11 @@ class IDecoder:
             start, end = dec.getstartendbyte()
             if dec.isNonzero(xor):
                 key = item.extract('name')
-                newvalue = dec.returnValue(seq1)
-                oldvalue = dec.returnValue(seq2)
+                try:
+                    newvalue = dec.returnValue(seq1)
+                    oldvalue = dec.returnValue(seq2)
+                except:
+                    newvalue = oldvalue = "CORRUPTED"
                 array.append((key, newvalue, oldvalue))
 
         return meta1.getPacketName(), array

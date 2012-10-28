@@ -41,7 +41,7 @@ class DecoderDialog(decbase, decform):
 
     def Update(self, newMdlIndex, oldMdlIndex):
         proxy = self.sqlwrapper.getProxyModel()
-        origmdl = self.sqlwrapper.getSourceModel()
+        origmdl = proxy.sourceModel()
 
         if newMdlIndex.isValid():
             newIndex = proxy.mapToSource(newMdlIndex)
@@ -117,12 +117,13 @@ class MyApp(appbase, appform):
 
     def setupDB(self):
         self.db = self.factory.getQtSQLWrapper()
-        self.tableView.setModel(self.db.getProxyModel())
-        self.tableView2.setModel(self.db.sessionproxy)
-        self.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
-
         proxy = self.db.getProxyModel()
         sessionproxy = self.db.getSessionProxy()
+
+        self.tableView.setModel(proxy)
+        self.tableView2.setModel(sessionproxy)
+        self.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
+
         self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
         self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), sessionproxy.setFilterRegExp)
         self.refreshView()
@@ -136,7 +137,7 @@ class MyApp(appbase, appform):
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
         self.actionEnable_Autorefresh.toggled.connect(self.db.setAutoRefresh)
-        self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
+        #self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
     def refreshView(self):
         self.db.refresh()
