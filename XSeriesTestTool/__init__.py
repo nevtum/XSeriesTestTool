@@ -15,15 +15,3 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-from setuptools import setup
-
-setup(name = 'XSeriesTestTool',
-      version = '0.1',
-      description = 'A tool to help study and analyse NSW XSeries protocol compliant data blocks.',
-      url = 'https://github.com/nevtum/XSeriesTestTool',
-      author = 'Neville Tummon',
-      #author_email = 'nevilletummon@email.com',
-      licence = 'GPLv3',
-      packages = ['XSeriesTestTool'],
-      zip_safe = False)
