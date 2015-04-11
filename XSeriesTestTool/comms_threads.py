@@ -17,7 +17,6 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 """
 
 import time
-import Queue
 from serial_app import SerialModule
 from PyQt4.QtCore import QObject, QThread, SIGNAL
 from debug import *
