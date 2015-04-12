@@ -25,11 +25,7 @@ from PyQt4 import QtSql, QtGui
 class QtSQLWrapper(QObject):
     def __init__(self, filename, parent = None):
         QObject.__init__(self, parent)
-        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName(filename)
-        self.db.open()
-
-        self.createSQLTables()
+        self.createSQLTables(filename)
         self.setupSourceModels()
         self.setupProxyModels()
         self.filter = DuplicateDatablockFilter()
@@ -50,13 +46,17 @@ class QtSQLWrapper(QObject):
         self.proxy.setSourceModel(self.model)
         self.proxy.setFilterKeyColumn(3)
         self.proxy.setDynamicSortFilter(True)
-        
+
         self.sessionproxy = QtGui.QSortFilterProxyModel()
         self.sessionproxy.setSourceModel(self.sessionmodel)
         self.sessionproxy.setFilterKeyColumn(1)
         self.sessionproxy.setDynamicSortFilter(True)
 
-    def createSQLTables(self):
+    def createSQLTables(self, filename):
+        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+        self.db.setDatabaseName(filename)
+        self.db.open()
+
         self.query = QtSql.QSqlQuery(self.db)
         sql = """CREATE TABLE IF NOT EXISTS session(
         Timestamp DATETIME,
@@ -76,7 +76,7 @@ class QtSQLWrapper(QObject):
     def addRecord(self, direction, type, bytearray):
         hexstring = ''.join(["%02X" % byte for byte in bytearray])
         loggedtime = str(datetime.now())
-        
+
         if self.filter.differentToPrevious(type, bytearray):
             self.query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
             self.query.bindValue(":date", loggedtime)
@@ -85,13 +85,13 @@ class QtSQLWrapper(QObject):
             self.query.bindValue(":contents", str(hexstring))
             self.query.exec_()
             self.query.finish()
-        
+
         sql = """SELECT MAX(ID)
-        FROM distinctpackets 
+        FROM distinctpackets
         WHERE Class = '%s'
         AND Direction = 'incoming'""" % type
         id = self.runSelectQuery(sql)
-        
+
         self.query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
         self.query.bindValue(":date", loggedtime)
         self.query.bindValue(":packetid", id[0])
@@ -115,7 +115,7 @@ class QtSQLWrapper(QObject):
 
     def getProxyModel(self):
         return self.proxy
-    
+
     def getSessionProxy(self):
         return self.sessionproxy
 
