@@ -87,7 +87,7 @@ class TestDataEditor(base, form):
         self.query.bindValue(":contents", "")
 
         index = self.uiView.selectionModel().currentIndex()
-        print self.query.exec_()
+        print(self.query.exec_())
         self.mdl.select()
         self.uiView.selectRow(index.row())
 
@@ -97,10 +97,10 @@ class TestDataEditor(base, form):
         self.uiView.selectRow(index.row())
 
 if __name__ == '__main__':
-    
+
     app = QtGui.QApplication(sys.argv)
     app.setStyle("cleanlooks")
-    
+
     wnd = TestDataEditor()
     wnd.show()
 
