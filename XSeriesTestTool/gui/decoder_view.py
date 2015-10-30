@@ -54,12 +54,12 @@ class DecoderDialog(decbase, decform):
         if newMdlIndex.isValid():
             newIndex = proxy.mapToSource(newMdlIndex)
             newrecord = origmdl.record(newIndex.row())
-            newseq = [x for x in bytearray.fromhex(str(newrecord.value("Data").toString()))]
+            newseq = [x for x in bytearray.fromhex(str(newrecord.value("Data")))]
 
             self.uiSelected.setText(self.GetPrettyPrint(newseq))
 
-            timestamp = newrecord.value("LastChanged").toString()
-            raw = str(newrecord.value("Data").toString())
+            timestamp = newrecord.value("LastChanged")
+            raw = str(newrecord.value("Data"))
             string = ""
             for i in range(len(raw)):
                 string += raw[i]
@@ -77,7 +77,7 @@ class DecoderDialog(decbase, decform):
         if oldMdlIndex.isValid():
             oldIndex = proxy.mapToSource(oldMdlIndex)
             oldrecord = origmdl.record(oldIndex.row())
-            oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("Data").toString()))]
+            oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("Data")))]
             #self.uiDeselected.setText(self.decoder.createXMLPacket(oldseq))
             self.uiDeselected.setText(self.GetPrettyPrint(oldseq))
 

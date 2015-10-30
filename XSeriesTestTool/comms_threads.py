@@ -44,14 +44,14 @@ class ListenThread(QThread):
         DBGLOG("ListenThread: Serial thread started!")
         DBGLOG("ListenThread: port = %s, baud = %s" % (self.port, self.baud))
         while True:
-            #DBGLOG("ListenThread: Awaiting packet...")
+            DBGLOG("ListenThread: Awaiting packet...")
             if self.terminate:
                 DBGLOG("ListenThread: Serial thread stopped!")
                 break
             newbuffer = serial.Rx()
             if newbuffer:
                 BUFFER += newbuffer
-                #DBGLOG("ListenThread: Bytes: %s" % str(BUFFER))
+                DBGLOG("ListenThread: Bytes: %s" % str(BUFFER))
             while len(BUFFER) > 0:
                 try:
                     packetinfo = dec.getMetaData(BUFFER)

@@ -133,7 +133,7 @@ class QtSQLWrapper(QObject):
         if self.query.exec_():
             list = []
             while self.query.next():
-                list.append(str(self.query.value(0).toString()))
+                list.append(str(self.query.value(0)))
             DBGLOG("Wrapper: %i" % len(list))
             return list
         DBGLOG("Wrapper: query did not execute successfully")
