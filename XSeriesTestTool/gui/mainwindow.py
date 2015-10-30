@@ -72,6 +72,7 @@ class MyApp(appbase, appform):
     def setupConnections(self):
         self.actionRefresh.triggered.connect(self.refreshView)
         self.actionOpenDecoder.triggered.connect(self.decDialog.show)
+        self.tableView.doubleClicked.connect(self.decDialog.show)
         self.actionClear_Session_data.triggered.connect(self.db.clearDatabase)
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
