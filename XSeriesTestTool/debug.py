@@ -19,7 +19,13 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 from datetime import datetime
 
 def DBGLOG(message):
-    log = open('DebugLog.txt', 'a')
-    print(message)
+    # _log_to_file(message, 'DebugLog.txt')
+    _log_to_console(message)
+
+def _log_to_file(message, filename):
+    log = open(filename, 'a')
     log.write("%s %s\n" % (str(datetime.now()), message))
     log.close()
+
+def _log_to_console(message):
+    print(message)
