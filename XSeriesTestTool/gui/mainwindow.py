@@ -28,7 +28,7 @@ class MyApp(appbase, appform):
     def __init__(self, parent = None):
         super(appbase, self).__init__(parent)
         self.setupUi(self)
-        self.factory = TransmissionFactory()
+        self.factory = TransmissionFactory(self)
         self.setupChildDialogs()
         self.setupDB()
         self.setupConnections()

@@ -23,11 +23,11 @@ from comms_threads import ListenThread
 from notifications import Publisher
 
 class TransmissionFactory:
-    def __init__(self):
+    def __init__(self, parent):
         self.publisher = Publisher()
         self.xdec = self._build_protocol_decoder()
-        self.sqlwrapper = QtSQLWrapper("test.db", self.publisher)
-        self.serial_thread = ListenThread(self.xdec, self.publisher)
+        self.sqlwrapper = QtSQLWrapper("test.db", self.publisher, parent)
+        self.serial_thread = ListenThread(self.xdec, self.publisher, parent)
     
     def _build_protocol_decoder(self):
         xmetadata = metaRepository('settings/')

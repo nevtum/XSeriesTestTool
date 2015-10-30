@@ -19,7 +19,6 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 from datetime import datetime
 
 _is_logging_enabled = False
-print("logger is %s" % _is_logging_enabled)
 _filename = "DebugLog.txt"
 
 def Log(message):
