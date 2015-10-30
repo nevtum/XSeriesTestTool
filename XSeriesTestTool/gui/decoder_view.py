@@ -40,7 +40,7 @@ class DecoderDialog(decbase, decform):
         self.textEdit.selectAll()
         self.textEdit.copy()
 
-    def GetPrettyPrint(self, seq):
+    def _to_pretty_print(self, seq):
         packetname, array = self.decoder.getDecodedData(seq)
         mystring = "Packet: %s\n" % packetname
         for key, value in array:
@@ -54,41 +54,47 @@ class DecoderDialog(decbase, decform):
         if newMdlIndex.isValid():
             newIndex = proxy.mapToSource(newMdlIndex)
             newrecord = origmdl.record(newIndex.row())
-            newseq = [x for x in bytearray.fromhex(str(newrecord.value("Data")))]
+            newseq = self._to_sequence(newrecord)
 
-            self.uiSelected.setText(self.GetPrettyPrint(newseq))
+            self.uiSelected.setText(self._to_pretty_print(newseq))
 
             timestamp = newrecord.value("LastChanged")
-            raw = str(newrecord.value("Data"))
-            string = ""
-            for i in range(len(raw)):
-                string += raw[i]
-                if i > 0:
-                    if (i+1)%60 == 0:
-                        string += "\n"
-                    elif (i+1)%20 == 0:
-                        string += "\t"
-                    elif (i+1)%2 == 0:
-                        string += " "
+            raw_data = self._format_raw_data(newrecord)
 
             self.lineEdit.setText(timestamp)
-            self.uiRawData.setText(string)
+            self.uiRawData.setText(raw_data)
 
         if oldMdlIndex.isValid():
             oldIndex = proxy.mapToSource(oldMdlIndex)
             oldrecord = origmdl.record(oldIndex.row())
-            oldseq = [x for x in bytearray.fromhex(str(oldrecord.value("Data")))]
-            #self.uiDeselected.setText(self.decoder.createXMLPacket(oldseq))
-            self.uiDeselected.setText(self.GetPrettyPrint(oldseq))
+            oldseq = self._to_sequence(oldrecord)
+            self.uiDeselected.setText(self._to_pretty_print(oldseq))
 
         if newMdlIndex.isValid() & oldMdlIndex.isValid():
-            packetname, array = self.decoder.getDiffPackets(newseq, oldseq)
-            mystring = "Packet: %s\n" % packetname
-
-            for key, newval, oldval in array:
-                mystring += "  {0}\n".format(key)
-                mystring += "    {0:10s}\t{1}\n".format('after:', newval)
-                mystring += "    {0:10s}\t{1}\n\n".format('before:', oldval)
-            self.uiChangeSet.setText(mystring)
-
-            #DBGLOG("ProxyIndex: %i, ModelIndex: %i" % (newMdlIndex.row(), srcMdlIndex.row()))
+            self.uiChangeSet.setText(self._format_before_after(newseq, oldseq))
+    
+    def _to_sequence(self, record):
+        return [x for x in bytearray.fromhex(str(record.value("Data")))]
+    
+    def _format_before_after(self, newseq, oldseq):
+        packetname, array = self.decoder.getDiffPackets(newseq, oldseq)
+        mystring = "Packet: %s\n" % packetname
+        for key, newval, oldval in array:
+            mystring += "  {0}\n".format(key)
+            mystring += "    {0:10s}\t{1}\n".format('after:', newval)
+            mystring += "    {0:10s}\t{1}\n\n".format('before:', oldval)
+        return mystring
+        
+    def _format_raw_data(self, record):
+        data = str(record.value("Data"))
+        string = ""
+        for i in range(len(data)):
+            string += data[i]
+            if i > 0:
+                if (i+1)%60 == 0:
+                    string += "\n"
+                elif (i+1)%20 == 0:
+                    string += "\t"
+                elif (i+1)%2 == 0:
+                    string += " "
+        return string
