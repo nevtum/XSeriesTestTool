@@ -35,8 +35,13 @@ class MyApp(appbase, appform):
         self.setupConnections()
         self.setupWidgets()
         self.listenThread = ListenThread(self)
-        self.lineEditPort.setText("com11")
-
+        self.populateComPorts()
+        
+    def populateComPorts(self):
+        import serial_app
+        for port_nr in serial_app.list_serial_ports():
+            self.comboBoxComPorts.addItem("COM%i" % port_nr)
+    
     def getFactory(self):
         return self.factory
 
@@ -105,14 +110,14 @@ class MyApp(appbase, appform):
     def on_btnRecordPause_clicked(self):
         if not self.recording:
             self.btnRecordPause.setText("Pause")
-            self.lineEditPort.setDisabled(True)
+            self.comboBoxComPorts.setDisabled(True)
             self.recording = True
-            portname = str(self.lineEditPort.text())
+            portname = str(self.comboBoxComPorts.currentText())
             self.listenThread.setcommport(portname)
             self.listenThread.setbaud(9600)
             self.listenThread.start()
         else:
             self.btnRecordPause.setText("Record")
-            self.lineEditPort.setDisabled(False)
+            self.comboBoxComPorts.setDisabled(False)
             self.recording = False
             self.listenThread.quit()
