@@ -59,7 +59,6 @@ class ListenThread(QThread):
                     if packet_type == "unknown":
                         self.notify_unknown_packet_received(BUFFER[:])
                         BUFFER = []
-                        break
                     elif 0 < len(BUFFER) < expectedlength:
                         self.notify_unexpected_length(packet_info, BUFFER)
                         break
@@ -71,8 +70,10 @@ class ListenThread(QThread):
                         
                 except ValueError:
                     debug.Log("ListenThread: length is zero")
+                    BUFFER = []
                 except AssertionError:
                     debug.Log("ListenThread: packet not large enough to determine SOB")
+                    BUFFER = []
                 except IndexError:
                     debug.Log("ListenThread: BUFFER Start of block not 0xFF. Clearing BUFFER!")
                     BUFFER = []
