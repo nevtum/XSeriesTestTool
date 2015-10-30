@@ -120,7 +120,7 @@ class IDecoder:
     def getDecodedData(self, seq):
         assert(isinstance(seq, list))
         try:
-            meta = self.getMetaData(seq)
+            meta = self.get_data_definition(seq)
             packetlength = meta.getPacketLength()
         except ValueError:
             return "unknown", [("no logic defined to decode packet", "")]
@@ -145,8 +145,8 @@ class IDecoder:
 
     def getDiffPackets(self, seq1, seq2):
         try:
-            meta1 = self.getMetaData(seq1)
-            meta2 = self.getMetaData(seq2)
+            meta1 = self.get_data_definition(seq1)
+            meta2 = self.get_data_definition(seq2)
         except IndexError:
             return "Cannot compare different packet types", [("", "N/A", "N/A")]
 
@@ -173,11 +173,11 @@ class IDecoder:
 
         return meta1.getPacketName(), array
 
-    def getMetaData(self, packet):
+    def get_data_definition(self, packet):
         raise RuntimeError('Abstract method, must be overloaded!')
 
 class XProtocolDecoder(IDecoder):
-    def getMetaData(self, seq):
+    def get_data_definition(self, seq):
         assert(len(seq) >= 2)
         if(seq[0] != 0xFF):
             raise IndexError("Start of block is not 0xFF!!")

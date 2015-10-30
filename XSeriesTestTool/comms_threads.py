@@ -52,7 +52,7 @@ class ListenThread(QThread):
                 debug.Log("ListenThread: Bytes: %s" % str(BUFFER))
             while len(BUFFER) > 0:
                 try:
-                    packet_info = self.decoder.getMetaData(BUFFER)
+                    packet_info = self.decoder.get_data_definition(BUFFER)
                     expectedlength = packet_info.getPacketLength()
                     
                     packet_type = packet_info.getPacketName()
