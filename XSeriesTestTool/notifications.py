@@ -12,3 +12,15 @@ class Publisher(QObject):
 	
 	def notify_unknown_packet_received(self, data):
 		self.emit(SIGNAL("INVALID_PACKET_RECEIVED"), data)
+	
+	def notify_navigate_next_entry(self):
+		self.emit(SIGNAL("NEXT_ENTRY_NAVIGATED"))
+		
+	def notify_navigate_prev_entry(self):
+		self.emit(SIGNAL("PREVIOUS_ENTRY_NAVIGATED"))
+
+	def notify_navigate_first_entry(self):
+		self.emit(SIGNAL("FIRST_ENTRY_NAVIGATED"))
+	
+	def notify_navigate_final_entry(self):
+		self.emit(SIGNAL("FINAL_ENTRY_NAVIGATED"))

@@ -22,21 +22,21 @@ from PyQt4.QtCore import SIGNAL
 decbase, decform = uic.loadUiType("gui/packetview.ui")
 
 class DecoderDialog(decbase, decform):
-    def __init__(self, parent = None):
+    def __init__(self, publisher, parent = None):
         super(decbase, self).__init__(parent)
         self.setupUi(self)
-        self.setupConnections()
+        self.setupConnections(publisher)
         self.sqlwrapper = parent.getFactory().getQtSQLWrapper()
         self.decoder = parent.getFactory().getProtocolDecoder()
 
-    def setupConnections(self):
-        self.btnCopy.clicked.connect(self.on_btnCopy_clicked)
-        self.btnNext.clicked.connect(self.parent().toNext)
-        self.btnPrev.clicked.connect(self.parent().toPrevious)
-        self.btnFirst.clicked.connect(self.parent().toFirst)
-        self.btnLast.clicked.connect(self.parent().toLast)
+    def setupConnections(self, publisher):
+        self.btnCopy.clicked.connect(self._on_btnCopy_clicked)
+        self.btnNext.clicked.connect(publisher.notify_navigate_next_entry)
+        self.btnPrev.clicked.connect(publisher.notify_navigate_prev_entry)
+        self.btnFirst.clicked.connect(publisher.notify_navigate_first_entry)
+        self.btnLast.clicked.connect(publisher.notify_navigate_final_entry)
 
-    def on_btnCopy_clicked(self):
+    def _on_btnCopy_clicked(self):
         self.textEdit.selectAll()
         self.textEdit.copy()
 

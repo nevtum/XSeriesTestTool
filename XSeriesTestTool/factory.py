@@ -46,3 +46,6 @@ class TransmissionFactory:
     
     def get_serial_thread(self):
         return self.serial_thread
+    
+    def get_publisher(self):
+        return self.publisher

@@ -53,7 +53,7 @@ class MyApp(appbase, appform):
         self.tableView2.setColumnWidth(0, 150)
 
     def setupChildDialogs(self):
-        self.decDialog = DecoderDialog(self)
+        self.decDialog = DecoderDialog(self.factory.get_publisher(), self)
 
     def setupDB(self):
         self.db = self.factory.getQtSQLWrapper()
@@ -70,6 +70,12 @@ class MyApp(appbase, appform):
         self.refreshView()
 
     def setupConnections(self):
+        publisher = self.factory.get_publisher()
+        self.connect(publisher, SIGNAL("NEXT_ENTRY_NAVIGATED"), self.toNext)
+        self.connect(publisher, SIGNAL("PREVIOUS_ENTRY_NAVIGATED"), self.toPrevious)
+        self.connect(publisher, SIGNAL("FIRST_ENTRY_NAVIGATED"), self.toFirst)
+        self.connect(publisher, SIGNAL("FINAL_ENTRY_NAVIGATED"), self.toLast)        
+        
         self.actionRefresh.triggered.connect(self.refreshView)
         self.actionOpenDecoder.triggered.connect(self.decDialog.show)
         self.tableView.doubleClicked.connect(self.decDialog.show)
