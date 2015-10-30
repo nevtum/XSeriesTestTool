@@ -63,16 +63,18 @@ class MyApp(appbase, appform):
 
         self.tableView.setModel(proxy)
         self.tableView2.setModel(sessionproxy)
-        self.connect(self.tableView.selectionModel(), SIGNAL("currentChanged(QModelIndex, QModelIndex)"), self.decDialog.Update)
-
-        self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), proxy.setFilterRegExp)
-        self.connect(self.lineEdit, SIGNAL("textChanged(QString)"), sessionproxy.setFilterRegExp)
+        
+        # connections to lineEdit
+        self.lineEdit.textChanged.connect(proxy.setFilterRegExp)
+        self.lineEdit.textChanged.connect(sessionproxy.setFilterRegExp)
+        
         self.refreshView()
 
     def setupConnections(self):
         self.actionRefresh.triggered.connect(self.refreshView)
         self.actionOpenDecoder.triggered.connect(self.decDialog.show)
         self.tableView.doubleClicked.connect(self.decDialog.show)
+        self.tableView.selectionModel().currentChanged.connect(self.decDialog.Update)
         self.actionClear_Session_data.triggered.connect(self.db.clearDatabase)
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
