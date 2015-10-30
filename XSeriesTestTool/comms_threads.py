@@ -22,9 +22,10 @@ from serial_app import SerialModule
 from PyQt4.QtCore import QObject, QThread, SIGNAL
 
 class ListenThread(QThread):
-    def __init__(self, decoder, parent = None):
+    def __init__(self, decoder, publisher, parent = None):
         QThread.__init__(self, parent)
         self.decoder = decoder
+        self.publisher = publisher
         self.terminate = False
 
     def setcommport(self, port):
@@ -81,14 +82,14 @@ class ListenThread(QThread):
     def notify_unexpected_length(self, packet_info, data):
         debug.Log("ListenThread: packet length smaller than expected length")
         debug.Log("ListenThread: expected = %i, actual = %i" % (packet_info.getPacketLength(), len(data)))
-        self.emit(SIGNAL("UNEXPECTED_PACKET_LENGTH"), packet_info, data)
+        self.publisher.notify_unexpected_length(packet_info, data)
         
     def notify_packet_received(self, packet_type, data):
-        self.emit(SIGNAL("VALID_PACKET_RECEIVED"), packet_type, data)
+        self.publisher.notify_packet_received(packet_type, data)
     
     def notify_unknown_packet_received(self, data):
         debug.Log("ListenThread: Unknown packet type")
-        self.emit(SIGNAL("INVALID_PACKET_RECEIVED"), data)
+        self.publisher.notify_unknown_packet_received(data)
 
     def quit(self):
         # this bit is not thread safe. Make improvements later.

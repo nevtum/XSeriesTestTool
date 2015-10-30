@@ -23,7 +23,7 @@ from PyQt4.QtCore import QObject, SIGNAL, Qt
 from PyQt4 import QtSql, QtGui
 
 class QtSQLWrapper(QObject):
-    def __init__(self, filename, serial_thread, parent = None):
+    def __init__(self, filename, publisher, parent = None):
         QObject.__init__(self, parent)
         self.createSQLTables(filename)
         self.setupSourceModels()
@@ -31,8 +31,8 @@ class QtSQLWrapper(QObject):
         self.filter = DuplicateDatablockFilter()
         self.filter.filterduplicates(True)
         
-        self.connect(serial_thread, SIGNAL("VALID_PACKET_RECEIVED"), self.on_valid_packet_received)
-        self.connect(serial_thread, SIGNAL("INVALID_PACKET_RECEIVED"), self.on_invalid_packet_received)
+        self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self.on_valid_packet_received)
+        self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self.on_invalid_packet_received)
 
     def setupSourceModels(self):
         self.model = QtSql.QSqlTableModel(self)

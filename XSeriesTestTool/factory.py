@@ -20,29 +20,29 @@ from config.configmanager import metaRepository
 from decoder import *
 from views import QtSQLWrapper
 from comms_threads import ListenThread
+from notifications import Publisher
 
 class TransmissionFactory:
     def __init__(self):
-        self.xdec = None
-        self.sqlwrapper = None
-        self.serial_thread = None
+        self.publisher = Publisher()
+        self.xdec = self._build_protocol_decoder()
+        self.sqlwrapper = QtSQLWrapper("test.db", self.publisher)
+        self.serial_thread = ListenThread(self.xdec, self.publisher)
+    
+    def _build_protocol_decoder(self):
+        xmetadata = metaRepository('settings/')
+        decoder = XProtocolDecoder(xmetadata)
+        decoder.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
+        decoder.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
+        decoder.registerTypeDecoder('boolean', booleanDecoder)
+        decoder.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
+        return decoder
 
     def getProtocolDecoder(self):
-        if self.xdec == None:
-            xmetadata = metaRepository('settings/')
-            self.xdec = XProtocolDecoder(xmetadata)
-            self.xdec.registerTypeDecoder('integer-reverse', reverseIntegerDecoder)
-            self.xdec.registerTypeDecoder('currency-reverse', reverseCurrencyDecoder)
-            self.xdec.registerTypeDecoder('boolean', booleanDecoder)
-            self.xdec.registerTypeDecoder('ascii-reverse', reverseAsciiDecoder)
         return self.xdec
     
     def getQtSQLWrapper(self):
-        if self.sqlwrapper == None:
-            self.sqlwrapper = QtSQLWrapper("test.db", self.get_serial_thread())
         return self.sqlwrapper
     
     def get_serial_thread(self):
-        if self.serial_thread == None:
-            self.serial_thread = ListenThread(self.getProtocolDecoder())
         return self.serial_thread
