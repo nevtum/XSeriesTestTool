@@ -56,31 +56,34 @@ class ListenThread(QThread):
                 try:
                     packetinfo = dec.getMetaData(BUFFER)
                     expectedlength = packetinfo.getPacketLength()
+                    
+                    type = packetinfo.getPacketName()
+                    if type == "unknown":
+                        DBGLOG("ListenThread: Unknown packet type")
+                        db.addRecord("incoming", type, BUFFER[:])
+                        BUFFER = []
+                        break
+                    elif 0 < len(BUFFER) < expectedlength:
+                        DBGLOG("ListenThread: packet length smaller than expected length")
+                        DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
+                        break
+                    elif len(BUFFER) >= expectedlength:
+                        DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
+                        db.addRecord("incoming", type, BUFFER[:expectedlength])
+                        BUFFER = BUFFER[expectedlength:]
+                    else:
+                        raise AssertionError('Code should never reach here')
+                        
+                    DBGLOG("ListenThread: TYPE = %s" % type)
+                        
                 except ValueError:
                     DBGLOG("ListenThread: length is zero")
                 except AssertionError:
                     DBGLOG("ListenThread: packet not large enough to determine SOB")
-
-                type = packetinfo.getPacketName()
-                if type == "unknown":
-                    DBGLOG("ListenThread: Unknown packet type")
-                    #queue.add(BUFFER[:])
-                    db.addRecord("incoming", type, BUFFER[:])
+                except IndexError:
+                    DBGLOG("ListenThread: BUFFER Start of block not 0xFF. Clearing BUFFER!")
                     BUFFER = []
-                    break
-                elif 0 < len(BUFFER) < expectedlength:
-                    DBGLOG("ListenThread: packet length smaller than expected length")
-                    DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
-                    break
-                elif len(BUFFER) >= expectedlength:
-                    DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
-                    #queue.add(BUFFER[:expectedlength])
-                    db.addRecord("incoming", type, BUFFER[:expectedlength])
-                    BUFFER = BUFFER[expectedlength:]
-                else:
-                    raise AssertionError('Code should never reach here')
 
-                DBGLOG("ListenThread: TYPE = %s" % packetinfo.getPacketName())
         serial.close()
 
     def quit(self):
