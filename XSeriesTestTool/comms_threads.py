@@ -17,9 +17,9 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 """
 
 import time
+import debug
 from serial_app import SerialModule
 from PyQt4.QtCore import QObject, QThread, SIGNAL
-from debug import *
 
 class ListenThread(QThread):
     def __init__(self, parent):
@@ -41,17 +41,17 @@ class ListenThread(QThread):
         serial = SerialModule(self.port, self.baud)
         self.terminate = False
         BUFFER = []
-        DBGLOG("ListenThread: Serial thread started!")
-        DBGLOG("ListenThread: port = %s, baud = %s" % (self.port, self.baud))
+        debug.Log("ListenThread: Serial thread started!")
+        debug.Log("ListenThread: port = %s, baud = %s" % (self.port, self.baud))
         while True:
-            DBGLOG("ListenThread: Awaiting packet...")
+            debug.Log("ListenThread: Awaiting packet...")
             if self.terminate:
-                DBGLOG("ListenThread: Serial thread stopped!")
+                debug.Log("ListenThread: Serial thread stopped!")
                 break
             newbuffer = serial.Rx()
             if newbuffer:
                 BUFFER += newbuffer
-                DBGLOG("ListenThread: Bytes: %s" % str(BUFFER))
+                debug.Log("ListenThread: Bytes: %s" % str(BUFFER))
             while len(BUFFER) > 0:
                 try:
                     packetinfo = dec.getMetaData(BUFFER)
@@ -59,29 +59,29 @@ class ListenThread(QThread):
                     
                     type = packetinfo.getPacketName()
                     if type == "unknown":
-                        DBGLOG("ListenThread: Unknown packet type")
+                        debug.Log("ListenThread: Unknown packet type")
                         db.addRecord("incoming", type, BUFFER[:])
                         BUFFER = []
                         break
                     elif 0 < len(BUFFER) < expectedlength:
-                        DBGLOG("ListenThread: packet length smaller than expected length")
-                        DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
+                        debug.Log("ListenThread: packet length smaller than expected length")
+                        debug.Log("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
                         break
                     elif len(BUFFER) >= expectedlength:
-                        DBGLOG("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
+                        debug.Log("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
                         db.addRecord("incoming", type, BUFFER[:expectedlength])
                         BUFFER = BUFFER[expectedlength:]
                     else:
                         raise AssertionError('Code should never reach here')
                         
-                    DBGLOG("ListenThread: TYPE = %s" % type)
+                    debug.Log("ListenThread: TYPE = %s" % type)
                         
                 except ValueError:
-                    DBGLOG("ListenThread: length is zero")
+                    debug.Log("ListenThread: length is zero")
                 except AssertionError:
-                    DBGLOG("ListenThread: packet not large enough to determine SOB")
+                    debug.Log("ListenThread: packet not large enough to determine SOB")
                 except IndexError:
-                    DBGLOG("ListenThread: BUFFER Start of block not 0xFF. Clearing BUFFER!")
+                    debug.Log("ListenThread: BUFFER Start of block not 0xFF. Clearing BUFFER!")
                     BUFFER = []
 
         serial.close()

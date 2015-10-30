@@ -16,6 +16,7 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import debug
 from factory import TransmissionFactory
 from gui.decoder_view import DecoderDialog
 from comms_threads import ListenThread
@@ -34,7 +35,7 @@ class MyApp(appbase, appform):
         self.setupConnections()
         self.setupWidgets()
         self.listenThread = ListenThread(self)
-        self.lineEditPort.setText("com17")
+        self.lineEditPort.setText("com11")
 
     def getFactory(self):
         return self.factory
@@ -70,7 +71,14 @@ class MyApp(appbase, appform):
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
         self.actionEnable_Autorefresh.toggled.connect(self.db.setAutoRefresh)
+        self.actionEnable_DebugLog.toggled.connect(self._toggle_logging_settings)
         #self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
+
+    def _toggle_logging_settings(self, enabled):
+        if enabled:
+            debug.enable_logging()
+        else:
+            debug.disable_logging()
 
     def refreshView(self):
         self.db.refresh()

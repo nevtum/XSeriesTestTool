@@ -18,9 +18,20 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 
 from datetime import datetime
 
-def DBGLOG(message):
-    # _log_to_file(message, 'DebugLog.txt')
+_is_logging_enabled = False
+print("logger is %s" % _is_logging_enabled)
+_filename = "DebugLog.txt"
+
+def Log(message):
     _log_to_console(message)
+    if _is_logging_enabled:
+        _log_to_file(message, _filename)
+
+def enable_logging():
+    _is_logging_enabled = True
+
+def disable_logging():
+    _is_logging_enabled = False
 
 def _log_to_file(message, filename):
     log = open(filename, 'a')

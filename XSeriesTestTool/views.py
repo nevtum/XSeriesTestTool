@@ -17,8 +17,8 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 """
 
 import sqlite3
+import debug
 from datetime import datetime
-from debug import *
 from PyQt4.QtCore import QObject, SIGNAL, Qt
 from PyQt4 import QtSql, QtGui
 
@@ -127,16 +127,16 @@ class QtSQLWrapper(QObject):
 
     def runSelectQuery(self, query):
         if self.query.isActive():
-            DBGLOG("Wrapper: previous query is still active")
+            debug.Log("Wrapper: previous query is still active")
             return []
         self.query.prepare(query)
         if self.query.exec_():
             list = []
             while self.query.next():
                 list.append(str(self.query.value(0)))
-            DBGLOG("Wrapper: %i" % len(list))
+            debug.Log("Wrapper: %i" % len(list))
             return list
-        DBGLOG("Wrapper: query did not execute successfully")
+        debug.Log("Wrapper: query did not execute successfully")
         return []
 
     def __del__(self):
@@ -151,7 +151,7 @@ class DuplicateDatablockFilter:
         assert(isinstance(toggle, bool))
         self.filtered = toggle
         self.dupes.clear()
-        DBGLOG("DDFilter: Filtering enabled = %s" % toggle)
+        debug.Log("DDFilter: Filtering enabled = %s" % toggle)
 
     def differentToPrevious(self, blocktype, seq):
         if not self.filtered:
@@ -160,7 +160,7 @@ class DuplicateDatablockFilter:
         key = blocktype
         data = self.dupes.get(key)
         if data is None:
-            DBGLOG("DDFilter: NEW DATABLOCK!")
+            debug.Log("DDFilter: NEW DATABLOCK!")
             self.dupes[key] = seq
             return True
 
@@ -169,7 +169,7 @@ class DuplicateDatablockFilter:
             if seq[i] != data[i]:
                 self.dupes[key] = seq
                 assert(seq == self.dupes.get(key))
-                DBGLOG("DDFilter: DIFFERENT DATABLOCK!")
+                debug.Log("DDFilter: DIFFERENT DATABLOCK!")
                 return True
-        DBGLOG("DDFilter: REPEATED!")
+        debug.Log("DDFilter: REPEATED!")
         return False
