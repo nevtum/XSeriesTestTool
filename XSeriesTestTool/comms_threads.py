@@ -22,9 +22,9 @@ from serial_app import SerialModule
 from PyQt4.QtCore import QObject, QThread, SIGNAL
 
 class ListenThread(QThread):
-    def __init__(self, parent):
+    def __init__(self, decoder, parent = None):
         QThread.__init__(self, parent)
-        self.factory = parent.getFactory()
+        self.decoder = decoder
         self.terminate = False
 
     def setcommport(self, port):
@@ -34,9 +34,6 @@ class ListenThread(QThread):
         self.baud = int(baud)
 
     def run(self):
-        db = self.factory.getQtSQLWrapper()
-        dec = self.factory.getProtocolDecoder()
-
         # add a try/finally statement in the future
         serial = SerialModule(self.port, self.baud)
         self.terminate = False
@@ -54,27 +51,22 @@ class ListenThread(QThread):
                 debug.Log("ListenThread: Bytes: %s" % str(BUFFER))
             while len(BUFFER) > 0:
                 try:
-                    packetinfo = dec.getMetaData(BUFFER)
-                    expectedlength = packetinfo.getPacketLength()
+                    packet_info = self.decoder.getMetaData(BUFFER)
+                    expectedlength = packet_info.getPacketLength()
                     
-                    type = packetinfo.getPacketName()
-                    if type == "unknown":
-                        debug.Log("ListenThread: Unknown packet type")
-                        db.addRecord("incoming", type, BUFFER[:])
+                    packet_type = packet_info.getPacketName()
+                    if packet_type == "unknown":
+                        self.notify_unknown_packet_received(BUFFER[:])
                         BUFFER = []
                         break
                     elif 0 < len(BUFFER) < expectedlength:
-                        debug.Log("ListenThread: packet length smaller than expected length")
-                        debug.Log("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
+                        self.notify_unexpected_length(packet_info, BUFFER)
                         break
                     elif len(BUFFER) >= expectedlength:
-                        debug.Log("ListenThread: expected = %i, actual = %i" % (expectedlength, len(BUFFER)))
-                        db.addRecord("incoming", type, BUFFER[:expectedlength])
+                        self.notify_packet_received(packet_type, BUFFER[:expectedlength])
                         BUFFER = BUFFER[expectedlength:]
                     else:
-                        raise AssertionError('Code should never reach here')
-                        
-                    debug.Log("ListenThread: TYPE = %s" % type)
+                        pass
                         
                 except ValueError:
                     debug.Log("ListenThread: length is zero")
@@ -85,6 +77,18 @@ class ListenThread(QThread):
                     BUFFER = []
 
         serial.close()
+    
+    def notify_unexpected_length(self, packet_info, data):
+        debug.Log("ListenThread: packet length smaller than expected length")
+        debug.Log("ListenThread: expected = %i, actual = %i" % (packet_info.getPacketLength(), len(data)))
+        self.emit(SIGNAL("UNEXPECTED_PACKET_LENGTH"), packet_info, data)
+        
+    def notify_packet_received(self, packet_type, data):
+        self.emit(SIGNAL("VALID_PACKET_RECEIVED"), packet_type, data)
+    
+    def notify_unknown_packet_received(self, data):
+        debug.Log("ListenThread: Unknown packet type")
+        self.emit(SIGNAL("INVALID_PACKET_RECEIVED"), data)
 
     def quit(self):
         # this bit is not thread safe. Make improvements later.

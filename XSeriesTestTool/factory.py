@@ -19,11 +19,13 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 from config.configmanager import metaRepository
 from decoder import *
 from views import QtSQLWrapper
+from comms_threads import ListenThread
 
 class TransmissionFactory:
     def __init__(self):
         self.xdec = None
         self.sqlwrapper = None
+        self.serial_thread = None
 
     def getProtocolDecoder(self):
         if self.xdec == None:
@@ -37,5 +39,10 @@ class TransmissionFactory:
     
     def getQtSQLWrapper(self):
         if self.sqlwrapper == None:
-            self.sqlwrapper = QtSQLWrapper("test.db")
+            self.sqlwrapper = QtSQLWrapper("test.db", self.get_serial_thread())
         return self.sqlwrapper
+    
+    def get_serial_thread(self):
+        if self.serial_thread == None:
+            self.serial_thread = ListenThread(self.getProtocolDecoder())
+        return self.serial_thread

@@ -19,7 +19,6 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 import debug
 from factory import TransmissionFactory
 from gui.decoder_view import DecoderDialog
-from comms_threads import ListenThread
 from PyQt4 import uic
 from PyQt4.QtCore import SIGNAL
 
@@ -34,7 +33,7 @@ class MyApp(appbase, appform):
         self.setupDB()
         self.setupConnections()
         self.setupWidgets()
-        self.listenThread = ListenThread(self)
+        self.listenThread = self.factory.get_serial_thread()
         self.populateComPorts()
         
     def populateComPorts(self):
