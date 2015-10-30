@@ -18,7 +18,7 @@ XSeriesTestTool - A NSW gaming protocol decoder/analyzer
 
 from factory import TransmissionFactory
 from gui.decoder_view import DecoderDialog
-from comms_threads import ListenThread, ReplayThread
+from comms_threads import ListenThread
 from PyQt4 import uic
 from PyQt4.QtCore import SIGNAL
 
@@ -34,7 +34,6 @@ class MyApp(appbase, appform):
         self.setupConnections()
         self.setupWidgets()
         self.listenThread = ListenThread(self)
-        self.replayThread = ReplayThread(self)
         self.lineEditPort.setText("com17")
 
     def getFactory(self):
@@ -68,8 +67,6 @@ class MyApp(appbase, appform):
         self.actionRefresh.triggered.connect(self.refreshView)
         self.actionOpenDecoder.triggered.connect(self.decDialog.show)
         self.actionClear_Session_data.triggered.connect(self.db.clearDatabase)
-        self.btnReplay.clicked.connect(self.on_btnReplay_clicked)
-        self.replaying = False
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
         self.actionEnable_Autorefresh.toggled.connect(self.db.setAutoRefresh)
@@ -100,7 +97,6 @@ class MyApp(appbase, appform):
     def on_btnRecordPause_clicked(self):
         if not self.recording:
             self.btnRecordPause.setText("Pause")
-            self.btnReplay.setDisabled(True)
             self.lineEditPort.setDisabled(True)
             self.recording = True
             portname = str(self.lineEditPort.text())
@@ -109,26 +105,6 @@ class MyApp(appbase, appform):
             self.listenThread.start()
         else:
             self.btnRecordPause.setText("Record")
-            self.btnReplay.setDisabled(False)
             self.lineEditPort.setDisabled(False)
             self.recording = False
             self.listenThread.quit()
-
-    def on_btnReplay_clicked(self):
-        if not self.replaying:
-            self.btnReplay.setText("Stop Replay")
-            self.btnRecordPause.setDisabled(True)
-            self.lineEditPort.setDisabled(True)
-            self.replaying = True
-            portname = str(self.lineEditPort.text())
-            self.replayThread.setcommport(portname)
-            self.replayThread.setbaud(9600)
-            self.replayThread.start()
-        else:
-            # add slot to listen to signal
-            # when thread finishes on its own
-            self.btnReplay.setText("Replay")
-            self.btnRecordPause.setDisabled(False)
-            self.lineEditPort.setDisabled(False)
-            self.replaying = False
-            self.replayThread.quit()

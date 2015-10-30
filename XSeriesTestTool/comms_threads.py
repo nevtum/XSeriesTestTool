@@ -86,38 +86,3 @@ class ListenThread(QThread):
     def quit(self):
         # this bit is not thread safe. Make improvements later.
         self.terminate = True
-
-class ReplayThread(QThread):
-    def __init__(self, parent):
-        QThread.__init__(self, parent)
-        self.factory = parent.getFactory()
-        self.terminate = False
-
-    def setcommport(self, port):
-        self.port = port
-
-    def setbaud(self, baud):
-        self.baud = int(baud)
-
-    def run(self):
-        self.terminate = False
-        DBGLOG("replaying data")
-        db = self.factory.getQtSQLWrapper()
-        dec = self.factory.getProtocolDecoder()
-        serial = SerialModule(self.port, self.baud)
-        query = "SELECT hex FROM packetlog where direction ='incoming' ORDER BY timestamp ASC LIMIT 100"
-        for entry in db.runSelectQuery(query):
-            if self.terminate:
-                break
-            seq = [x for x in bytearray.fromhex(entry)]
-            packetinfo = dec.getMetaData(seq)
-            DBGLOG(str(seq))
-            serial.Tx(seq)
-            db.addRecord("outgoing", packetinfo.getPacketName(), seq)
-            time.sleep(1)
-        serial.close()
-        self.emit(SIGNAL("TxComplete"))
-
-    def quit(self):
-        # this bit is not thread safe. Make improvements later.
-        self.terminate = True

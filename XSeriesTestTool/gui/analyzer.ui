@@ -75,13 +75,6 @@
         </property>
        </spacer>
       </item>
-      <item>
-       <widget class="QPushButton" name="btnReplay">
-        <property name="text">
-         <string>Replay Recording</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
     <item>
@@ -251,7 +244,7 @@
      <x>0</x>
      <y>0</y>
      <width>570</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSettings">
