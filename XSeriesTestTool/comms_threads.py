@@ -89,3 +89,7 @@ class ListenThread(QThread):
     def quit(self):
         # this bit is not thread safe. Make improvements later.
         self.terminate = True
+    
+    def __del__(self):
+        self.terminate()
+        self.wait()
