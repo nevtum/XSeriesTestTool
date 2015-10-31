@@ -43,21 +43,21 @@ class QtSQLWrapper(QObject):
         self.db.setDatabaseName(filename)
         self.db.open()
 
-        self.query = QtSql.QSqlQuery(self.db)
+        query = QtSql.QSqlQuery(self.db)
         sql = """CREATE TABLE IF NOT EXISTS session(
         Timestamp DATETIME,
         PacketID INTEGER NOT NULL)"""
-        self.query.prepare(sql)
-        self.query.exec_()
+        query.prepare(sql)
+        query.exec_()
         sql = """CREATE TABLE IF NOT EXISTS distinctpackets(
         ID INTEGER PRIMARY KEY,
         LastChanged DATETIME,
         Direction TEXT NOT NULL,
         Class TEXT NOT NULL,
         Data TEXT NOT NULL)"""
-        self.query.prepare(sql)
-        self.query.exec_()
-        self.query.finish()
+        query.prepare(sql)
+        query.exec_()
+        query.finish()
 
     def _add_record(self, direction, packet_type, byte_array):
         loggedtime = str(datetime.now())
@@ -73,22 +73,24 @@ class QtSQLWrapper(QObject):
         return self.filter.has_changed(packet_type, byte_array)
     
     def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
+        query = QtSql.QSqlQuery(self.db)
         hexstring = utilities.convert_to_hex_string(byte_array)        
         
-        self.query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
-        self.query.bindValue(":date", logged_time)
-        self.query.bindValue(":direction", str(direction))
-        self.query.bindValue(":type", packet_type)
-        self.query.bindValue(":contents", str(hexstring))
-        self.query.exec_()
-        self.query.finish()
+        query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
+        query.bindValue(":date", logged_time)
+        query.bindValue(":direction", str(direction))
+        query.bindValue(":type", packet_type)
+        query.bindValue(":contents", str(hexstring))
+        query.exec_()
+        query.finish()
         
     def _insert_new_entry(self, row_id, logged_time):
-        self.query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
-        self.query.bindValue(":date", logged_time)
-        self.query.bindValue(":packetid", row_id)
-        self.query.exec_()
-        self.query.finish()
+        query = QtSql.QSqlQuery(self.db)
+        query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
+        query.bindValue(":date", logged_time)
+        query.bindValue(":packetid", row_id)
+        query.exec_()
+        query.finish()
     
     def _get_row_id_of_latest_packet(self, packet_type):
         return self._get_last_packet(packet_type)[0]
@@ -100,15 +102,16 @@ class QtSQLWrapper(QObject):
         AND Direction = 'incoming'""" % packet_type
         return self._runSelectQuery(sql)
     
-    def _runSelectQuery(self, query):
-        if self.query.isActive():
+    def _runSelectQuery(self, sql):
+        query = QtSql.QSqlQuery(self.db)
+        if query.isActive():
             debug.Log("Wrapper: previous query is still active")
             return []
-        self.query.prepare(query)
-        if self.query.exec_():
+        query.prepare(sql)
+        if query.exec_():
             list = []
-            while self.query.next():
-                list.append(str(self.query.value(0)))
+            while query.next():
+                list.append(str(query.value(0)))
             debug.Log("Wrapper: %i" % len(list))
             return list
         debug.Log("Wrapper: query did not execute successfully")
@@ -141,9 +144,10 @@ class QtSQLWrapper(QObject):
         return self.sessionproxy
 
     def clearDatabase(self):
-        self.query.exec_("DELETE FROM session")
-        self.query.exec_("DELETE FROM distinctpackets")
-        self.query.finish()
+        query = QtSql.QSqlQuery(self.db)
+        query.exec_("DELETE FROM session")
+        query.exec_("DELETE FROM distinctpackets")
+        query.finish()
         self.refresh()
 
     def __del__(self):
