@@ -7,6 +7,7 @@ class QtSQLWrapper(QObject):
         QObject.__init__(self, parent)
         self.query_engine = self._create_query_engine(filename)
         self._build_view_tables()
+        self.is_autorefresh_enabled = False
         
         self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self._on_valid_packet_received)
         self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self._on_invalid_packet_received)
@@ -43,7 +44,8 @@ class QtSQLWrapper(QObject):
 
     def _add_record(self, direction, packet_type, byte_array):
         self.query_engine.insert(direction, packet_type, byte_array)
-        self.emit(SIGNAL("newentry"))
+        if self.is_autorefresh_enabled:
+            self.refresh()
             
     def _on_invalid_packet_received(self, data):
         self._add_record("incoming", "unknown", data)
@@ -56,10 +58,7 @@ class QtSQLWrapper(QObject):
         self.sessionmodel.select()
 
     def setAutoRefresh(self, toggle):
-        if toggle == True:
-            self.connect(self, SIGNAL("newentry"), self.refresh)
-        else:
-            self.disconnect(self, SIGNAL("newentry"), self.refresh)
+        self.is_autorefresh_enabled = toggle
 
     def getProxyModel(self):
         return self.proxy
