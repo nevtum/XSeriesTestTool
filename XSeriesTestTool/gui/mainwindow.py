@@ -61,7 +61,6 @@ class MyApp(appbase, appform):
         self.recording = False
         self.actionEnable_Autorefresh.toggled.connect(self.dvm.setAutoRefresh)
         self.actionEnable_DebugLog.toggled.connect(self._toggle_logging_settings)
-        #self.dvm.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
     def _toggle_logging_settings(self, enabled):
         if enabled:

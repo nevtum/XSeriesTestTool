@@ -48,9 +48,6 @@ class DataViewManager(QObject):
     def getProxyModel(self):
         return self.distinct_table_view_model.get_model()
 
-    def getSessionProxy(self):
-        return self.session_table_view_model.get_model()
-
     def clearDatabase(self):
         self.query_engine.clear_database()
         self.refresh()
