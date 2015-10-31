@@ -1,5 +1,6 @@
 import utilities
 import debug
+from datetime import datetime
 from PyQt4.QtCore import QObject
 from PyQt4 import QtSql
 
@@ -7,29 +8,13 @@ class QueryEngine(QObject):
     def __init__(self, context, parent = None):
         QObject.__init__(self, parent)
         self.context = context
+        self.filter = DuplicateDatablockFilter()
+        self.filter.filterduplicates(True)
     
-    def insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
-        query = QtSql.QSqlQuery(self.context)
-        hexstring = utilities.convert_to_hex_string(byte_array)        
-        
-        query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
-        query.bindValue(":date", logged_time)
-        query.bindValue(":direction", str(direction))
-        query.bindValue(":type", packet_type)
-        query.bindValue(":contents", str(hexstring))
-        query.exec_()
-        query.finish()
-        
-    def insert_new_entry(self, row_id, logged_time):
-        query = QtSql.QSqlQuery(self.context)
-        query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
-        query.bindValue(":date", logged_time)
-        query.bindValue(":packetid", row_id)
-        query.exec_()
-        query.finish()
-        
-    def get_row_id_of_latest_packet(self, packet_type):
-        return self.get_last_packet(packet_type)[0]
+    def insert(self, direction, packet_type, byte_array):
+        loggedtime = str(datetime.now())
+        self._insert_changed_packet(direction, packet_type, byte_array, loggedtime)   
+        self._insert_received_packet(packet_type, byte_array, loggedtime)
     
     def get_last_packet(self, packet_type):
         sql = """SELECT MAX(ID)
@@ -55,12 +40,38 @@ class QueryEngine(QObject):
         query.exec_()
         query.finish()
     
-    def clear_database():
+    def clear_database(self):
         query = QtSql.QSqlQuery(self.context)
         query.exec_("DELETE FROM session")
         query.exec_("DELETE FROM distinctpackets")
         query.finish()
-        self.refresh()
+    
+    def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
+        if not self.filter.has_changed(packet_type, byte_array):
+            return
+        
+        query = QtSql.QSqlQuery(self.context)
+        hexstring = utilities.convert_to_hex_string(byte_array)        
+        
+        query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
+        query.bindValue(":date", logged_time)
+        query.bindValue(":direction", str(direction))
+        query.bindValue(":type", packet_type)
+        query.bindValue(":contents", str(hexstring))
+        query.exec_()
+        query.finish()
+        
+    def _insert_received_packet(self, packet_type, byte_array, logged_time):
+        row_id = self._get_row_id_of_latest_packet(packet_type)
+        query = QtSql.QSqlQuery(self.context)
+        query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
+        query.bindValue(":date", logged_time)
+        query.bindValue(":packetid", row_id)
+        query.exec_()
+        query.finish()
+                
+    def _get_row_id_of_latest_packet(self, packet_type):
+        return self.get_last_packet(packet_type)[0]
     
     def _get_records(self, sql):
         query = QtSql.QSqlQuery(self.context)
