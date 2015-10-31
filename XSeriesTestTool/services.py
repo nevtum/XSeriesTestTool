@@ -24,6 +24,22 @@ class QueryEngine(QObject):
         AND Direction = 'incoming'""" % packet_type
         return self._get_records(sql)
     
+    def get_latest_packet(self, packet_type):
+        sql = """SELECT *
+        FROM distinctpackets
+        WHERE Class = '%s'
+        AND Direction = 'incoming'
+        ORDER BY ID DESC LIMIT 1""" % packet_type
+        query = QtSql.QSqlQuery(self.context)
+        query.prepare(sql)
+        query.exec_()
+        if query.next():
+            row_id = query.value(0)
+            timestamp = query.value(1)
+            data = query.value(4)
+            return row_id, timestamp, data
+        return None, None, None
+    
     def create_sql_tables(self):
         query = QtSql.QSqlQuery(self.context)
         sql = """CREATE TABLE IF NOT EXISTS session(
@@ -52,9 +68,17 @@ class QueryEngine(QObject):
         context.setDatabaseName(filename)
         context.open()
         return context
+        
+    def _has_changed(self, packet_type, byte_array):
+        row_id, timestamp, data = self.get_latest_packet(packet_type)
+        if packet_id is None:
+            return True
+
+        sequence = utilities.convert_to_hex_string(byte_array)
+        return sequence != data
     
     def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
-        if not self.filter.has_changed(packet_type, byte_array):
+        if not self._has_changed(packet_type, byte_array):
             return
         
         query = QtSql.QSqlQuery(self.context)
