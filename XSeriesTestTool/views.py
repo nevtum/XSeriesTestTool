@@ -9,41 +9,19 @@ class QtSQLWrapper(QObject):
     def __init__(self, filename, publisher, parent = None):
         QObject.__init__(self, parent)
         self._createSQLTables(filename)
-        self._setupSourceModels()
-        self._setupProxyModels()
+        self._build_view_tables()
         self.filter = DuplicateDatablockFilter()
         self.filter.filterduplicates(True)
         
         self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self._on_valid_packet_received)
         self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self._on_invalid_packet_received)
 
-    def _setupSourceModels(self):
-        self.model = QtSql.QSqlTableModel(self)
-        self.model.setTable("distinctpackets")
-        self.model.sort(0, Qt.DescendingOrder)
-
-        self.sessionmodel = QtSql.QSqlRelationalTableModel(self)
-        self.sessionmodel.setTable("session")
-        self.sessionmodel.setRelation(1, QtSql.QSqlRelation("distinctpackets", "ID", "Class"))
-        self.sessionmodel.sort(0, Qt.DescendingOrder)
-
-    def _setupProxyModels(self):
-        self.proxy = QtGui.QSortFilterProxyModel()
-        self.proxy.setSourceModel(self.model)
-        self.proxy.setFilterKeyColumn(3)
-        self.proxy.setDynamicSortFilter(True)
-
-        self.sessionproxy = QtGui.QSortFilterProxyModel()
-        self.sessionproxy.setSourceModel(self.sessionmodel)
-        self.sessionproxy.setFilterKeyColumn(1)
-        self.sessionproxy.setDynamicSortFilter(True)
-
     def _createSQLTables(self, filename):
-        self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName(filename)
-        self.db.open()
+        self.context = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+        self.context.setDatabaseName(filename)
+        self.context.open()
 
-        query = QtSql.QSqlQuery(self.db)
+        query = QtSql.QSqlQuery(self.context)
         sql = """CREATE TABLE IF NOT EXISTS session(
         Timestamp DATETIME,
         PacketID INTEGER NOT NULL)"""
@@ -59,6 +37,24 @@ class QtSQLWrapper(QObject):
         query.exec_()
         query.finish()
 
+    def _build_view_tables(self):
+        self.model = QtSql.QSqlTableModel(self)
+        self.model.setTable("distinctpackets")
+        self.model.sort(0, Qt.DescendingOrder)
+        self.proxy = QtGui.QSortFilterProxyModel()
+        self.proxy.setSourceModel(self.model)
+        self.proxy.setFilterKeyColumn(3)
+        self.proxy.setDynamicSortFilter(True)
+
+        self.sessionmodel = QtSql.QSqlRelationalTableModel(self)
+        self.sessionmodel.setTable("session")
+        self.sessionmodel.setRelation(1, QtSql.QSqlRelation("distinctpackets", "ID", "Class"))
+        self.sessionmodel.sort(0, Qt.DescendingOrder)
+        self.sessionproxy = QtGui.QSortFilterProxyModel()
+        self.sessionproxy.setSourceModel(self.sessionmodel)
+        self.sessionproxy.setFilterKeyColumn(1)
+        self.sessionproxy.setDynamicSortFilter(True)
+
     def _add_record(self, direction, packet_type, byte_array):
         loggedtime = str(datetime.now())
 
@@ -73,7 +69,7 @@ class QtSQLWrapper(QObject):
         return self.filter.has_changed(packet_type, byte_array)
     
     def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
-        query = QtSql.QSqlQuery(self.db)
+        query = QtSql.QSqlQuery(self.context)
         hexstring = utilities.convert_to_hex_string(byte_array)        
         
         query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
@@ -85,7 +81,7 @@ class QtSQLWrapper(QObject):
         query.finish()
         
     def _insert_new_entry(self, row_id, logged_time):
-        query = QtSql.QSqlQuery(self.db)
+        query = QtSql.QSqlQuery(self.context)
         query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
         query.bindValue(":date", logged_time)
         query.bindValue(":packetid", row_id)
@@ -100,10 +96,10 @@ class QtSQLWrapper(QObject):
         FROM distinctpackets
         WHERE Class = '%s'
         AND Direction = 'incoming'""" % packet_type
-        return self._runSelectQuery(sql)
+        return self._get_records(sql)
     
-    def _runSelectQuery(self, sql):
-        query = QtSql.QSqlQuery(self.db)
+    def _get_records(self, sql):
+        query = QtSql.QSqlQuery(self.context)
         if query.isActive():
             debug.Log("Wrapper: previous query is still active")
             return []
@@ -144,14 +140,14 @@ class QtSQLWrapper(QObject):
         return self.sessionproxy
 
     def clearDatabase(self):
-        query = QtSql.QSqlQuery(self.db)
+        query = QtSql.QSqlQuery(self.context)
         query.exec_("DELETE FROM session")
         query.exec_("DELETE FROM distinctpackets")
         query.finish()
         self.refresh()
 
     def __del__(self):
-        self.db.close()
+        self.context.close()
 
 class DuplicateDatablockFilter:
     def __init__(self):
