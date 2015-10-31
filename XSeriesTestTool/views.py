@@ -58,31 +58,34 @@ class QtSQLWrapper(QObject):
         self.query.exec_()
         self.query.finish()
 
-    def addRecord(self, direction, type, bytearray):
+    def addRecord(self, direction, packet_type, bytearray):
         hexstring = ''.join(["%02X" % byte for byte in bytearray])
         loggedtime = str(datetime.now())
 
-        if self.filter.differentToPrevious(type, bytearray):
+        if self.filter.differentToPrevious(packet_type, bytearray):
             self.query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
             self.query.bindValue(":date", loggedtime)
             self.query.bindValue(":direction", str(direction))
-            self.query.bindValue(":type", type)
+            self.query.bindValue(":type", packet_type)
             self.query.bindValue(":contents", str(hexstring))
             self.query.exec_()
             self.query.finish()
 
-        sql = """SELECT MAX(ID)
-        FROM distinctpackets
-        WHERE Class = '%s'
-        AND Direction = 'incoming'""" % type
-        id = self.runSelectQuery(sql)
+        id = self._get_row_id_of_latest_packet(packet_type)
 
         self.query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
         self.query.bindValue(":date", loggedtime)
-        self.query.bindValue(":packetid", id[0])
+        self.query.bindValue(":packetid", id)
         self.query.exec_()
         self.query.finish()
         self.emit(SIGNAL("newentry"))
+    
+    def _get_row_id_of_latest_packet(self, packet_type):
+        sql = """SELECT MAX(ID)
+        FROM distinctpackets
+        WHERE Class = '%s'
+        AND Direction = 'incoming'""" % packet_type
+        return self.runSelectQuery(sql)[0]
 
     def refresh(self):
         self.model.select()
