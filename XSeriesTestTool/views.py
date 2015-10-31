@@ -5,42 +5,13 @@ from PyQt4 import QtSql, QtGui
 class QtSQLWrapper(QObject):
     def __init__(self, filename, publisher, parent = None):
         QObject.__init__(self, parent)
-        self.query_engine = self._create_query_engine(filename)
-        self._build_view_tables()
+        self.query_engine = QueryEngine(filename, self)
+        self.distinct_table_view_model = ModifiedPacketTableModel(self)
+        self.session_table_view_model = AnyPacketTableModel(self)
         self.is_autorefresh_enabled = False
         
         self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self._on_valid_packet_received)
         self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self._on_invalid_packet_received)
-
-    def _create_context(self, filename):
-        context = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        context.setDatabaseName(filename)
-        context.open()
-        return context
-        
-    def _create_query_engine(self, filename):
-        context = self._create_context(filename)
-        query_engine = QueryEngine(context, self)
-        query_engine.create_sql_tables()
-        return query_engine
-
-    def _build_view_tables(self):
-        self.model = QtSql.QSqlTableModel(self)
-        self.model.setTable("distinctpackets")
-        self.model.sort(0, Qt.DescendingOrder)
-        self.proxy = QtGui.QSortFilterProxyModel()
-        self.proxy.setSourceModel(self.model)
-        self.proxy.setFilterKeyColumn(3)
-        self.proxy.setDynamicSortFilter(True)
-
-        self.sessionmodel = QtSql.QSqlRelationalTableModel(self)
-        self.sessionmodel.setTable("session")
-        self.sessionmodel.setRelation(1, QtSql.QSqlRelation("distinctpackets", "ID", "Class"))
-        self.sessionmodel.sort(0, Qt.DescendingOrder)
-        self.sessionproxy = QtGui.QSortFilterProxyModel()
-        self.sessionproxy.setSourceModel(self.sessionmodel)
-        self.sessionproxy.setFilterKeyColumn(1)
-        self.sessionproxy.setDynamicSortFilter(True)
 
     def _add_record(self, direction, packet_type, byte_array):
         self.query_engine.insert(direction, packet_type, byte_array)
@@ -54,18 +25,53 @@ class QtSQLWrapper(QObject):
         self._add_record("incoming", packet_type, data)
 
     def refresh(self):
-        self.model.select()
-        self.sessionmodel.select()
+        self.distinct_table_view_model.refresh_data()
+        self.session_table_view_model.refresh_data()
 
     def setAutoRefresh(self, toggle):
         self.is_autorefresh_enabled = toggle
 
     def getProxyModel(self):
-        return self.proxy
+        return self.distinct_table_view_model.get_model()
 
     def getSessionProxy(self):
-        return self.sessionproxy
+        return self.session_table_view_model.get_model()
 
     def clearDatabase(self):
         self.query_engine.clear_database()
         self.refresh()
+
+class ModifiedPacketTableModel(QObject):
+    def __init__(self, parent = None):
+        QObject.__init__(self, parent)
+        self.model = QtSql.QSqlTableModel(self)
+        self.model.setTable("distinctpackets")
+        self.model.sort(0, Qt.DescendingOrder)
+        self.proxy = QtGui.QSortFilterProxyModel()
+        self.proxy.setSourceModel(self.model)
+        self.proxy.setFilterKeyColumn(3)
+        self.proxy.setDynamicSortFilter(True)
+        
+    def get_model(self):
+        return self.proxy
+    
+    def refresh_data(self):
+        self.model.select()
+
+class AnyPacketTableModel(QObject):
+    def __init__(self, parent = None):
+        QObject.__init__(self, parent)
+        self.model = QtSql.QSqlRelationalTableModel(self)
+        self.model.setTable("session")
+        self.model.setRelation(1, QtSql.QSqlRelation("distinctpackets", "ID", "Class"))
+        self.model.sort(0, Qt.DescendingOrder)
+        self.proxy = QtGui.QSortFilterProxyModel()
+        self.proxy.setSourceModel(self.model)
+        self.proxy.setFilterKeyColumn(1)
+        self.proxy.setDynamicSortFilter(True)
+        
+    def get_model(self):
+        return self.proxy
+        
+    def refresh_data(self):
+        self.model.select()

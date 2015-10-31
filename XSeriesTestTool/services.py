@@ -5,9 +5,10 @@ from PyQt4.QtCore import QObject
 from PyQt4 import QtSql
 
 class QueryEngine(QObject):
-    def __init__(self, context, parent = None):
+    def __init__(self, filename, parent = None):
         QObject.__init__(self, parent)
-        self.context = context
+        self.context = self._create_context(filename)
+        self.create_sql_tables()
         self.filter = DuplicateDatablockFilter()
         self.filter.filterduplicates(True)
     
@@ -45,6 +46,12 @@ class QueryEngine(QObject):
         query.exec_("DELETE FROM session")
         query.exec_("DELETE FROM distinctpackets")
         query.finish()
+    
+    def _create_context(self, filename):
+        context = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+        context.setDatabaseName(filename)
+        context.open()
+        return context
     
     def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
         if not self.filter.has_changed(packet_type, byte_array):
