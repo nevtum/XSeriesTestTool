@@ -1,5 +1,6 @@
 import sqlite3
 import debug
+import utilities
 from datetime import datetime
 from PyQt4.QtCore import QObject, SIGNAL, Qt
 from PyQt4 import QtSql, QtGui
@@ -58,21 +59,21 @@ class QtSQLWrapper(QObject):
         self.query.exec_()
         self.query.finish()
 
-    def addRecord(self, direction, packet_type, byte_array):
+    def _add_record(self, direction, packet_type, byte_array):
         loggedtime = str(datetime.now())
 
-        if self.filter.differentToPrevious(packet_type, byte_array):
+        if self._has_changed_since_last_packet(packet_type, byte_array):
             self._insert_changed_packet(direction, packet_type, byte_array, loggedtime)
 
         row_id = self._get_row_id_of_latest_packet(packet_type)
         self._insert_new_entry(row_id, loggedtime)
         self.emit(SIGNAL("newentry"))
-    
-    def _convert_to_hex_string(self, byte_array):
-        return ''.join(["%02X" % byte for byte in byte_array])
+        
+    def _has_changed_since_last_packet(self, packet_type, byte_array):
+        return self.filter.has_changed(packet_type, byte_array)
     
     def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
-        hexstring = self._convert_to_hex_string(byte_array)        
+        hexstring = utilities.convert_to_hex_string(byte_array)        
         
         self.query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
         self.query.bindValue(":date", logged_time)
@@ -90,12 +91,34 @@ class QtSQLWrapper(QObject):
         self.query.finish()
     
     def _get_row_id_of_latest_packet(self, packet_type):
+        return self._get_last_packet(packet_type)[0]
+    
+    def _get_last_packet(self, packet_type):
         sql = """SELECT MAX(ID)
         FROM distinctpackets
         WHERE Class = '%s'
         AND Direction = 'incoming'""" % packet_type
-        item = self._runSelectQuery(sql)
-        return item[0]
+        return self._runSelectQuery(sql)
+    
+    def _runSelectQuery(self, query):
+        if self.query.isActive():
+            debug.Log("Wrapper: previous query is still active")
+            return []
+        self.query.prepare(query)
+        if self.query.exec_():
+            list = []
+            while self.query.next():
+                list.append(str(self.query.value(0)))
+            debug.Log("Wrapper: %i" % len(list))
+            return list
+        debug.Log("Wrapper: query did not execute successfully")
+        return []
+            
+    def _on_invalid_packet_received(self, data):
+        self._add_record("incoming", "unknown", data)
+    
+    def _on_valid_packet_received(self, packet_type, data):
+        self._add_record("incoming", packet_type, data)
 
     def refresh(self):
         self.model.select()
@@ -107,12 +130,6 @@ class QtSQLWrapper(QObject):
             self.connect(self, SIGNAL("newentry"), self.refresh)
         else:
             self.disconnect(self, SIGNAL("newentry"), self.refresh)
-    
-    def _on_invalid_packet_received(self, data):
-        self.addRecord("incoming", "unknown", data)
-    
-    def _on_valid_packet_received(self, packet_type, data):
-        self.addRecord("incoming", packet_type, data)
 
     #def filterduplicates(self, toggle):
     #    self.filter.filterduplicates(toggle)
@@ -129,20 +146,6 @@ class QtSQLWrapper(QObject):
         self.query.finish()
         self.refresh()
 
-    def _runSelectQuery(self, query):
-        if self.query.isActive():
-            debug.Log("Wrapper: previous query is still active")
-            return []
-        self.query.prepare(query)
-        if self.query.exec_():
-            list = []
-            while self.query.next():
-                list.append(str(self.query.value(0)))
-            debug.Log("Wrapper: %i" % len(list))
-            return list
-        debug.Log("Wrapper: query did not execute successfully")
-        return []
-
     def __del__(self):
         self.db.close()
 
@@ -157,7 +160,7 @@ class DuplicateDatablockFilter:
         self.dupes.clear()
         debug.Log("DDFilter: Filtering enabled = %s" % toggle)
 
-    def differentToPrevious(self, blocktype, seq):
+    def has_changed(self, blocktype, seq):
         if not self.filtered:
             return True
 
