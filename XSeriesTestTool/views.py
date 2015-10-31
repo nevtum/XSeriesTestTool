@@ -1,4 +1,4 @@
-from services import QueryEngine, DuplicateDatablockFilter
+from services import QueryEngine
 from PyQt4.QtCore import QObject, SIGNAL, Qt
 from PyQt4 import QtSql, QtGui
 

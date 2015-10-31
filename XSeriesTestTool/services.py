@@ -9,8 +9,6 @@ class QueryEngine(QObject):
         QObject.__init__(self, parent)
         self.context = self._create_context(filename)
         self.create_sql_tables()
-        self.filter = DuplicateDatablockFilter()
-        self.filter.filterduplicates(True)
     
     def insert(self, direction, packet_type, byte_array):
         loggedtime = str(datetime.now())
@@ -121,35 +119,3 @@ class QueryEngine(QObject):
     
     def __del__(self):
         self.context.close()
-        
-class DuplicateDatablockFilter:
-    def __init__(self):
-        self.dupes = {}
-        self.filtered = False
-
-    def filterduplicates(self, toggle):
-        assert(isinstance(toggle, bool))
-        self.filtered = toggle
-        self.dupes.clear()
-        debug.Log("DDFilter: Filtering enabled = %s" % toggle)
-
-    def has_changed(self, blocktype, seq):
-        if not self.filtered:
-            return True
-
-        key = blocktype
-        data = self.dupes.get(key)
-        if data is None:
-            debug.Log("DDFilter: NEW DATABLOCK!")
-            self.dupes[key] = seq
-            return True
-
-        assert(len(seq) == len(data))
-        for i in range(len(seq)):
-            if seq[i] != data[i]:
-                self.dupes[key] = seq
-                assert(seq == self.dupes.get(key))
-                debug.Log("DDFilter: DIFFERENT DATABLOCK!")
-                return True
-        debug.Log("DDFilter: REPEATED!")
-        return False
