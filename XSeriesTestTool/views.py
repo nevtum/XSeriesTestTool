@@ -1,14 +1,12 @@
-import sqlite3
-import debug
-import utilities
 from datetime import datetime
+from services import QueryEngine, DuplicateDatablockFilter
 from PyQt4.QtCore import QObject, SIGNAL, Qt
 from PyQt4 import QtSql, QtGui
 
 class QtSQLWrapper(QObject):
     def __init__(self, filename, publisher, parent = None):
         QObject.__init__(self, parent)
-        self._createSQLTables(filename)
+        self.query_engine = self._create_query_engine(filename)
         self._build_view_tables()
         self.filter = DuplicateDatablockFilter()
         self.filter.filterduplicates(True)
@@ -16,26 +14,17 @@ class QtSQLWrapper(QObject):
         self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self._on_valid_packet_received)
         self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self._on_invalid_packet_received)
 
-    def _createSQLTables(self, filename):
-        self.context = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        self.context.setDatabaseName(filename)
-        self.context.open()
-
-        query = QtSql.QSqlQuery(self.context)
-        sql = """CREATE TABLE IF NOT EXISTS session(
-        Timestamp DATETIME,
-        PacketID INTEGER NOT NULL)"""
-        query.prepare(sql)
-        query.exec_()
-        sql = """CREATE TABLE IF NOT EXISTS distinctpackets(
-        ID INTEGER PRIMARY KEY,
-        LastChanged DATETIME,
-        Direction TEXT NOT NULL,
-        Class TEXT NOT NULL,
-        Data TEXT NOT NULL)"""
-        query.prepare(sql)
-        query.exec_()
-        query.finish()
+    def _create_context(self, filename):
+        context = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+        context.setDatabaseName(filename)
+        context.open()
+        return context
+        
+    def _create_query_engine(self, filename):
+        context = self._create_context(filename)
+        query_engine = QueryEngine(context, self)
+        query_engine.create_sql_tables()
+        return query_engine
 
     def _build_view_tables(self):
         self.model = QtSql.QSqlTableModel(self)
@@ -59,59 +48,14 @@ class QtSQLWrapper(QObject):
         loggedtime = str(datetime.now())
 
         if self._has_changed_since_last_packet(packet_type, byte_array):
-            self._insert_changed_packet(direction, packet_type, byte_array, loggedtime)
+            self.query_engine.insert_changed_packet(direction, packet_type, byte_array, loggedtime)
 
-        row_id = self._get_row_id_of_latest_packet(packet_type)
-        self._insert_new_entry(row_id, loggedtime)
+        row_id = self.query_engine.get_row_id_of_latest_packet(packet_type)
+        self.query_engine.insert_new_entry(row_id, loggedtime)
         self.emit(SIGNAL("newentry"))
         
     def _has_changed_since_last_packet(self, packet_type, byte_array):
         return self.filter.has_changed(packet_type, byte_array)
-    
-    def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
-        query = QtSql.QSqlQuery(self.context)
-        hexstring = utilities.convert_to_hex_string(byte_array)        
-        
-        query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
-        query.bindValue(":date", logged_time)
-        query.bindValue(":direction", str(direction))
-        query.bindValue(":type", packet_type)
-        query.bindValue(":contents", str(hexstring))
-        query.exec_()
-        query.finish()
-        
-    def _insert_new_entry(self, row_id, logged_time):
-        query = QtSql.QSqlQuery(self.context)
-        query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
-        query.bindValue(":date", logged_time)
-        query.bindValue(":packetid", row_id)
-        query.exec_()
-        query.finish()
-    
-    def _get_row_id_of_latest_packet(self, packet_type):
-        return self._get_last_packet(packet_type)[0]
-    
-    def _get_last_packet(self, packet_type):
-        sql = """SELECT MAX(ID)
-        FROM distinctpackets
-        WHERE Class = '%s'
-        AND Direction = 'incoming'""" % packet_type
-        return self._get_records(sql)
-    
-    def _get_records(self, sql):
-        query = QtSql.QSqlQuery(self.context)
-        if query.isActive():
-            debug.Log("Wrapper: previous query is still active")
-            return []
-        query.prepare(sql)
-        if query.exec_():
-            list = []
-            while query.next():
-                list.append(str(query.value(0)))
-            debug.Log("Wrapper: %i" % len(list))
-            return list
-        debug.Log("Wrapper: query did not execute successfully")
-        return []
             
     def _on_invalid_packet_received(self, data):
         self._add_record("incoming", "unknown", data)
@@ -122,16 +66,12 @@ class QtSQLWrapper(QObject):
     def refresh(self):
         self.model.select()
         self.sessionmodel.select()
-        #self.model.setQuery("SELECT * FROM packetlog ORDER BY timestamp DESC LIMIT 200")
 
     def setAutoRefresh(self, toggle):
         if toggle == True:
             self.connect(self, SIGNAL("newentry"), self.refresh)
         else:
             self.disconnect(self, SIGNAL("newentry"), self.refresh)
-
-    #def filterduplicates(self, toggle):
-    #    self.filter.filterduplicates(toggle)
 
     def getProxyModel(self):
         return self.proxy
@@ -140,43 +80,4 @@ class QtSQLWrapper(QObject):
         return self.sessionproxy
 
     def clearDatabase(self):
-        query = QtSql.QSqlQuery(self.context)
-        query.exec_("DELETE FROM session")
-        query.exec_("DELETE FROM distinctpackets")
-        query.finish()
-        self.refresh()
-
-    def __del__(self):
-        self.context.close()
-
-class DuplicateDatablockFilter:
-    def __init__(self):
-        self.dupes = {}
-        self.filtered = False
-
-    def filterduplicates(self, toggle):
-        assert(isinstance(toggle, bool))
-        self.filtered = toggle
-        self.dupes.clear()
-        debug.Log("DDFilter: Filtering enabled = %s" % toggle)
-
-    def has_changed(self, blocktype, seq):
-        if not self.filtered:
-            return True
-
-        key = blocktype
-        data = self.dupes.get(key)
-        if data is None:
-            debug.Log("DDFilter: NEW DATABLOCK!")
-            self.dupes[key] = seq
-            return True
-
-        assert(len(seq) == len(data))
-        for i in range(len(seq)):
-            if seq[i] != data[i]:
-                self.dupes[key] = seq
-                assert(seq == self.dupes.get(key))
-                debug.Log("DDFilter: DIFFERENT DATABLOCK!")
-                return True
-        debug.Log("DDFilter: REPEATED!")
-        return False
+        self.query_engine.clear_database()
