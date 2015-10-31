@@ -74,8 +74,10 @@ class QueryEngine(QObject):
         
         query = QtSql.QSqlQuery(self.context)
         hexstring = utilities.convert_to_hex_string(byte_array)        
-        
-        query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
+        sql = """INSERT INTO
+        distinctpackets(LastChanged, Direction, Class, Data)
+        VALUES(:date,:direction,:type,:contents)"""
+        query.prepare(sql)
         query.bindValue(":date", logged_time)
         query.bindValue(":direction", str(direction))
         query.bindValue(":type", packet_type)
@@ -86,7 +88,10 @@ class QueryEngine(QObject):
     def _insert_received_packet(self, packet_type, byte_array, logged_time):
         row_id, timestamp, data = self._get_latest_packet(packet_type)
         query = QtSql.QSqlQuery(self.context)
-        query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
+        sql = """INSERT INTO
+        session(Timestamp, PacketID)
+        VALUES(:date,:packetid)"""
+        query.prepare(sql)
         query.bindValue(":date", logged_time)
         query.bindValue(":packetid", row_id)
         query.exec_()
