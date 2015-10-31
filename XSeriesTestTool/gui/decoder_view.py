@@ -30,31 +30,38 @@ class DecoderDialog(decbase, decform):
         return mystring
 
     def Update(self, newMdlIndex, oldMdlIndex):
-        proxy = self.dvm.getProxyModel()
-        origmdl = proxy.sourceModel()
-
+        self._update_current_packet_view(newMdlIndex)
+        self._update_old_packet_view(oldMdlIndex)
+        self._update_differences_view(newMdlIndex, oldMdlIndex)
+    
+    def _update_current_packet_view(self, newMdlIndex):
         if newMdlIndex.isValid():
-            newIndex = proxy.mapToSource(newMdlIndex)
-            newrecord = origmdl.record(newIndex.row())
-            newseq = self._to_sequence(newrecord)
-
-            self.uiSelected.setText(self._to_pretty_print(newseq))
-
-            timestamp = newrecord.value("LastChanged")
-            raw_data = self._format_raw_data(newrecord)
-
+            record = self._get_record(newMdlIndex)
+            sequence = self._to_sequence(record)
+            timestamp = record.value("LastChanged")
+            raw_data = self._format_raw_data(record)
+            self.uiSelected.setText(self._to_pretty_print(sequence))
             self.lineEdit.setText(timestamp)
             self.uiRawData.setText(raw_data)
-
+            
+    def _update_old_packet_view(self, oldMdlIndex):
         if oldMdlIndex.isValid():
-            oldIndex = proxy.mapToSource(oldMdlIndex)
-            oldrecord = origmdl.record(oldIndex.row())
-            oldseq = self._to_sequence(oldrecord)
-            self.uiDeselected.setText(self._to_pretty_print(oldseq))
-
-        if newMdlIndex.isValid() & oldMdlIndex.isValid():
-            self.uiChangeSet.setText(self._format_before_after(newseq, oldseq))
+            record = self._get_record(oldMdlIndex)
+            sequence = self._to_sequence(record)
+            self.uiDeselected.setText(self._to_pretty_print(sequence))
     
+    def _update_differences_view(self, newMdlIndex, oldMdlIndex):
+        if newMdlIndex.isValid() & oldMdlIndex.isValid():
+            newseq = self._to_sequence(self._get_record(newMdlIndex))
+            oldseq = self._to_sequence(self._get_record(oldMdlIndex))
+            self.uiChangeSet.setText(self._format_before_after(newseq, oldseq))
+        
+    def _get_record(self, model_index):
+        proxy = self.dvm.getProxyModel()
+        true_index = proxy.mapToSource(model_index)
+        origmdl = proxy.sourceModel()
+        return origmdl.record(true_index.row())
+        
     def _to_sequence(self, record):
         return [x for x in bytearray.fromhex(str(record.value("Data")))]
     
