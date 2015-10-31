@@ -10,7 +10,7 @@ class ApplicationFactory:
         self.view_actions = ViewActions()
         self.xdec = self._build_protocol_decoder()
         self.dvm = DataViewManager("test.db", self.publisher, parent)
-        self.serial_thread = ListenThread(self.xdec, self.publisher, parent)
+        self.serial_thread = ListenThread(self, parent)
     
     def _build_protocol_decoder(self):
         xmetadata = metaRepository('settings/')

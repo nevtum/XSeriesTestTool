@@ -4,17 +4,20 @@ from serial_app import SerialModule
 from PyQt4.QtCore import QObject, QThread, SIGNAL
 
 class ListenThread(QThread):
-    def __init__(self, decoder, publisher, parent = None):
+    def __init__(self, factory, parent = None):
         QThread.__init__(self, parent)
-        self.decoder = decoder
-        self.publisher = publisher
+        self.decoder = factory.getProtocolDecoder()
+        self.publisher = factory.get_publisher()
         self.terminate = False
-
-    def setcommport(self, port):
+    
+    def on_record_started(self, port):
         self.port = port
-
-    def setbaud(self, baud):
-        self.baud = int(baud)
+        self.baud = 9600
+        self.start()
+        
+    def on_record_stopped(self):
+        # this bit is not thread safe. Make improvements later.
+        self.terminate = True
 
     def run(self):
         # add a try/finally statement in the future
@@ -73,10 +76,6 @@ class ListenThread(QThread):
     def notify_unknown_packet_received(self, data):
         debug.Log("ListenThread: Unknown packet type")
         self.publisher.notify_unknown_packet_received(data)
-
-    def quit(self):
-        # this bit is not thread safe. Make improvements later.
-        self.terminate = True
     
     def __del__(self):
         self.terminate()

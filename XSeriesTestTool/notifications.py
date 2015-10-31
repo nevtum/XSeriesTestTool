@@ -28,3 +28,9 @@ class ViewActions(QObject):
 	
 	def notify_navigate_final_entry(self):
 		self.emit(SIGNAL("FINAL_ENTRY_NAVIGATED"))
+		
+	def start_recording(self, port):
+		self.emit(SIGNAL("RECORDING_STARTED"), port)
+		
+	def stop_recording(self):
+		self.emit(SIGNAL("RECORDING_STOPPED"))
