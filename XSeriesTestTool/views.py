@@ -7,16 +7,16 @@ from PyQt4 import QtSql, QtGui
 class QtSQLWrapper(QObject):
     def __init__(self, filename, publisher, parent = None):
         QObject.__init__(self, parent)
-        self.createSQLTables(filename)
-        self.setupSourceModels()
-        self.setupProxyModels()
+        self._createSQLTables(filename)
+        self._setupSourceModels()
+        self._setupProxyModels()
         self.filter = DuplicateDatablockFilter()
         self.filter.filterduplicates(True)
         
-        self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self.on_valid_packet_received)
-        self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self.on_invalid_packet_received)
+        self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self._on_valid_packet_received)
+        self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self._on_invalid_packet_received)
 
-    def setupSourceModels(self):
+    def _setupSourceModels(self):
         self.model = QtSql.QSqlTableModel(self)
         self.model.setTable("distinctpackets")
         self.model.sort(0, Qt.DescendingOrder)
@@ -26,7 +26,7 @@ class QtSQLWrapper(QObject):
         self.sessionmodel.setRelation(1, QtSql.QSqlRelation("distinctpackets", "ID", "Class"))
         self.sessionmodel.sort(0, Qt.DescendingOrder)
 
-    def setupProxyModels(self):
+    def _setupProxyModels(self):
         self.proxy = QtGui.QSortFilterProxyModel()
         self.proxy.setSourceModel(self.model)
         self.proxy.setFilterKeyColumn(3)
@@ -37,7 +37,7 @@ class QtSQLWrapper(QObject):
         self.sessionproxy.setFilterKeyColumn(1)
         self.sessionproxy.setDynamicSortFilter(True)
 
-    def createSQLTables(self, filename):
+    def _createSQLTables(self, filename):
         self.db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.db.setDatabaseName(filename)
         self.db.open()
@@ -58,34 +58,44 @@ class QtSQLWrapper(QObject):
         self.query.exec_()
         self.query.finish()
 
-    def addRecord(self, direction, packet_type, bytearray):
-        hexstring = ''.join(["%02X" % byte for byte in bytearray])
+    def addRecord(self, direction, packet_type, byte_array):
         loggedtime = str(datetime.now())
 
-        if self.filter.differentToPrevious(packet_type, bytearray):
-            self.query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
-            self.query.bindValue(":date", loggedtime)
-            self.query.bindValue(":direction", str(direction))
-            self.query.bindValue(":type", packet_type)
-            self.query.bindValue(":contents", str(hexstring))
-            self.query.exec_()
-            self.query.finish()
+        if self.filter.differentToPrevious(packet_type, byte_array):
+            self._insert_changed_packet(direction, packet_type, byte_array, loggedtime)
 
-        id = self._get_row_id_of_latest_packet(packet_type)
-
-        self.query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
-        self.query.bindValue(":date", loggedtime)
-        self.query.bindValue(":packetid", id)
+        row_id = self._get_row_id_of_latest_packet(packet_type)
+        self._insert_new_entry(row_id, loggedtime)
+        self.emit(SIGNAL("newentry"))
+    
+    def _convert_to_hex_string(self, byte_array):
+        return ''.join(["%02X" % byte for byte in byte_array])
+    
+    def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
+        hexstring = self._convert_to_hex_string(byte_array)        
+        
+        self.query.prepare("INSERT INTO distinctpackets(LastChanged, Direction, Class, Data) VALUES(:date,:direction,:type,:contents)")
+        self.query.bindValue(":date", logged_time)
+        self.query.bindValue(":direction", str(direction))
+        self.query.bindValue(":type", packet_type)
+        self.query.bindValue(":contents", str(hexstring))
         self.query.exec_()
         self.query.finish()
-        self.emit(SIGNAL("newentry"))
+        
+    def _insert_new_entry(self, row_id, logged_time):
+        self.query.prepare("INSERT INTO session(Timestamp, PacketID) VALUES(:date,:packetid)")
+        self.query.bindValue(":date", logged_time)
+        self.query.bindValue(":packetid", row_id)
+        self.query.exec_()
+        self.query.finish()
     
     def _get_row_id_of_latest_packet(self, packet_type):
         sql = """SELECT MAX(ID)
         FROM distinctpackets
         WHERE Class = '%s'
         AND Direction = 'incoming'""" % packet_type
-        return self.runSelectQuery(sql)[0]
+        item = self._runSelectQuery(sql)
+        return item[0]
 
     def refresh(self):
         self.model.select()
@@ -98,10 +108,10 @@ class QtSQLWrapper(QObject):
         else:
             self.disconnect(self, SIGNAL("newentry"), self.refresh)
     
-    def on_invalid_packet_received(self, data):
+    def _on_invalid_packet_received(self, data):
         self.addRecord("incoming", "unknown", data)
     
-    def on_valid_packet_received(self, packet_type, data):
+    def _on_valid_packet_received(self, packet_type, data):
         self.addRecord("incoming", packet_type, data)
 
     #def filterduplicates(self, toggle):
@@ -119,7 +129,7 @@ class QtSQLWrapper(QObject):
         self.query.finish()
         self.refresh()
 
-    def runSelectQuery(self, query):
+    def _runSelectQuery(self, query):
         if self.query.isActive():
             debug.Log("Wrapper: previous query is still active")
             return []
@@ -139,7 +149,7 @@ class QtSQLWrapper(QObject):
 class DuplicateDatablockFilter:
     def __init__(self):
         self.dupes = {}
-        self.filterduplicates(False)
+        self.filtered = False
 
     def filterduplicates(self, toggle):
         assert(isinstance(toggle, bool))
