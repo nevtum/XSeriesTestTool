@@ -71,7 +71,7 @@ class QueryEngine(QObject):
         
     def _has_changed(self, packet_type, byte_array):
         row_id, timestamp, data = self.get_latest_packet(packet_type)
-        if packet_id is None:
+        if row_id is None:
             return True
 
         sequence = utilities.convert_to_hex_string(byte_array)
