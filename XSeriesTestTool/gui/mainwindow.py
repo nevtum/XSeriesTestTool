@@ -1,5 +1,5 @@
 import debug
-from factory import TransmissionFactory
+from factory import ApplicationFactory
 from gui.decoder_view import DecoderDialog
 from PyQt4 import uic
 from PyQt4.QtCore import SIGNAL
@@ -11,7 +11,7 @@ class MyApp(appbase, appform):
         super(appbase, self).__init__(parent)
         self.setupUi(self)
         self.recording = False
-        self.factory = TransmissionFactory(self)
+        self.factory = ApplicationFactory(self)
         self.setupChildDialogs()
         self._configure_data_view_manager()
         self._setup_connections()

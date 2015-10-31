@@ -4,7 +4,7 @@ from views import DataViewManager
 from comms_threads import ListenThread
 from notifications import Publisher, ViewActions
 
-class TransmissionFactory:
+class ApplicationFactory:
     def __init__(self, parent):
         self.publisher = Publisher()
         self.view_actions = ViewActions()
