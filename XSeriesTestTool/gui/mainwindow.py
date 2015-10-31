@@ -10,10 +10,11 @@ class MyApp(appbase, appform):
     def __init__(self, parent = None):
         super(appbase, self).__init__(parent)
         self.setupUi(self)
+        self.recording = False
         self.factory = TransmissionFactory(self)
         self.setupChildDialogs()
         self._configure_data_view_manager()
-        self.setupConnections()
+        self._setup_connections()
         self.setupWidgets()
         self.listenThread = self.factory.get_serial_thread()
         self.populateComPorts()
@@ -45,21 +46,22 @@ class MyApp(appbase, appform):
         
         self.refreshView()
 
-    def setupConnections(self):
+    def _setup_connections(self):
         publisher = self.factory.get_publisher()
         self.connect(publisher, SIGNAL("NEXT_ENTRY_NAVIGATED"), self.toNext)
         self.connect(publisher, SIGNAL("PREVIOUS_ENTRY_NAVIGATED"), self.toPrevious)
         self.connect(publisher, SIGNAL("FIRST_ENTRY_NAVIGATED"), self.toFirst)
         self.connect(publisher, SIGNAL("FINAL_ENTRY_NAVIGATED"), self.toLast)        
         
-        self.actionRefresh.triggered.connect(self.refreshView)
+        self.actionClear_Session_data.triggered.connect(self.dvm.clearDatabase)
+        self.actionEnable_Autorefresh.toggled.connect(self.dvm.setAutoRefresh)
+        
         self.actionOpenDecoder.triggered.connect(self.decDialog.show)
         self.tableView.doubleClicked.connect(self.decDialog.show)
         self.tableView.selectionModel().currentChanged.connect(self.decDialog.Update)
-        self.actionClear_Session_data.triggered.connect(self.dvm.clearDatabase)
+        
+        self.actionRefresh.triggered.connect(self.refreshView)
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
-        self.recording = False
-        self.actionEnable_Autorefresh.toggled.connect(self.dvm.setAutoRefresh)
         self.actionEnable_DebugLog.toggled.connect(self._toggle_logging_settings)
 
     def _toggle_logging_settings(self, enabled):
