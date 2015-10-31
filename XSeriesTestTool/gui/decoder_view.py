@@ -13,10 +13,10 @@ class DecoderDialog(decbase, decform):
 
     def setupConnections(self, view_actions):
         self.btnCopy.clicked.connect(self._on_btnCopy_clicked)
-        self.btnNext.clicked.connect(view_actions.notify_navigate_next_entry)
-        self.btnPrev.clicked.connect(view_actions.notify_navigate_prev_entry)
-        self.btnFirst.clicked.connect(view_actions.notify_navigate_first_entry)
-        self.btnLast.clicked.connect(view_actions.notify_navigate_final_entry)
+        self.btnNext.clicked.connect(view_actions.navigate_next_entry)
+        self.btnPrev.clicked.connect(view_actions.navigate_prev_entry)
+        self.btnFirst.clicked.connect(view_actions.navigate_first_entry)
+        self.btnLast.clicked.connect(view_actions.navigate_final_entry)
 
     def _on_btnCopy_clicked(self):
         self.textEdit.selectAll()

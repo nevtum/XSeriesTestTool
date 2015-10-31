@@ -17,16 +17,16 @@ class ViewActions(QObject):
 	def __init__(self, parent = None):
 		QObject.__init__(self, parent)
 	
-	def notify_navigate_next_entry(self):
+	def navigate_next_entry(self):
 		self.emit(SIGNAL("NEXT_ENTRY_NAVIGATED"))
 		
-	def notify_navigate_prev_entry(self):
+	def navigate_prev_entry(self):
 		self.emit(SIGNAL("PREVIOUS_ENTRY_NAVIGATED"))
 
-	def notify_navigate_first_entry(self):
+	def navigate_first_entry(self):
 		self.emit(SIGNAL("FIRST_ENTRY_NAVIGATED"))
 	
-	def notify_navigate_final_entry(self):
+	def navigate_final_entry(self):
 		self.emit(SIGNAL("FINAL_ENTRY_NAVIGATED"))
 		
 	def start_recording(self, port):
