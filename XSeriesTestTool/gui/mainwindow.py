@@ -12,7 +12,7 @@ class MyApp(appbase, appform):
         self.setupUi(self)
         self.factory = TransmissionFactory(self)
         self.setupChildDialogs()
-        self.setupDB()
+        self._configure_data_view_manager()
         self.setupConnections()
         self.setupWidgets()
         self.listenThread = self.factory.get_serial_thread()
@@ -37,17 +37,11 @@ class MyApp(appbase, appform):
     def setupChildDialogs(self):
         self.decDialog = DecoderDialog(self.factory.get_publisher(), self)
 
-    def setupDB(self):
+    def _configure_data_view_manager(self):
         self.dvm = self.factory.get_data_view_manager()
-        proxy = self.dvm.getProxyModel()
-        sessionproxy = self.dvm.getSessionProxy()
-
-        self.tableView.setModel(proxy)
-        self.tableView2.setModel(sessionproxy)
-        
-        # connections to lineEdit
-        self.lineEdit.textChanged.connect(proxy.setFilterRegExp)
-        self.lineEdit.textChanged.connect(sessionproxy.setFilterRegExp)
+        self.dvm.connect_distinct_data(self.tableView)
+        self.dvm.connect_session_data(self.tableView2)
+        self.dvm.connect_text_inputs(self.lineEdit)
         
         self.refreshView()
 

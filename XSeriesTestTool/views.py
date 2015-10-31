@@ -24,6 +24,20 @@ class DataViewManager(QObject):
     def _on_valid_packet_received(self, packet_type, data):
         self._add_record("incoming", packet_type, data)
 
+    def connect_distinct_data(self, table_view):
+        data_model = self.distinct_table_view_model.get_model()
+        table_view.setModel(data_model)
+    
+    def connect_session_data(self, table_view):
+        data_model = self.session_table_view_model.get_model()
+        table_view.setModel(data_model)
+    
+    def connect_text_inputs(self, line_edit):
+        data_model1 = self.distinct_table_view_model.get_model()
+        data_model2 = self.session_table_view_model.get_model()
+        line_edit.textChanged.connect(data_model1.setFilterRegExp)
+        line_edit.textChanged.connect(data_model2.setFilterRegExp)
+        
     def refresh(self):
         self.distinct_table_view_model.refresh_data()
         self.session_table_view_model.refresh_data()
