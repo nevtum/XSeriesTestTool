@@ -36,7 +36,7 @@ class MyApp(appbase, appform):
         self.tableView2.setColumnWidth(0, 150)
 
     def setupChildDialogs(self):
-        self.decDialog = DecoderDialog(self.factory.get_publisher(), self)
+        self.decDialog = DecoderDialog(self.factory.get_view_actions(), self)
 
     def _configure_data_view_manager(self):
         self.dvm = self.factory.get_data_view_manager()
@@ -47,11 +47,11 @@ class MyApp(appbase, appform):
         self.refreshView()
 
     def _setup_connections(self):
-        publisher = self.factory.get_publisher()
-        self.connect(publisher, SIGNAL("NEXT_ENTRY_NAVIGATED"), self.toNext)
-        self.connect(publisher, SIGNAL("PREVIOUS_ENTRY_NAVIGATED"), self.toPrevious)
-        self.connect(publisher, SIGNAL("FIRST_ENTRY_NAVIGATED"), self.toFirst)
-        self.connect(publisher, SIGNAL("FINAL_ENTRY_NAVIGATED"), self.toLast)        
+        view_actions = self.factory.get_view_actions()
+        self.connect(view_actions, SIGNAL("NEXT_ENTRY_NAVIGATED"), self.toNext)
+        self.connect(view_actions, SIGNAL("PREVIOUS_ENTRY_NAVIGATED"), self.toPrevious)
+        self.connect(view_actions, SIGNAL("FIRST_ENTRY_NAVIGATED"), self.toFirst)
+        self.connect(view_actions, SIGNAL("FINAL_ENTRY_NAVIGATED"), self.toLast)        
         
         self.actionClear_Session_data.triggered.connect(self.dvm.clearDatabase)
         self.actionEnable_Autorefresh.toggled.connect(self.dvm.setAutoRefresh)

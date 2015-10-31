@@ -2,11 +2,12 @@ from config.configmanager import metaRepository
 from decoder import *
 from views import DataViewManager
 from comms_threads import ListenThread
-from notifications import Publisher
+from notifications import Publisher, ViewActions
 
 class TransmissionFactory:
     def __init__(self, parent):
         self.publisher = Publisher()
+        self.view_actions = ViewActions()
         self.xdec = self._build_protocol_decoder()
         self.dvm = DataViewManager("test.db", self.publisher, parent)
         self.serial_thread = ListenThread(self.xdec, self.publisher, parent)
@@ -31,3 +32,6 @@ class TransmissionFactory:
     
     def get_publisher(self):
         return self.publisher
+
+    def get_view_actions(self):
+        return self.view_actions

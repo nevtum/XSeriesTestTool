@@ -12,6 +12,10 @@ class Publisher(QObject):
 	
 	def notify_unknown_packet_received(self, data):
 		self.emit(SIGNAL("INVALID_PACKET_RECEIVED"), data)
+
+class ViewActions(QObject):
+	def __init__(self, parent = None):
+		QObject.__init__(self, parent)
 	
 	def notify_navigate_next_entry(self):
 		self.emit(SIGNAL("NEXT_ENTRY_NAVIGATED"))
