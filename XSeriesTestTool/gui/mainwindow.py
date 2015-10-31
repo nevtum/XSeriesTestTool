@@ -38,9 +38,9 @@ class MyApp(appbase, appform):
         self.decDialog = DecoderDialog(self.factory.get_publisher(), self)
 
     def setupDB(self):
-        self.db = self.factory.getQtSQLWrapper()
-        proxy = self.db.getProxyModel()
-        sessionproxy = self.db.getSessionProxy()
+        self.dvm = self.factory.get_data_view_manager()
+        proxy = self.dvm.getProxyModel()
+        sessionproxy = self.dvm.getSessionProxy()
 
         self.tableView.setModel(proxy)
         self.tableView2.setModel(sessionproxy)
@@ -62,12 +62,12 @@ class MyApp(appbase, appform):
         self.actionOpenDecoder.triggered.connect(self.decDialog.show)
         self.tableView.doubleClicked.connect(self.decDialog.show)
         self.tableView.selectionModel().currentChanged.connect(self.decDialog.Update)
-        self.actionClear_Session_data.triggered.connect(self.db.clearDatabase)
+        self.actionClear_Session_data.triggered.connect(self.dvm.clearDatabase)
         self.btnRecordPause.clicked.connect(self.on_btnRecordPause_clicked)
         self.recording = False
-        self.actionEnable_Autorefresh.toggled.connect(self.db.setAutoRefresh)
+        self.actionEnable_Autorefresh.toggled.connect(self.dvm.setAutoRefresh)
         self.actionEnable_DebugLog.toggled.connect(self._toggle_logging_settings)
-        #self.db.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
+        #self.dvm.getSourceModel().rowsInserted.connect(self.tableView.setCurrentIndex)
 
     def _toggle_logging_settings(self, enabled):
         if enabled:
@@ -76,7 +76,7 @@ class MyApp(appbase, appform):
             debug.disable_logging()
 
     def refreshView(self):
-        self.db.refresh()
+        self.dvm.refresh()
 
     # to control tableView navigation
     def toFirst(self):
@@ -94,7 +94,7 @@ class MyApp(appbase, appform):
 
     # to control tableView navigation
     def toLast(self):
-        rowcount = self.db.getProxyModel().rowCount()
+        rowcount = self.dvm.getProxyModel().rowCount()
         self.tableView.selectRow(rowcount-1)
 
     def on_btnRecordPause_clicked(self):

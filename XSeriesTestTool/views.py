@@ -2,7 +2,7 @@ from services import QueryEngine, DuplicateDatablockFilter
 from PyQt4.QtCore import QObject, SIGNAL, Qt
 from PyQt4 import QtSql, QtGui
 
-class QtSQLWrapper(QObject):
+class DataViewManager(QObject):
     def __init__(self, filename, publisher, parent = None):
         QObject.__init__(self, parent)
         self.query_engine = QueryEngine(filename, self)

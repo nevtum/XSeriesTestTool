@@ -8,7 +8,7 @@ class DecoderDialog(decbase, decform):
         super(decbase, self).__init__(parent)
         self.setupUi(self)
         self.setupConnections(publisher)
-        self.sqlwrapper = parent.getFactory().getQtSQLWrapper()
+        self.dvm = parent.getFactory().get_data_view_manager()
         self.decoder = parent.getFactory().getProtocolDecoder()
 
     def setupConnections(self, publisher):
@@ -30,7 +30,7 @@ class DecoderDialog(decbase, decform):
         return mystring
 
     def Update(self, newMdlIndex, oldMdlIndex):
-        proxy = self.sqlwrapper.getProxyModel()
+        proxy = self.dvm.getProxyModel()
         origmdl = proxy.sourceModel()
 
         if newMdlIndex.isValid():

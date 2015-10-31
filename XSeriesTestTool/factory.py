@@ -1,6 +1,6 @@
 from config.configmanager import metaRepository
 from decoder import *
-from views import QtSQLWrapper
+from views import DataViewManager
 from comms_threads import ListenThread
 from notifications import Publisher
 
@@ -8,7 +8,7 @@ class TransmissionFactory:
     def __init__(self, parent):
         self.publisher = Publisher()
         self.xdec = self._build_protocol_decoder()
-        self.sqlwrapper = QtSQLWrapper("test.db", self.publisher, parent)
+        self.dvm = DataViewManager("test.db", self.publisher, parent)
         self.serial_thread = ListenThread(self.xdec, self.publisher, parent)
     
     def _build_protocol_decoder(self):
@@ -23,8 +23,8 @@ class TransmissionFactory:
     def getProtocolDecoder(self):
         return self.xdec
     
-    def getQtSQLWrapper(self):
-        return self.sqlwrapper
+    def get_data_view_manager(self):
+        return self.dvm
     
     def get_serial_thread(self):
         return self.serial_thread
