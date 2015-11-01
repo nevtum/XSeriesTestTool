@@ -244,7 +244,6 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionNew_SQLite_File"/>
     <addaction name="actionClear_Session_data"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -261,7 +260,6 @@
     <property name="title">
      <string>View</string>
     </property>
-    <addaction name="actionSet_Title_Name"/>
     <addaction name="actionOpenDecoder"/>
     <addaction name="actionRefresh"/>
    </widget>
