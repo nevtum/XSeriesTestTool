@@ -1,7 +1,7 @@
 # Compiled python modules
 *.pyc
-DebugLog.txt
-*.db
+*.txt
+*.sqlite
 
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info

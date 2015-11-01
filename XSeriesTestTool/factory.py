@@ -9,7 +9,7 @@ class ApplicationFactory:
         self.publisher = Publisher()
         self.view_actions = ViewActions()
         self.xdec = self._build_protocol_decoder()
-        self.dvm = DataViewManager("test.db", self.publisher, parent)
+        self.dvm = DataViewManager("database.sqlite", self.publisher, parent)
         self.serial_thread = ListenThread(self, parent)
     
     def _build_protocol_decoder(self):
