@@ -1,5 +1,5 @@
 import utilities
-import debug
+import scripts
 from datetime import datetime
 from PyQt4.QtCore import QObject
 from PyQt4 import QtSql
@@ -9,26 +9,27 @@ class QueryEngine(QObject):
         QObject.__init__(self, parent)
         self.context = self._create_context(filename)
         self._create_sql_tables()
-    
+
     def insert(self, direction, packet_type, byte_array):
         loggedtime = str(datetime.now())
-        self._insert_changed_packet(direction, packet_type, byte_array, loggedtime)   
+        self._insert_changed_packet(direction, packet_type, byte_array, loggedtime)
         self._insert_received_packet(packet_type, byte_array, loggedtime)
-    
+
     def clear_database(self):
         query = QtSql.QSqlQuery(self.context)
-        query.exec_("DELETE FROM session")
-        query.exec_("DELETE FROM distinctpackets")
+        query.exec_(scripts.drop_session_table())
+        query.exec_(scripts.drop_distinct_table())
         query.finish()
-    
+
+    def _create_context(self, filename):
+        context = QtSql.QSqlDatabase.addDatabase(scripts.database_type())
+        context.setDatabaseName(filename)
+        context.open()
+        return context
+
     def _get_latest_packet(self, packet_type):
-        sql = """SELECT *
-        FROM distinctpackets
-        WHERE Class = '%s'
-        AND Direction = 'incoming'
-        ORDER BY ID DESC LIMIT 1""" % packet_type
         query = QtSql.QSqlQuery(self.context)
-        query.prepare(sql)
+        query.prepare(scripts.get_latest(packet_type))
         query.exec_()
         if query.next():
             row_id = query.value(0)
@@ -36,66 +37,45 @@ class QueryEngine(QObject):
             data = query.value(4)
             return row_id, timestamp, data
         return None, None, None
-    
+
     def _create_sql_tables(self):
         query = QtSql.QSqlQuery(self.context)
-        sql = """CREATE TABLE IF NOT EXISTS session(
-        Timestamp DATETIME,
-        PacketID INTEGER NOT NULL)"""
-        query.prepare(sql)
+        query.prepare(scripts.create_session_table())
         query.exec_()
-        sql = """CREATE TABLE IF NOT EXISTS distinctpackets(
-        ID INTEGER PRIMARY KEY,
-        LastChanged DATETIME,
-        Direction TEXT NOT NULL,
-        Class TEXT NOT NULL,
-        Data TEXT NOT NULL)"""
-        query.prepare(sql)
+        query.prepare(scripts.create_distinct_table())
         query.exec_()
         query.finish()
-    
-    def _create_context(self, filename):
-        context = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-        context.setDatabaseName(filename)
-        context.open()
-        return context
-        
+
     def _has_changed(self, packet_type, byte_array):
         row_id, timestamp, data = self._get_latest_packet(packet_type)
         if row_id is None:
             return True
-
+        
         sequence = utilities.convert_to_hex_string(byte_array)
         return sequence != data
-    
+
     def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
         if not self._has_changed(packet_type, byte_array):
             return
-        
+
         query = QtSql.QSqlQuery(self.context)
-        hexstring = utilities.convert_to_hex_string(byte_array)        
-        sql = """INSERT INTO
-        distinctpackets(LastChanged, Direction, Class, Data)
-        VALUES(:date,:direction,:type,:contents)"""
-        query.prepare(sql)
+        hexstring = utilities.convert_to_hex_string(byte_array)
+        query.prepare(scripts.insert_distinct())
         query.bindValue(":date", logged_time)
         query.bindValue(":direction", str(direction))
         query.bindValue(":type", packet_type)
         query.bindValue(":contents", str(hexstring))
         query.exec_()
         query.finish()
-        
+
     def _insert_received_packet(self, packet_type, byte_array, logged_time):
         row_id, timestamp, data = self._get_latest_packet(packet_type)
         query = QtSql.QSqlQuery(self.context)
-        sql = """INSERT INTO
-        session(Timestamp, PacketID)
-        VALUES(:date,:packetid)"""
-        query.prepare(sql)
+        query.prepare(scripts.insert_session())
         query.bindValue(":date", logged_time)
         query.bindValue(":packetid", row_id)
         query.exec_()
         query.finish()
-    
+
     def __del__(self):
         self.context.close()
