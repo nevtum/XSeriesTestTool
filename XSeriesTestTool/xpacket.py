@@ -34,7 +34,7 @@ class XPacket:
 					string += " "
 		return string
 	
-	def changes_since(self, old_packet, decoder):
+	def get_differences(self, old_packet, decoder):
 		newseq = self.get_data()
 		oldseq = old_packet.get_data()
 		packetname, array = decoder.getDiffPackets(newseq, oldseq)

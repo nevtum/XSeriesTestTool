@@ -44,10 +44,10 @@ class DecoderDialog(decbase, decform):
     
     def _update_differences_view(self, newMdlIndex, oldMdlIndex):
         if newMdlIndex.isValid() & oldMdlIndex.isValid():
-            new_packet = self._to_packet(self._get_record(newMdlIndex))
-            old_packet = self._to_packet(self._get_record(oldMdlIndex))
-            changes = new_packet.changes_since(old_packet, self.decoder)
-            self.uiChangeSet.setText(changes)
+            new_pkt = self._to_packet(self._get_record(newMdlIndex))
+            old_pkt = self._to_packet(self._get_record(oldMdlIndex))
+            differences = new_pkt.get_differences(old_pkt, self.decoder)
+            self.uiChangeSet.setText(differences)
         
     def _get_record(self, model_index):
         proxy = self.dvm.getProxyModel()
