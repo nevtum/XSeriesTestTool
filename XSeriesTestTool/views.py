@@ -18,8 +18,8 @@ class DataViewManager(QObject):
         if self.is_autorefresh_enabled:
             self.refresh()
             
-    def _on_invalid_packet_received(self, data):
-        self._add_record("incoming", "unknown", data)
+    def _on_invalid_packet_received(self, packet):
+        self._add_record("incoming", packet)
     
     def _on_valid_packet_received(self, packet):
         self._add_record("incoming", packet)

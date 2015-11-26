@@ -1,4 +1,3 @@
-import utilities
 import scripts
 from PyQt4.QtCore import QObject
 from PyQt4 import QtSql
@@ -49,7 +48,7 @@ class QueryEngine(QObject):
         if row_id is None:
             return True
         
-        sequence = utilities.convert_to_hex_string(packet._data) # YUUUUUUUCKKKKKKKK!!!!!!
+        sequence = packet.to_hex_string()
         return sequence != data
 
     def _insert_changed_packet(self, direction, packet):
@@ -57,12 +56,11 @@ class QueryEngine(QObject):
             return
 
         query = QtSql.QSqlQuery(self.context)
-        hexstring = utilities.convert_to_hex_string(packet._data) # YUUUUUUUCKKKKKKKK!!!!!!
         query.prepare(scripts.insert_distinct())
         query.bindValue(":date", packet.get_time())
-        query.bindValue(":direction", str(direction))
+        query.bindValue(":direction", direction)
         query.bindValue(":type", packet.get_type())
-        query.bindValue(":contents", str(hexstring))
+        query.bindValue(":contents", packet.to_hex_string())
         query.exec_()
         query.finish()
 

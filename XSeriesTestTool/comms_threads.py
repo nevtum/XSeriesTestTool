@@ -79,7 +79,9 @@ class ListenThread(QThread):
     
     def notify_unknown_packet_received(self, data):
         debug.Log("ListenThread: Unknown packet type")
-        self.publisher.notify_unknown_packet_received(data)
+        timestamp = str(datetime.now())
+        packet = XPacket(timestamp, "unknown", data)
+        self.publisher.notify_unknown_packet_received(packet)
     
     def __del__(self):
         self.terminate()

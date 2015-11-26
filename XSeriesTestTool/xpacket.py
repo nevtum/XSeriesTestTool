@@ -13,6 +13,10 @@ class XPacket:
 	
 	def get_data(self):
 		return [x for x in bytearray.fromhex(self._data)]
+		
+	def to_hex_string(self):
+		hexstring = ''.join(["%02X" % byte for byte in self._data])
+		return hexstring
 	
 	def pretty_print(self, decoder):
 		packetname, array = decoder.getDecodedData(self.get_data())
