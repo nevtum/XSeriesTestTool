@@ -44,7 +44,7 @@ class ListenThread(QThread):
                     
                     packet_type = packet_info.getPacketName()
                     if packet_type == "unknown":
-                        self.notify_unknown_packet_received(BUFFER[:])
+                        self.notify_unknown_packet_received(packet_type, BUFFER[:])
                         BUFFER = []
                     elif 0 < len(BUFFER) < expectedlength:
                         self.notify_unexpected_length(packet_info, BUFFER)
@@ -77,11 +77,10 @@ class ListenThread(QThread):
         packet = XPacket(timestamp, packet_type, data)
         self.publisher.notify_packet_received(packet)
     
-    def notify_unknown_packet_received(self, data):
+    def notify_unknown_packet_received(self, packet_type, data):
         debug.Log("ListenThread: Unknown packet type")
-        timestamp = str(datetime.now())
-        packet = XPacket(timestamp, "unknown", data)
-        self.publisher.notify_unknown_packet_received(packet)
+        debug.Log(data)
+        self.notify_packet_received(packet_type, data)
     
     def __del__(self):
         self.terminate()

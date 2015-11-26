@@ -10,16 +10,12 @@ class DataViewManager(QObject):
         self.session_table_view_model = AnyPacketTableModel(self)
         self.is_autorefresh_enabled = False
         
-        self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self._on_valid_packet_received)
-        self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self._on_invalid_packet_received)
+        self.connect(publisher, SIGNAL("PACKET_RECEIVED"), self._on_valid_packet_received)
 
     def _add_record(self, direction, packet):
         self.query_engine.insert(direction, packet)
         if self.is_autorefresh_enabled:
             self.refresh()
-            
-    def _on_invalid_packet_received(self, packet):
-        self._add_record("incoming", packet)
     
     def _on_valid_packet_received(self, packet):
         self._add_record("incoming", packet)
