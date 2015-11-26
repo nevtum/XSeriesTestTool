@@ -2,6 +2,8 @@ import time
 import debug
 from serial_app import SerialModule
 from PyQt4.QtCore import QObject, QThread, SIGNAL
+from datetime import datetime
+from xpacket import XPacket
 
 class ListenThread(QThread):
     def __init__(self, factory, parent = None):
@@ -71,7 +73,9 @@ class ListenThread(QThread):
         self.publisher.notify_unexpected_length(packet_info, data)
         
     def notify_packet_received(self, packet_type, data):
-        self.publisher.notify_packet_received(packet_type, data)
+        timestamp = str(datetime.now())
+        packet = XPacket(timestamp, packet_type, data)
+        self.publisher.notify_packet_received(packet)
     
     def notify_unknown_packet_received(self, data):
         debug.Log("ListenThread: Unknown packet type")

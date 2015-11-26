@@ -7,8 +7,8 @@ class Publisher(QObject):
 	def notify_unexpected_length(self, packet_info, data):
 		self.emit(SIGNAL("UNEXPECTED_PACKET_LENGTH"), packet_info, data)
 			
-	def notify_packet_received(self, packet_type, data):
-		self.emit(SIGNAL("VALID_PACKET_RECEIVED"), packet_type, data)
+	def notify_packet_received(self, xpacket):
+		self.emit(SIGNAL("VALID_PACKET_RECEIVED"), xpacket)
 	
 	def notify_unknown_packet_received(self, data):
 		self.emit(SIGNAL("INVALID_PACKET_RECEIVED"), data)

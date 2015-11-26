@@ -13,16 +13,16 @@ class DataViewManager(QObject):
         self.connect(publisher, SIGNAL("VALID_PACKET_RECEIVED"), self._on_valid_packet_received)
         self.connect(publisher, SIGNAL("INVALID_PACKET_RECEIVED"), self._on_invalid_packet_received)
 
-    def _add_record(self, direction, packet_type, byte_array):
-        self.query_engine.insert(direction, packet_type, byte_array)
+    def _add_record(self, direction, packet):
+        self.query_engine.insert(direction, packet)
         if self.is_autorefresh_enabled:
             self.refresh()
             
     def _on_invalid_packet_received(self, data):
         self._add_record("incoming", "unknown", data)
     
-    def _on_valid_packet_received(self, packet_type, data):
-        self._add_record("incoming", packet_type, data)
+    def _on_valid_packet_received(self, packet):
+        self._add_record("incoming", packet)
 
     def connect_distinct_data(self, table_view):
         data_model = self.distinct_table_view_model.get_model()

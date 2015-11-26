@@ -1,6 +1,5 @@
 import utilities
 import scripts
-from datetime import datetime
 from PyQt4.QtCore import QObject
 from PyQt4 import QtSql
 
@@ -10,10 +9,9 @@ class QueryEngine(QObject):
         self.context = self._create_context(filename)
         self._create_sql_tables()
 
-    def insert(self, direction, packet_type, byte_array):
-        loggedtime = str(datetime.now())
-        self._insert_changed_packet(direction, packet_type, byte_array, loggedtime)
-        self._insert_received_packet(packet_type, byte_array, loggedtime)
+    def insert(self, direction, packet):
+        self._insert_changed_packet(direction, packet)
+        self._insert_received_packet(packet)
 
     def clear_database(self):
         query = QtSql.QSqlQuery(self.context)
@@ -46,33 +44,33 @@ class QueryEngine(QObject):
         query.exec_()
         query.finish()
 
-    def _has_changed(self, packet_type, byte_array):
-        row_id, timestamp, data = self._get_latest_packet(packet_type)
+    def _has_changed(self, packet):
+        row_id, timestamp, data = self._get_latest_packet(packet.get_type())
         if row_id is None:
             return True
         
-        sequence = utilities.convert_to_hex_string(byte_array)
+        sequence = utilities.convert_to_hex_string(packet._data) # YUUUUUUUCKKKKKKKK!!!!!!
         return sequence != data
 
-    def _insert_changed_packet(self, direction, packet_type, byte_array, logged_time):
-        if not self._has_changed(packet_type, byte_array):
+    def _insert_changed_packet(self, direction, packet):
+        if not self._has_changed(packet):
             return
 
         query = QtSql.QSqlQuery(self.context)
-        hexstring = utilities.convert_to_hex_string(byte_array)
+        hexstring = utilities.convert_to_hex_string(packet._data) # YUUUUUUUCKKKKKKKK!!!!!!
         query.prepare(scripts.insert_distinct())
-        query.bindValue(":date", logged_time)
+        query.bindValue(":date", packet.get_time())
         query.bindValue(":direction", str(direction))
-        query.bindValue(":type", packet_type)
+        query.bindValue(":type", packet.get_type())
         query.bindValue(":contents", str(hexstring))
         query.exec_()
         query.finish()
 
-    def _insert_received_packet(self, packet_type, byte_array, logged_time):
-        row_id, timestamp, data = self._get_latest_packet(packet_type)
+    def _insert_received_packet(self, packet):
+        row_id, timestamp, data = self._get_latest_packet(packet.get_type())
         query = QtSql.QSqlQuery(self.context)
         query.prepare(scripts.insert_session())
-        query.bindValue(":date", logged_time)
+        query.bindValue(":date", packet.get_time())
         query.bindValue(":packetid", row_id)
         query.exec_()
         query.finish()
