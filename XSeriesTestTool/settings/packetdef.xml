@@ -671,4 +671,58 @@
 			<byte>2</byte>
 		</item>
 	</packet>
+	<packet name="fdb" length="128" pattern="01">
+		<item name="identifier" type="integer-reverse">
+			<byte>2</byte>
+		</item>
+		<item name="version" type="integer-reverse">
+			<startbyte>3</startbyte>
+			<endbyte>4</endbyte>
+		</item>
+		<item name="blockseqnr" type="integer-reverse">
+			<byte>5</byte>
+		</item>
+		<item name="gmid" type="integer-reverse">
+			<startbyte>6</startbyte>
+			<endbyte>8</endbyte>
+		</item>
+		<item name="proglevelssupported" type="integer-reverse">
+			<byte>9</byte>
+		</item>
+		<item name="progwinlevel" type="integer-reverse">
+			<byte>10</byte>
+		</item>
+		<item name="level1hits" type="integer-reverse">
+			<startbyte>13</startbyte>
+			<endbyte>15</endbyte>
+		</item>
+		<item name="level2hits" type="integer-reverse">
+			<startbyte>16</startbyte>
+			<endbyte>18</endbyte>
+		</item>
+		<item name="level3hits" type="integer-reverse">
+			<startbyte>19</startbyte>
+			<endbyte>21</endbyte>
+		</item>
+		<item name="level4hits" type="integer-reverse">
+			<startbyte>22</startbyte>
+			<endbyte>24</endbyte>
+		</item>
+		<item name="level1hitprob" type="integer-reverse">
+			<startbyte>27</startbyte>
+			<endbyte>33</endbyte>
+		</item>
+		<item name="level2hitprob" type="integer-reverse">
+			<startbyte>34</startbyte>
+			<endbyte>40</endbyte>
+		</item>
+		<item name="level3hitprob" type="integer-reverse">
+			<startbyte>41</startbyte>
+			<endbyte>47</endbyte>
+		</item>
+		<item name="level4hitprob" type="integer-reverse">
+			<startbyte>48</startbyte>
+			<endbyte>54</endbyte>
+		</item>
+	</packet>
 </config>
